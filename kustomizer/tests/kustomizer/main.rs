@@ -1,5 +1,8 @@
 use kustomizer::PathExt;
-use std::{collections::HashSet, path::Path};
+use std::{
+    collections::{BTreeSet, HashSet},
+    path::Path,
+};
 
 use anyhow::Context;
 
@@ -82,10 +85,11 @@ fn show_reference_impl_error(path: &Path) -> datatest_stable::Result<()> {
 
 // Diff against reference kustomize implementation
 fn diff_reference_impl(path: &Path, actual: &str) -> datatest_stable::Result<()> {
+    let parent = path.parent().unwrap();
     let output = std::process::Command::new("kustomize")
         .arg("build")
         .arg(".")
-        .current_dir(path.parent().unwrap())
+        .current_dir(parent)
         .stdout(std::process::Stdio::piped())
         .stderr(std::process::Stdio::piped())
         .output()
@@ -124,7 +128,26 @@ fn diff_reference_impl(path: &Path, actual: &str) -> datatest_stable::Result<()>
         return Ok(());
     }
 
-    // TODO diff
+    let mut expected = expected_documents
+        .into_iter()
+        .map(|doc| serde_yaml::to_string(&doc).unwrap())
+        .collect::<Vec<_>>();
+    expected.sort();
+
+    let mut actual = actual_documents
+        .into_iter()
+        .map(|doc| serde_yaml::to_string(&doc).unwrap())
+        .collect::<Vec<_>>();
+    actual.sort();
+
+    let actual = actual.join("---\n");
+    let expected = expected.join("---\n");
+    let tmp_dir = Path::new("/tmp/kustomizer-test").join(parent.file_name().unwrap());
+    std::fs::create_dir_all(&tmp_dir).context("creating temporary directory")?;
+    std::fs::write(tmp_dir.join("expected.yaml"), &expected)?;
+    std::fs::write(tmp_dir.join("actual.yaml"), &actual)?;
+    let chunks = dissimilar::diff(&expected, &actual);
+    eprintln!("{}", format_chunks(chunks));
 
     Err(format!("reference mismatch for test {}", path.pretty()))?
 }

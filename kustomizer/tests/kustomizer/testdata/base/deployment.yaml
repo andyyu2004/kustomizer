@@ -4,6 +4,8 @@ metadata:
   name: test-app
   labels:
     app: test-app
+  annotations:
+    description: "Initial description of the test app deployment"
 spec:
   replicas: 1
   selector:

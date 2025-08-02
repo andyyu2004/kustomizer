@@ -65,6 +65,16 @@ impl Builder {
                         .insert(key.clone(), value.clone());
                 }
             }
+
+            for (key, value) in &kustomization.common_annotations {
+                // `kustomization.commonAnnotations` does not take precedence over resource metadata annotations
+                // if !self.output[&res.id].metadata.annotations.contains_key(key) {
+                self.output[&res.id]
+                    .metadata
+                    .annotations
+                    .insert(key.clone(), value.clone());
+                // }
+            }
         }
 
         Ok(())
