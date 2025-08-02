@@ -66,6 +66,42 @@ impl Builder {
                 }
             }
 
+            if kustomization.namespace.is_some() {
+                bail!("namespace is not implemented");
+            }
+
+            if !kustomization.patches.is_empty() {
+                bail!("patches are not implemented");
+            }
+
+            if !kustomization.transformers.is_empty() {
+                bail!("transformers are not implemented");
+            }
+
+            if !kustomization.generators.is_empty() {
+                bail!("generators are not implemented");
+            }
+
+            if !kustomization.replicas.is_empty() {
+                bail!("images are not implemented");
+            }
+
+            if !kustomization.components.is_empty() {
+                bail!("components are not implemented");
+            }
+
+            if !kustomization.config_map_generators.is_empty() {
+                bail!("config map generators are not implemented");
+            }
+
+            if kustomization.name_prefix.is_some() {
+                bail!("name prefix is not implemented");
+            }
+
+            if kustomization.name_suffix.is_some() {
+                bail!("name suffix is not implemented");
+            }
+
             if !kustomization.common_annotations.is_empty() {
                 bail!("common annotations are not implemented");
             }
