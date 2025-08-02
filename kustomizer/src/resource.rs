@@ -64,9 +64,9 @@ struct Res {
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Metadata {
-    name: Str,
+    pub name: Str,
     #[serde(skip_serializing_if = "Option::is_none")]
-    namespace: Option<Str>,
+    pub namespace: Option<Str>,
     #[serde(default, skip_serializing_if = "IndexMap::is_empty")]
     pub labels: IndexMap<Str, Str>,
     #[serde(default, skip_serializing_if = "IndexMap::is_empty")]
