@@ -42,6 +42,8 @@ pub struct Manifest<A, K> {
     pub generators: Box<[PathBuf]>,
     #[serde(default, skip_serializing_if = "<[_]>::is_empty")]
     pub transformers: Box<[PathBuf]>,
+    #[serde(default)]
+    pub generator_options: GeneratorOptions,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize)]
@@ -53,6 +55,18 @@ pub struct Generator {
     pub behavior: Behavior,
     #[serde(flatten)]
     pub sources: KeyValuePairSources,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize, Default)]
+pub struct GeneratorOptions {
+    #[serde(default, skip_serializing_if = "IndexMap::is_empty")]
+    labels: IndexMap<Str, Str>,
+    #[serde(default, skip_serializing_if = "IndexMap::is_empty")]
+    annotations: IndexMap<Str, Str>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub disable_name_suffix_hash: Option<bool>,
+    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+    pub immutable: bool,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize)]
