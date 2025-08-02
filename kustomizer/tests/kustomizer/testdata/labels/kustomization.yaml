@@ -9,6 +9,3 @@ labels:
       environment: production
       team: backend
       app: overridden-app
-
-commonAnnotations:
-  description: "Common description"

@@ -8,7 +8,7 @@ metadata:
     environment: production
     team: backend
   annotations:
-    description: Common description
+    description: Initial description of the test app deployment
 spec:
   replicas: 1
   selector:
@@ -33,8 +33,6 @@ metadata:
     environment: production
     team: backend
     app: overridden-app
-  annotations:
-    description: Common description
 spec:
   selector:
     app: test-app

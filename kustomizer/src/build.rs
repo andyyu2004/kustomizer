@@ -6,7 +6,7 @@ use crate::{
     resmap::ResourceMap,
     resource::Resource,
 };
-use anyhow::Context;
+use anyhow::{Context, bail};
 use indexmap::IndexMap;
 
 #[derive(Debug, Default)]
@@ -49,7 +49,7 @@ impl Builder {
     fn build_kustomization(&mut self, kustomization: &Kustomization) -> anyhow::Result<()> {
         for (path, res) in &self.resources {
             if self.output.insert(res.clone()).is_some() {
-                anyhow::bail!(
+                bail!(
                     "merging resources from `{}`: may not add resource with an already registered id `{}`",
                     path.pretty(),
                     res.id
@@ -66,14 +66,8 @@ impl Builder {
                 }
             }
 
-            for (key, value) in &kustomization.common_annotations {
-                // `kustomization.commonAnnotations` does not take precedence over resource metadata annotations
-                // if !self.output[&res.id].metadata.annotations.contains_key(key) {
-                self.output[&res.id]
-                    .metadata
-                    .annotations
-                    .insert(key.clone(), value.clone());
-                // }
+            if !kustomization.common_annotations.is_empty() {
+                bail!("common annotations are not implemented");
             }
         }
 

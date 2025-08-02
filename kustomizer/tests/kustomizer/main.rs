@@ -1,8 +1,5 @@
 use kustomizer::PathExt;
-use std::{
-    collections::{BTreeSet, HashSet},
-    path::Path,
-};
+use std::{collections::HashSet, path::Path};
 
 use anyhow::Context;
 
