@@ -11,9 +11,9 @@ pub type Str = CompactString;
 pub type Kustomization = Manifest<KustomizeBeta, KustomizeKind>;
 pub type Component = Manifest<KustomizeAlpha, ComponentKind>;
 
-#[derive(Debug, PartialEq, Eq, Clone, Deserialize, Serialize)]
+#[derive(Debug, PartialEq, Eq, Clone, Deserialize, Serialize, Default)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-pub struct Manifest<A: Symbol, K: Symbol> {
+pub struct Manifest<A, K> {
     #[serde(flatten)]
     pub type_meta: TypeMeta<A, K>,
     #[serde(default)]
@@ -254,9 +254,9 @@ impl<'de> Deserialize<'de> for Selector {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize, Default)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-pub struct TypeMeta<V: Symbol, K: Symbol> {
+pub struct TypeMeta<V, K> {
     pub api_version: V,
     pub kind: K,
 }
@@ -290,7 +290,7 @@ define_symbol!(ComponentKind = "Component");
 
 macro_rules! define_symbol {
     ($name:ident = $value:literal) => {
-        #[derive(Clone, PartialEq, Eq, Hash)]
+        #[derive(Clone, PartialEq, Eq, Hash, Default)]
         #[allow(non_camel_case_types)]
         pub struct $name;
 

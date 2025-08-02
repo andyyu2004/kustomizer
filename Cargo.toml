@@ -3,3 +3,11 @@ resolver = "3"
 members = [
 	"kustomizer"
 ]
+
+[workspace.lints.rust]
+rust_2024_compatibility = "deny"
+unsafe_code = "deny"
+rust_2018_idioms = "deny"
+
+[workspace.lints.clippy]
+dbg_macro = "warn"

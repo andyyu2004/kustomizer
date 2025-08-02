@@ -11,6 +11,10 @@ use dashmap::DashMap;
 #[derive(Debug, Clone, Copy)]
 pub struct PathId(&'static Path);
 
+// Don't implement this because we don't want people looking up `PathId` by `Path` in maps, that
+// would likely indicate a bug. They should first be using `PathId::make` to create a `PathId`.
+// impl Borrow<Path> for PathId;
+
 impl AsRef<Path> for PathId {
     #[inline]
     fn as_ref(&self) -> &Path {

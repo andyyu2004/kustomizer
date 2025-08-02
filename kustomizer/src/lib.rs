@@ -4,6 +4,8 @@ pub mod manifest;
 
 use std::{ops::Deref, path::Path};
 
+use anyhow::Context;
+
 pub use self::intern::PathId;
 
 use self::manifest::{Component, Kustomization, Manifest, Symbol};
@@ -54,4 +56,15 @@ where
         value,
         path: PathId::make(path)?,
     })
+}
+
+fn load_resource<T>(path: impl AsRef<Path>) -> anyhow::Result<T>
+where
+    T: serde::de::DeserializeOwned,
+{
+    let path = path.as_ref();
+    let id = PathId::make(&path)
+        .with_context(|| format!("loading resource from path {}", path.display()))?;
+    let file = std::fs::File::open(id)?;
+    Ok(serde_yaml::from_reader(file)?)
 }
