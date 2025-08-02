@@ -17,7 +17,6 @@ pub struct Builder {
     resources: IndexMap<PathId, Resource>,
     strategic_merge_patches: IndexMap<PathId, serde_yaml::Value>,
     key_value_files: IndexMap<PathId, Box<str>>,
-    output: ResourceMap,
 }
 
 impl Builder {
@@ -34,10 +33,10 @@ impl Builder {
         );
 
         self.gather(kustomization)?;
-        self.build_kustomization(kustomization)?;
+        let output = self.build_kustomization(kustomization)?;
 
-        for resource in self.output.iter() {
-            if self.output.len() > 1 {
+        for resource in output.iter() {
+            if output.len() > 1 {
                 writeln!(out, "---")?;
             }
             serde_yaml::to_writer(&mut *out, resource)?;
@@ -46,30 +45,11 @@ impl Builder {
     }
 
     #[tracing::instrument(skip_all)]
-    fn build_kustomization(&mut self, kustomization: &Kustomization) -> anyhow::Result<()> {
-        for (path, res) in &self.resources {
-            if self.output.insert(res.clone()).is_some() {
-                bail!(
-                    "merging resources from `{}`: may not add resource with an already registered id `{}`",
-                    path.pretty(),
-                    res.id
-                );
-            }
-
-            for label in &kustomization.labels {
-                for (key, value) in &label.pairs {
-                    // `kustomization.labels` takes precedence over resource metadata labels
-                    self.output[&res.id]
-                        .metadata
-                        .labels
-                        .insert(key.clone(), value.clone());
-                }
-            }
-
-            if let Some(namespace) = &kustomization.namespace {
-                self.output[&res.id].metadata.namespace = Some(namespace.clone());
-            }
-        }
+    fn build_kustomization(
+        &mut self,
+        kustomization: &Kustomization,
+    ) -> anyhow::Result<ResourceMap> {
+        let output = self.build_base_resources(kustomization)?;
 
         if !kustomization.patches.is_empty() {
             bail!("patches are not implemented");
@@ -107,7 +87,39 @@ impl Builder {
             bail!("common annotations are not implemented");
         }
 
-        Ok(())
+        Ok(output)
+    }
+
+    fn build_base_resources(
+        &mut self,
+        kustomization: &Kustomization,
+    ) -> anyhow::Result<ResourceMap> {
+        let mut output = ResourceMap::default();
+        for (path, res) in &self.resources {
+            if output.insert(res.clone()).is_some() {
+                bail!(
+                    "merging resources from `{}`: may not add resource with an already registered id `{}`",
+                    path.pretty(),
+                    res.id
+                );
+            }
+
+            for label in &kustomization.labels {
+                for (key, value) in &label.pairs {
+                    // `kustomization.labels` takes precedence over resource metadata labels
+                    output[&res.id]
+                        .metadata
+                        .labels
+                        .insert(key.clone(), value.clone());
+                }
+            }
+
+            if let Some(namespace) = &kustomization.namespace {
+                output[&res.id].metadata.namespace = Some(namespace.clone());
+            }
+        }
+
+        Ok(output)
     }
 
     #[tracing::instrument(skip_all, level = "debug")]
