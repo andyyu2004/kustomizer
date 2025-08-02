@@ -21,6 +21,7 @@ async fn main() -> anyhow::Result<()> {
         Command::Build { dir } => {
             let file = std::fs::File::open(dir.join("kustomization.yaml"))?;
             let kustomization = serde_yaml::from_reader::<_, Kustomization>(file)?;
+            dbg!(&kustomization);
             serde_yaml::to_writer(std::io::stdout(), &kustomization)?;
         }
     }
