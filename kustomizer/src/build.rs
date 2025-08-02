@@ -1,4 +1,4 @@
-use std::{collections::HashMap, path::Path};
+use std::{collections::HashMap, io::Write, path::Path};
 
 use crate::{
     Located, PathId, load_file, load_kustomization, load_resource,
@@ -20,7 +20,11 @@ pub struct Builder {
 }
 
 impl Builder {
-    pub fn build(mut self, kustomization: &Located<Kustomization>) -> anyhow::Result<()> {
+    pub fn build(
+        mut self,
+        kustomization: &Located<Kustomization>,
+        out: &mut dyn Write,
+    ) -> anyhow::Result<()> {
         assert!(
             self.kustomizations
                 .insert(kustomization.path, kustomization.value.clone())

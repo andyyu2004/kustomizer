@@ -1,6 +1,5 @@
 use std::path::PathBuf;
 
-use anyhow::Context;
 use clap::Parser;
 
 #[derive(Parser)]
@@ -17,14 +16,7 @@ enum Command {
 fn main() -> anyhow::Result<()> {
     let args = Args::parse();
     match args.command {
-        Command::Build { dir } => {
-            let kustomization = kustomizer::load_kustomization(dir)?;
-            dbg!(&kustomization.value);
-            serde_yaml::to_writer(std::io::stdout(), &kustomization.value)?;
-            kustomizer::build::Builder::default()
-                .build(&kustomization)
-                .context("gathering build context")?;
-        }
+        Command::Build { dir } => kustomizer::build(dir, &mut std::io::stdout().lock())?,
     }
 
     Ok(())

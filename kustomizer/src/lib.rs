@@ -1,14 +1,19 @@
-pub mod build;
+mod build;
 mod intern;
 pub mod manifest;
 
-use std::{ops::Deref, path::Path};
+use std::{io::Write, ops::Deref, path::Path};
 
 use anyhow::Context;
 
 pub use self::intern::PathId;
 
 use self::manifest::{Component, Kustomization, Manifest, Symbol};
+
+pub fn build(path: impl AsRef<Path>, out: &mut dyn Write) -> anyhow::Result<()> {
+    let kustomization = load_kustomization(path)?;
+    build::Builder::default().build(&kustomization, out)
+}
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Located<T> {
@@ -24,11 +29,11 @@ impl<T> Deref for Located<T> {
     }
 }
 
-pub fn load_kustomization(path: impl AsRef<Path>) -> anyhow::Result<Located<Kustomization>> {
+fn load_kustomization(path: impl AsRef<Path>) -> anyhow::Result<Located<Kustomization>> {
     load_manifest(path)
 }
 
-pub fn load_component(path: impl AsRef<Path>) -> anyhow::Result<Located<Component>> {
+fn load_component(path: impl AsRef<Path>) -> anyhow::Result<Located<Component>> {
     load_manifest(path)
 }
 

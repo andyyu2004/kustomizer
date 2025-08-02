@@ -13,3 +13,12 @@ indexmap = { version = "2.10.0", features = ["serde"] }
 json-patch = "4.0.0"
 serde = { version = "1.0.219", features = ["derive"] }
 serde_yaml = "0.9.34"
+
+[dev-dependencies]
+datatest-stable = "0.3.2"
+dissimilar = "1.0.10"
+
+[[test]]
+name = "kustomizer"
+harness = false
+
