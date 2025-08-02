@@ -28,6 +28,22 @@ impl ResourceMap {
     pub fn iter(&self) -> impl ExactSizeIterator<Item = &Resource> + DoubleEndedIterator {
         self.resources.values()
     }
+
+    pub fn iter_mut(
+        &mut self,
+    ) -> impl ExactSizeIterator<Item = &mut Resource> + DoubleEndedIterator {
+        self.resources.values_mut()
+    }
+
+    /// In-place merge of two `ResourceMap`s, any conflicting resources will be an error
+    pub fn merge(&mut self, other: ResourceMap) -> Result<(), ResId> {
+        for (id, resource) in other.resources {
+            if self.resources.insert(id.clone(), resource).is_some() {
+                Err(id)?
+            }
+        }
+        Ok(())
+    }
 }
 
 impl Index<&ResId> for ResourceMap {
