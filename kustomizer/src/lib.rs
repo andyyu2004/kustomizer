@@ -58,12 +58,17 @@ where
     })
 }
 
+fn load_file(path: impl AsRef<Path>) -> anyhow::Result<String> {
+    std::fs::read_to_string(path.as_ref())
+        .with_context(|| format!("loading file from path {}", path.as_ref().display()))
+}
+
 fn load_resource<T>(path: impl AsRef<Path>) -> anyhow::Result<T>
 where
     T: serde::de::DeserializeOwned,
 {
     let path = path.as_ref();
-    let id = PathId::make(&path)
+    let id = PathId::make(path)
         .with_context(|| format!("loading resource from path {}", path.display()))?;
     let file = std::fs::File::open(id)?;
     Ok(serde_yaml::from_reader(file)?)

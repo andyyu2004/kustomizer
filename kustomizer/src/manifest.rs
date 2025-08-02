@@ -36,8 +36,12 @@ pub struct Manifest<A, K> {
     pub patches: Box<[Patch]>,
     #[serde(default, skip_serializing_if = "<[_]>::is_empty")]
     pub replicas: Box<[Replica]>,
-    #[serde(default, skip_serializing_if = "<[_]>::is_empty")]
-    pub config_map_generator: Box<[Generator]>,
+    #[serde(
+        default,
+        skip_serializing_if = "<[_]>::is_empty",
+        rename = "configMapGenerator"
+    )]
+    pub config_map_generators: Box<[Generator]>,
     #[serde(default, skip_serializing_if = "<[_]>::is_empty")]
     pub generators: Box<[PathBuf]>,
     #[serde(default, skip_serializing_if = "<[_]>::is_empty")]

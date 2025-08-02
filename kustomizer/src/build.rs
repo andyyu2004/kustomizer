@@ -1,8 +1,11 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, path::Path};
 
 use crate::{
-    Located, PathId, load_kustomization, load_resource,
-    manifest::{Component, Kustomization, Manifest, PathOrInlinePatch},
+    Located, PathId, load_file, load_kustomization, load_resource,
+    manifest::{
+        Component, Generator, KeyValuePairSources, Kustomization, Manifest, Patch,
+        PathOrInlinePatch,
+    },
 };
 use anyhow::Context;
 
@@ -13,6 +16,7 @@ pub struct Builder {
     resource: HashMap<PathId, serde_yaml::Value>,
     json_patches: HashMap<PathId, json_patch::Patch>,
     strategic_merge_patches: HashMap<PathId, serde_yaml::Value>,
+    key_value_files: HashMap<PathId, Box<str>>,
 }
 
 impl Builder {
@@ -33,15 +37,14 @@ impl Builder {
         Ok(())
     }
 
-    fn traverse<A, K>(&mut self, manifest: &Located<Manifest<A, K>>) -> anyhow::Result<()> {
-        let base_path = manifest
-            .path
-            .parent()
-            .expect("this is a file so it has a parent")
-            .canonicalize()?;
-
-        for path in &manifest.resources {
-            let path = PathId::make(base_path.join(path))
+    fn traverse_resources<'a>(
+        &mut self,
+        base_path: &Path,
+        resources: impl Iterator<Item = &'a Path>,
+    ) -> anyhow::Result<()> {
+        for path in resources {
+            let path = base_path.join(path);
+            let path = PathId::make(&path)
                 .with_context(|| format!("canonicalizing resource path {}", path.display()))?;
 
             if self.resource.contains_key(&path) {
@@ -74,8 +77,15 @@ impl Builder {
                 );
             }
         }
+        Ok(())
+    }
 
-        for patch in &manifest.patches {
+    fn traverse_patches<'a>(
+        &mut self,
+        base_path: &Path,
+        patches: impl Iterator<Item = &'a Patch>,
+    ) -> anyhow::Result<()> {
+        for patch in patches {
             match patch {
                 crate::manifest::Patch::Json { patch, target: _ } => match patch {
                     PathOrInlinePatch::Inline(_) => {}
@@ -113,7 +123,15 @@ impl Builder {
             }
         }
 
-        for path in &manifest.components {
+        Ok(())
+    }
+
+    fn traverse_components<'a>(
+        &mut self,
+        base_path: &Path,
+        components: impl Iterator<Item = &'a Path>,
+    ) -> anyhow::Result<()> {
+        for path in components {
             let path = PathId::make(base_path.join(path))
                 .with_context(|| format!("canonicalizing component path {}", path.display()))?;
 
@@ -132,6 +150,50 @@ impl Builder {
                 Some(Component::default())
             );
         }
+
+        Ok(())
+    }
+
+    fn traverse_configmap_generators<'a>(
+        &mut self,
+        base_path: &Path,
+        generators: impl Iterator<Item = &'a Generator>,
+    ) -> anyhow::Result<()> {
+        for generator in generators {
+            self.traverse_key_value_pair_sources(base_path, &generator.sources)?;
+        }
+
+        Ok(())
+    }
+
+    fn traverse_key_value_pair_sources(
+        &mut self,
+        base_path: &Path,
+        sources: &KeyValuePairSources,
+    ) -> anyhow::Result<()> {
+        for file in &sources.files {
+            let path = PathId::make(base_path.join(&file.value))?;
+            let data = load_file(path)
+                .with_context(|| format!("loading key-value file {}", file.value))?;
+            self.key_value_files.insert(path, data.into_boxed_str());
+        }
+        Ok(())
+    }
+
+    // Traverse all referenced files and read them into memory.
+    fn traverse<A, K>(&mut self, manifest: &Located<Manifest<A, K>>) -> anyhow::Result<()> {
+        let base_path = manifest
+            .path
+            .parent()
+            .expect("this is a file so it has a parent")
+            .canonicalize()?;
+
+        self.traverse_resources(&base_path, manifest.resources.iter().map(|p| p.as_path()))?;
+        self.traverse_patches(&base_path, manifest.patches.iter())?;
+        self.traverse_components(&base_path, manifest.components.iter().map(|p| p.as_path()))?;
+        self.traverse_configmap_generators(&base_path, manifest.config_map_generators.iter())?;
+
+        // TODO generators and transformers
 
         Ok(())
     }
