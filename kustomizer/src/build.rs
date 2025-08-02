@@ -12,6 +12,7 @@ use crate::{
     manifest::{Component, Generator, KeyValuePairSources, Kustomization, Manifest, Patch},
     resmap::ResourceMap,
     resource::Resource,
+    transform::{AnnotationTransformer, Transformer},
 };
 use anyhow::{Context, bail};
 use indexmap::{IndexMap, map::Entry};
@@ -44,12 +45,13 @@ impl Builder {
         Ok(())
     }
 
-    #[tracing::instrument(skip_all)]
+    #[tracing::instrument(skip_all, fields(path = %kustomization.path.pretty()))]
     fn build_kustomization(
         &mut self,
         kustomization: &Located<Kustomization>,
     ) -> anyhow::Result<ResourceMap> {
         let mut resources = self.build_kustomization_base(kustomization)?;
+        AnnotationTransformer(&kustomization.common_annotations).transform(&mut resources);
 
         for resource in resources.iter_mut() {
             for label in &kustomization.labels {
@@ -59,49 +61,43 @@ impl Builder {
                 }
             }
 
-            for (key, value) in &kustomization.common_annotations {
-                resource
-                    .metadata
-                    .annotations
-                    .insert(key.clone(), value.clone());
-            }
-
             if let Some(namespace) = &kustomization.namespace {
                 resource.metadata.namespace = Some(namespace.clone());
             }
-        }
-
-        if !kustomization.patches.is_empty() {
-            bail!("patches are not implemented");
-        }
-
-        if !kustomization.transformers.is_empty() {
-            bail!("transformers are not implemented");
         }
 
         if !kustomization.generators.is_empty() {
             bail!("generators are not implemented");
         }
 
-        if !kustomization.replicas.is_empty() {
-            bail!("images are not implemented");
-        }
-
-        if !kustomization.components.is_empty() {
-            bail!("components are not implemented");
-        }
-
-        if !kustomization.config_map_generators.is_empty() {
-            bail!("config map generators are not implemented");
-        }
-
-        if kustomization.name_prefix.is_some() {
-            bail!("name prefix is not implemented");
-        }
-
-        if kustomization.name_suffix.is_some() {
-            bail!("name suffix is not implemented");
-        }
+        // if !kustomization.patches.is_empty() {
+        //     bail!("patches are not implemented");
+        // }
+        //
+        // if !kustomization.transformers.is_empty() {
+        //     bail!("transformers are not implemented");
+        // }
+        //
+        //
+        // if !kustomization.replicas.is_empty() {
+        //     bail!("images are not implemented");
+        // }
+        //
+        // if !kustomization.components.is_empty() {
+        //     bail!("components are not implemented");
+        // }
+        //
+        // if !kustomization.config_map_generators.is_empty() {
+        //     bail!("config map generators are not implemented");
+        // }
+        //
+        // if kustomization.name_prefix.is_some() {
+        //     bail!("name prefix is not implemented");
+        // }
+        //
+        // if kustomization.name_suffix.is_some() {
+        //     bail!("name suffix is not implemented");
+        // }
 
         Ok(resources)
     }

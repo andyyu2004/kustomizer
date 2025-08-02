@@ -17,6 +17,8 @@ spec:
     metadata:
       labels:
         app: test-app
+      annotations:
+        app.kubernetes.io/managed-by: kustomize
     spec:
       containers:
       - image: nginx
