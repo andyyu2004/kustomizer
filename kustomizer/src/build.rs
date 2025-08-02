@@ -4,13 +4,16 @@ use crate::{
     Located, PathId, load_file, load_kustomization, load_resource,
     manifest::{
         Component, Generator, KeyValuePairSources, Kustomization, Manifest, Patch,
-        PathOrInlinePatch, ResId,
+        PathOrInlinePatch,
     },
+    resmap::ResourceMap,
 };
 use anyhow::Context;
 
 #[derive(Debug, Default)]
 pub struct Builder {
+    /// Maps from a kustomization directory to its kustomization file path.
+    kustomization_dirs: HashMap<PathId, PathId>,
     kustomizations: HashMap<PathId, Kustomization>,
     components: HashMap<PathId, Component>,
     resources: HashMap<PathId, serde_yaml::Value>,
@@ -30,6 +33,11 @@ impl Builder {
                 .insert(kustomization.path, kustomization.value.clone())
                 .is_none()
         );
+        assert!(
+            self.kustomization_dirs
+                .insert(kustomization.parent_path, kustomization.path)
+                .is_none()
+        );
 
         self.gather(kustomization)?;
         self.build_root(kustomization)?;
@@ -41,7 +49,25 @@ impl Builder {
 
         for resource in kustomization.resources.iter() {
             let path = PathId::make(base_path.join(resource))?;
-            let _resource = &self.resources[&path];
+            let metadata = std::fs::metadata(path)?;
+            if metadata.is_file() {
+                let _resource = &self.resources.get(&path).unwrap_or_else(|| {
+                    panic!("resource `{}` not found in resources map", path.display())
+                });
+            } else if metadata.is_dir() {
+                let path = self.kustomization_dirs[&path];
+                let _inner = self.kustomizations.get(&path).unwrap_or_else(|| {
+                    panic!(
+                        "kustomization `{}` not found in kustomizations map",
+                        path.display()
+                    )
+                });
+            } else if metadata.is_symlink() {
+                return Err(anyhow::anyhow!(
+                    "symlinks are not implemented: {}",
+                    path.display()
+                ));
+            }
         }
 
         Ok(())
@@ -61,11 +87,13 @@ impl Builder {
                 continue;
             }
 
-            if path.is_file() {
+            // TODO handle symlinks
+            let metadata = std::fs::metadata(path)?;
+            if metadata.is_file() {
                 let resource = crate::load_resource::<serde_yaml::Value>(path)
                     .with_context(|| format!("loading resource {}", path.display()))?;
                 assert!(self.resources.insert(path, resource).is_none());
-            } else {
+            } else if metadata.is_dir() {
                 let kustomization = load_kustomization(path).with_context(|| {
                     format!("loading kustomization resource {}", path.display())
                 })?;
@@ -85,6 +113,16 @@ impl Builder {
                         .insert(kustomization.path, kustomization.value),
                     Some(Default::default()),
                 );
+                assert!(
+                    self.kustomization_dirs
+                        .insert(kustomization.parent_path, kustomization.path)
+                        .is_none()
+                );
+            } else if metadata.is_symlink() {
+                return Err(anyhow::anyhow!(
+                    "symlinks are not implemented: {}",
+                    path.display()
+                ));
             }
         }
         Ok(())
@@ -151,6 +189,12 @@ impl Builder {
 
             let component = crate::load_component(path)
                 .with_context(|| format!("loading component {}", path.display()))?;
+
+            assert!(
+                self.kustomization_dirs
+                    .insert(component.parent_path, component.path)
+                    .is_none()
+            );
 
             // Insert a placeholder to avoid cycles causing overflow. TODO detect cycles and report them.
             assert!(self.components.insert(path, Component::default()).is_none());
@@ -233,5 +277,5 @@ impl Builder {
 }
 
 struct Output {
-    resources: HashMap<ResId, serde_yaml::Value>,
+    resources: ResourceMap,
 }

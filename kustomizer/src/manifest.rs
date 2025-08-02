@@ -224,7 +224,7 @@ pub enum Target {
 
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-struct Gvk {
+pub struct Gvk {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub group: Option<Str>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -237,11 +237,8 @@ struct Gvk {
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct ResId {
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub group: Option<Str>,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub version: Option<Str>,
-    pub kind: Str,
+    #[serde(flatten)]
+    pub gvk: Gvk,
     pub name: Str,
     pub namespace: Option<Str>,
 }

@@ -1,6 +1,7 @@
 mod build;
 mod intern;
 pub mod manifest;
+mod resmap;
 
 use std::{io::Write, ops::Deref, path::Path};
 
