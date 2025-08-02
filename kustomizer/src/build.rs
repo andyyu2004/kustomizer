@@ -2,10 +2,7 @@ use std::{collections::HashMap, io::Write, path::Path};
 
 use crate::{
     Located, PathId, load_file, load_kustomization, load_yaml,
-    manifest::{
-        Component, Generator, KeyValuePairSources, Kustomization, Manifest, Patch,
-        PathOrInlinePatch,
-    },
+    manifest::{Component, Generator, KeyValuePairSources, Kustomization, Manifest, Patch},
     resmap::ResourceMap,
     resource::Resource,
 };
@@ -14,17 +11,16 @@ use anyhow::Context;
 #[derive(Debug, Default)]
 pub struct Builder {
     /// Maps from a kustomization directory to its kustomization file path.
-    kustomization_dirs: HashMap<PathId, PathId>,
     kustomizations: HashMap<PathId, Kustomization>,
     components: HashMap<PathId, Component>,
     resources: HashMap<PathId, Resource>,
-    json_patches: HashMap<PathId, json_patch::Patch>,
     strategic_merge_patches: HashMap<PathId, serde_yaml::Value>,
     key_value_files: HashMap<PathId, Box<str>>,
     output: ResourceMap,
 }
 
 impl Builder {
+    #[tracing::instrument(skip_all, fields(path = %kustomization.path.display()))]
     pub fn build(
         mut self,
         kustomization: &Located<Kustomization>,
@@ -33,11 +29,6 @@ impl Builder {
         assert!(
             self.kustomizations
                 .insert(kustomization.path, kustomization.value.clone())
-                .is_none()
-        );
-        assert!(
-            self.kustomization_dirs
-                .insert(kustomization.parent_path, kustomization.path)
                 .is_none()
         );
 
@@ -53,38 +44,18 @@ impl Builder {
         Ok(())
     }
 
+    #[tracing::instrument(skip_all)]
     fn build_root(&mut self, kustomization: &Located<Kustomization>) -> anyhow::Result<()> {
-        let base_path = kustomization.parent_path;
-
-        for resource in kustomization.resources.iter() {
-            let path = PathId::make(base_path.join(resource))?;
-            let metadata = std::fs::metadata(path)?;
-            if metadata.is_file() {
-                let resource = self.resources.get(&path).unwrap_or_else(|| {
-                    panic!("resource `{}` not found in resources map", path.display())
-                });
-                if let Some(old) = self.output.insert(resource.clone()) {
-                    todo!("handle duplicate resource: {}", old.id);
-                }
-            } else if metadata.is_dir() {
-                let path = self.kustomization_dirs[&path];
-                let _inner = self.kustomizations.get(&path).unwrap_or_else(|| {
-                    panic!(
-                        "kustomization `{}` not found in kustomizations map",
-                        path.display()
-                    )
-                });
-            } else if metadata.is_symlink() {
-                return Err(anyhow::anyhow!(
-                    "symlinks are not implemented: {}",
-                    path.display()
-                ));
+        for resource in self.resources.values() {
+            if let Some(old) = self.output.insert(resource.clone()) {
+                todo!("handle duplicate resource: {}", old.id);
             }
         }
 
         Ok(())
     }
 
+    #[tracing::instrument(skip_all, level = "debug")]
     fn gather_resources<'a>(
         &mut self,
         base_path: &Path,
@@ -125,11 +96,6 @@ impl Builder {
                         .insert(kustomization.path, kustomization.value),
                     Some(Default::default()),
                 );
-                assert!(
-                    self.kustomization_dirs
-                        .insert(kustomization.parent_path, kustomization.path)
-                        .is_none()
-                );
             } else if metadata.is_symlink() {
                 return Err(anyhow::anyhow!(
                     "symlinks are not implemented: {}",
@@ -140,6 +106,7 @@ impl Builder {
         Ok(())
     }
 
+    #[tracing::instrument(skip_all, level = "debug")]
     fn gather_patches<'a>(
         &mut self,
         base_path: &Path,
@@ -147,30 +114,16 @@ impl Builder {
     ) -> anyhow::Result<()> {
         for patch in patches {
             match patch {
-                crate::manifest::Patch::Json { patch, target: _ } => match patch {
-                    PathOrInlinePatch::Inline(_) => {}
-                    PathOrInlinePatch::Path(path) => {
-                        let path = PathId::make(base_path.join(path)).with_context(|| {
-                            format!("canonicalizing json patch path {}", path.display())
-                        })?;
-                        if self.json_patches.contains_key(&path) {
-                            continue;
-                        }
-
-                        let patch = load_yaml(path)
-                            .with_context(|| format!("loading json patch {}", path.display()))?;
-
-                        assert!(self.json_patches.insert(path, patch).is_none());
-                    }
-                },
-                crate::manifest::Patch::StrategicMerge { path } => {
+                Patch::Json { .. } => {}
+                Patch::StrategicMerge { path, .. } => {
                     let path = PathId::make(base_path.join(path)).with_context(|| {
                         format!(
                             "canonicalizing strategic merge patch path {}",
                             path.display()
                         )
                     })?;
-                    if self.json_patches.contains_key(&path) {
+
+                    if self.strategic_merge_patches.contains_key(&path) {
                         continue;
                     }
 
@@ -186,6 +139,7 @@ impl Builder {
         Ok(())
     }
 
+    #[tracing::instrument(skip_all, level = "debug")]
     fn gather_components<'a>(
         &mut self,
         base_path: &Path,
@@ -202,12 +156,6 @@ impl Builder {
             let component = crate::load_component(path)
                 .with_context(|| format!("loading component {}", path.display()))?;
 
-            assert!(
-                self.kustomization_dirs
-                    .insert(component.parent_path, component.path)
-                    .is_none()
-            );
-
             // Insert a placeholder to avoid cycles causing overflow. TODO detect cycles and report them.
             assert!(self.components.insert(path, Component::default()).is_none());
             self.gather(&component)?;
@@ -220,6 +168,7 @@ impl Builder {
         Ok(())
     }
 
+    #[tracing::instrument(skip_all, level = "debug")]
     fn gather_configmap_generators<'a>(
         &mut self,
         base_path: &Path,
@@ -232,6 +181,7 @@ impl Builder {
         Ok(())
     }
 
+    #[tracing::instrument(skip_all, level = "debug")]
     fn gather_key_value_pair_sources(
         &mut self,
         base_path: &Path,
@@ -247,6 +197,7 @@ impl Builder {
     }
 
     // gather all referenced files and read them into memory.
+    #[tracing::instrument(skip_all, fields(path = %manifest.path.display()))]
     fn gather<A, K>(&mut self, manifest: &Located<Manifest<A, K>>) -> anyhow::Result<()> {
         let base_path = manifest.parent_path;
 

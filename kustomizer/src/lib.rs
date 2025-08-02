@@ -89,9 +89,19 @@ where
 #[cfg(test)]
 #[test]
 fn hack_test_tmp() -> anyhow::Result<()> {
-    let status = std::process::Command::new("bash").arg("test.sh").status()?;
-    if !status.success() {
-        return Err(anyhow::anyhow!("test.sh failed with status: {}", status));
+    let output = std::process::Command::new("bash")
+        .stdin(std::process::Stdio::null())
+        .stdout(std::process::Stdio::piped())
+        .stderr(std::process::Stdio::piped())
+        .arg("test.sh")
+        .output()?;
+
+    if !output.status.success() {
+        return Err(anyhow::anyhow!(
+            "test.sh failed with status: {}\n{}",
+            output.status,
+            String::from_utf8_lossy(&output.stderr),
+        ));
     }
     Ok(())
 }

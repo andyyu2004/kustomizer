@@ -65,10 +65,11 @@ fn snapshot(path: &Path, actual: &str) -> datatest_stable::Result<()> {
     }
 
     let expected = std::fs::read_to_string(path).context("reading snapshot")?;
-    let chunks = dissimilar::diff(&expected, actual);
-    if chunks.is_empty() {
+    if expected == actual {
         return Ok(());
     }
+
+    let chunks = dissimilar::diff(&expected, actual);
 
     let formatted = format_chunks(chunks);
     println!("{formatted}");

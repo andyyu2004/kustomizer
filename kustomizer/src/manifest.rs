@@ -170,23 +170,18 @@ pub struct Replica {
 
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize)]
 #[serde(untagged, rename_all = "camelCase")]
+// Assuming inline patch is a JSON Patch or a file path for strategic merge patch, not sure if this
+// matches kustomize's exact semantics.
 pub enum Patch {
     Json {
-        #[serde(flatten)]
-        patch: PathOrInlinePatch,
+        #[serde(with = "nested_yaml")]
+        patch: JsonPatch,
         target: Target,
     },
     StrategicMerge {
         path: PathBuf,
+        target: Option<Target>,
     },
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize)]
-pub enum PathOrInlinePatch {
-    #[serde(rename = "path")]
-    Path(PathBuf),
-    #[serde(rename = "patch", with = "nested_yaml")]
-    Inline(JsonPatch),
 }
 
 mod nested_yaml {
@@ -219,7 +214,16 @@ pub enum Target {
     LabelSelector(Selector),
     AnnotationSelector(Selector),
     #[serde(untagged)]
-    Id(ResId),
+    Pattern(Pattern),
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize)]
+pub struct Pattern {
+    pub kind: Str,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub name: Option<Str>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub namespace: Option<Str>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -327,8 +331,6 @@ macro_rules! define_symbol {
 }
 
 use define_symbol;
-
-use crate::resource::ResId;
 
 pub trait Symbol: fmt::Debug {
     const VALUE: &'static str;

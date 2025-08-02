@@ -16,26 +16,12 @@ impl fmt::Debug for ResourceMap {
 }
 
 impl ResourceMap {
-    pub fn new() -> Self {
-        ResourceMap {
-            resources: IndexMap::new(),
-        }
-    }
-
     pub fn len(&self) -> usize {
         self.resources.len()
     }
 
     pub fn insert(&mut self, resource: Resource) -> Option<Resource> {
         self.resources.insert(resource.id.clone(), resource)
-    }
-
-    pub fn get(&self, id: &ResId) -> Option<&Resource> {
-        self.resources.get(id)
-    }
-
-    pub fn remove(&mut self, id: &ResId) -> Option<Resource> {
-        self.resources.shift_remove(id)
     }
 
     pub fn iter(&self) -> impl ExactSizeIterator<Item = &Resource> + DoubleEndedIterator {

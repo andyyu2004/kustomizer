@@ -1,7 +1,6 @@
 use std::fmt;
 
 use compact_str::format_compact;
-use indexmap::IndexMap;
 use serde::{Deserialize, Serialize};
 
 use crate::manifest::Str;
@@ -47,7 +46,7 @@ impl fmt::Display for ResId {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Resource {
     pub id: ResId,
-    pub metadata: IndexMap<Str, Str>,
+    pub metadata: serde_yaml::Value,
     pub manifest: serde_yaml::Value,
 }
 
@@ -67,7 +66,7 @@ struct Metadata {
     #[serde(skip_serializing_if = "Option::is_none")]
     namespace: Option<Str>,
     #[serde(flatten)]
-    rest: IndexMap<Str, Str>,
+    rest: serde_yaml::Value,
 }
 
 impl Serialize for Resource {
@@ -100,7 +99,8 @@ impl<'de> Deserialize<'de> for Resource {
     where
         D: serde::de::Deserializer<'de>,
     {
-        let res = Res::deserialize(deserializer)?;
+        let res = Res::deserialize(deserializer)
+            .map_err(|err| serde::de::Error::custom(format!("parsing resource: {err}")))?;
 
         let (group, version) = res
             .api_version
