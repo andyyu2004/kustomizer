@@ -49,7 +49,27 @@ impl Builder {
         &mut self,
         kustomization: &Located<Kustomization>,
     ) -> anyhow::Result<ResourceMap> {
-        let resources = self.build_base_resources(kustomization)?;
+        let mut resources = self.build_kustomization_base(kustomization)?;
+
+        for resource in resources.iter_mut() {
+            for label in &kustomization.labels {
+                for (key, value) in &label.pairs {
+                    // `kustomization.labels` takes precedence over resource metadata labels
+                    resource.metadata.labels.insert(key.clone(), value.clone());
+                }
+            }
+
+            for (key, value) in &kustomization.common_annotations {
+                resource
+                    .metadata
+                    .annotations
+                    .insert(key.clone(), value.clone());
+            }
+
+            if let Some(namespace) = &kustomization.namespace {
+                resource.metadata.namespace = Some(namespace.clone());
+            }
+        }
 
         if !kustomization.patches.is_empty() {
             bail!("patches are not implemented");
@@ -83,14 +103,10 @@ impl Builder {
             bail!("name suffix is not implemented");
         }
 
-        if !kustomization.common_annotations.is_empty() {
-            bail!("common annotations are not implemented");
-        }
-
         Ok(resources)
     }
 
-    fn build_base_resources(
+    fn build_kustomization_base(
         &mut self,
         kustomization: &Located<Kustomization>,
     ) -> anyhow::Result<ResourceMap> {
@@ -135,19 +151,6 @@ impl Builder {
                         path.pretty(),
                     );
                 }
-            }
-        }
-
-        for resource in resources.iter_mut() {
-            for label in &kustomization.labels {
-                for (key, value) in &label.pairs {
-                    // `kustomization.labels` takes precedence over resource metadata labels
-                    resource.metadata.labels.insert(key.clone(), value.clone());
-                }
-            }
-
-            if let Some(namespace) = &kustomization.namespace {
-                resource.metadata.namespace = Some(namespace.clone());
             }
         }
 

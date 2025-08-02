@@ -49,7 +49,7 @@ impl fmt::Display for ResId {
 pub struct Resource {
     pub id: ResId,
     pub metadata: Metadata,
-    pub manifest: serde_yaml::Value,
+    pub data: serde_yaml::Value,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -90,7 +90,7 @@ impl Serialize for Resource {
             api_version,
             kind: self.id.gvk.kind.clone(),
             metadata: self.metadata.clone(),
-            manifest: self.manifest.clone(),
+            manifest: self.data.clone(),
         }
         .serialize(serializer)
     }
@@ -124,7 +124,7 @@ impl<'de> Deserialize<'de> for Resource {
         Ok(Resource {
             id,
             metadata: res.metadata,
-            manifest: res.manifest,
+            data: res.manifest,
         })
     }
 }

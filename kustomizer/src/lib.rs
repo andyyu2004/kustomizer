@@ -3,6 +3,8 @@ mod intern;
 pub mod manifest;
 mod resmap;
 mod resource;
+mod transform;
+mod visit;
 
 use core::fmt;
 use std::{io::Write, ops::Deref, path::Path};
