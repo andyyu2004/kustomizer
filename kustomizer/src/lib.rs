@@ -4,6 +4,7 @@ pub mod manifest;
 mod resmap;
 mod resource;
 
+use core::fmt;
 use std::{io::Write, ops::Deref, path::Path};
 
 use anyhow::Context;
@@ -84,6 +85,20 @@ where
         .with_context(|| format!("loading resource from path {}", path.display()))?;
     let file = std::fs::File::open(id)?;
     Ok(serde_yaml::from_reader(file)?)
+}
+
+pub trait PathExt {
+    fn pretty(&self) -> impl fmt::Display;
+}
+
+impl PathExt for Path {
+    fn pretty(&self) -> impl fmt::Display {
+        if let Ok(path) = self.strip_prefix(std::env::current_dir().unwrap_or_default()) {
+            path.display()
+        } else {
+            self.display()
+        }
+    }
 }
 
 #[cfg(test)]

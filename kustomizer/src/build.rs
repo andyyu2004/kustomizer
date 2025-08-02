@@ -1,7 +1,7 @@
-use std::{io::Write, path::Path};
+use std::{fmt, io::Write, path::Path};
 
 use crate::{
-    Located, PathId, load_file, load_kustomization, load_yaml,
+    Located, PathExt as _, PathId, load_file, load_kustomization, load_yaml,
     manifest::{Component, Generator, KeyValuePairSources, Kustomization, Manifest, Patch},
     resmap::ResourceMap,
     resource::Resource,
@@ -21,7 +21,7 @@ pub struct Builder {
 }
 
 impl Builder {
-    #[tracing::instrument(skip_all, fields(path = %kustomization.path.display()))]
+    #[tracing::instrument(skip_all, fields(path = %kustomization.path.pretty()))]
     pub fn build(
         mut self,
         kustomization: &Located<Kustomization>,
@@ -47,9 +47,13 @@ impl Builder {
 
     #[tracing::instrument(skip_all)]
     fn build_root(&mut self, kustomization: &Located<Kustomization>) -> anyhow::Result<()> {
-        for resource in self.resources.values() {
+        for (path, resource) in &self.resources {
             if let Some(old) = self.output.insert(resource.clone()) {
-                todo!("handle duplicate resource: {}", old.id);
+                anyhow::bail!(
+                    "merging resources from `{}`: may not add resource with an already registered id `{}`",
+                    path.pretty(),
+                    resource.id
+                );
             }
         }
 
@@ -65,7 +69,7 @@ impl Builder {
         for path in resources {
             let path = base_path.join(path);
             let path = PathId::make(&path)
-                .with_context(|| format!("canonicalizing resource path {}", path.display()))?;
+                .with_context(|| format!("canonicalizing resource path {}", path.pretty()))?;
 
             if self.resources.contains_key(&path) {
                 continue;
@@ -75,12 +79,11 @@ impl Builder {
             let metadata = std::fs::metadata(path)?;
             if metadata.is_file() {
                 let resource = crate::load_yaml(path)
-                    .with_context(|| format!("loading resource {}", path.display()))?;
+                    .with_context(|| format!("loading resource {}", path.pretty()))?;
                 assert!(self.resources.insert(path, resource).is_none());
             } else if metadata.is_dir() {
-                let kustomization = load_kustomization(path).with_context(|| {
-                    format!("loading kustomization resource {}", path.display())
-                })?;
+                let kustomization = load_kustomization(path)
+                    .with_context(|| format!("loading kustomization resource {}", path.pretty()))?;
 
                 if self.kustomizations.contains_key(&kustomization.path) {
                     continue;
@@ -100,7 +103,7 @@ impl Builder {
             } else if metadata.is_symlink() {
                 return Err(anyhow::anyhow!(
                     "symlinks are not implemented: {}",
-                    path.display()
+                    path.pretty()
                 ));
             }
         }
@@ -120,7 +123,7 @@ impl Builder {
                     let path = PathId::make(base_path.join(path)).with_context(|| {
                         format!(
                             "canonicalizing strategic merge patch path {}",
-                            path.display()
+                            path.pretty()
                         )
                     })?;
 
@@ -129,7 +132,7 @@ impl Builder {
                     }
 
                     let patch = load_yaml::<serde_yaml::Value>(path).with_context(|| {
-                        format!("loading strategic merge patch {}", path.display())
+                        format!("loading strategic merge patch {}", path.pretty())
                     })?;
 
                     assert!(self.strategic_merge_patches.insert(path, patch).is_none());
@@ -148,14 +151,14 @@ impl Builder {
     ) -> anyhow::Result<()> {
         for path in components {
             let path = PathId::make(base_path.join(path))
-                .with_context(|| format!("canonicalizing component path {}", path.display()))?;
+                .with_context(|| format!("canonicalizing component path {}", path.pretty()))?;
 
             if self.components.contains_key(&path) {
                 continue;
             }
 
             let component = crate::load_component(path)
-                .with_context(|| format!("loading component {}", path.display()))?;
+                .with_context(|| format!("loading component {}", path.pretty()))?;
 
             // Insert a placeholder to avoid cycles causing overflow. TODO detect cycles and report them.
             assert!(self.components.insert(path, Component::default()).is_none());
@@ -198,7 +201,7 @@ impl Builder {
     }
 
     // gather all referenced files and read them into memory.
-    #[tracing::instrument(skip_all, fields(path = %manifest.path.display()))]
+    #[tracing::instrument(skip_all, fields(path = %manifest.path.pretty()))]
     fn gather<A, K>(&mut self, manifest: &Located<Manifest<A, K>>) -> anyhow::Result<()> {
         let base_path = manifest.parent_path;
 
@@ -206,7 +209,7 @@ impl Builder {
             .with_context(|| {
                 format!(
                     "gathering resources from kustomization at {}",
-                    manifest.path.display()
+                    manifest.path.pretty()
                 )
             })?;
 
@@ -214,7 +217,7 @@ impl Builder {
             .with_context(|| {
                 format!(
                     "gathering patches from kustomization at {}",
-                    manifest.path.display()
+                    manifest.path.pretty()
                 )
             })?;
 
@@ -222,7 +225,7 @@ impl Builder {
             .with_context(|| {
                 format!(
                     "gathering components from kustomization at {}",
-                    manifest.path.display()
+                    manifest.path.pretty()
                 )
             })?;
 
@@ -230,7 +233,7 @@ impl Builder {
             .with_context(|| {
                 format!(
                     "gathering configmap generators from kustomization at {}",
-                    manifest.path.display()
+                    manifest.path.pretty(),
                 )
             })?;
 

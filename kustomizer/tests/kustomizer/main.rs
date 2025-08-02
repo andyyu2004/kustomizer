@@ -1,4 +1,5 @@
-use std::path::Path;
+use kustomizer::PathExt;
+use std::{collections::HashSet, path::Path};
 
 use anyhow::Context;
 
@@ -23,20 +24,18 @@ fn test(path: &Path) -> datatest_stable::Result<()> {
                 } else {
                     Err(format!(
                         "both success and error snapshots exist for {}",
-                        path.display()
+                        path.pretty()
                     ))?;
                 }
             }
             res?;
+
+            diff_reference_impl(path, &actual)?;
         }
         Err(err) => {
-            eprintln!(
-                "Error building kustomization at {}: {}",
-                path.display(),
-                err
-            );
+            show_reference_impl_error(path)?;
 
-            let res = snapshot(&error_snapshot_path, &format!("{:?}", err));
+            let res = snapshot(&error_snapshot_path, &format!("{err:?}"));
             if success_snapshot_path.exists() {
                 if should_update_snapshots() {
                     std::fs::remove_file(&success_snapshot_path)
@@ -44,7 +43,7 @@ fn test(path: &Path) -> datatest_stable::Result<()> {
                 } else {
                     Err(format!(
                         "both success and error snapshots exist for {}",
-                        path.display()
+                        path.pretty()
                     ))?;
                 }
             }
@@ -56,6 +55,78 @@ fn test(path: &Path) -> datatest_stable::Result<()> {
 
 fn should_update_snapshots() -> bool {
     std::env::var("UPDATE_SNAPSHOTS").is_ok()
+}
+
+// Diff against reference kustomize implementation
+fn show_reference_impl_error(path: &Path) -> datatest_stable::Result<()> {
+    let output = std::process::Command::new("kustomize")
+        .arg("build")
+        .arg(".")
+        .current_dir(path.parent().unwrap())
+        .stdout(std::process::Stdio::piped())
+        .stderr(std::process::Stdio::piped())
+        .output()
+        .context("kustomize build")?;
+
+    if output.status.success() {
+        Err(format!(
+            "kustomize build succeeded for {} but expected failure",
+            path.pretty()
+        ))?;
+    }
+
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    eprintln!("{stderr}");
+    Ok(())
+}
+
+// Diff against reference kustomize implementation
+fn diff_reference_impl(path: &Path, actual: &str) -> datatest_stable::Result<()> {
+    let output = std::process::Command::new("kustomize")
+        .arg("build")
+        .arg(".")
+        .current_dir(path.parent().unwrap())
+        .stdout(std::process::Stdio::piped())
+        .stderr(std::process::Stdio::piped())
+        .output()
+        .context("kustomize build")?;
+
+    if !output.status.success() {
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        if !stderr.is_empty() {
+            eprintln!("kustomize build failed with error: {stderr}");
+        }
+        Err(format!(
+            "kustomize build failed for {} with status: {}",
+            path.pretty(),
+            output.status
+        ))?;
+    }
+
+    let expected = String::from_utf8(output.stdout).context("parsing kustomize output")?;
+
+    // Order of documents and fields within objects do not matter for correctness.
+    let expected_documents = expected
+        .split("---\n")
+        .map(str::trim)
+        .filter(|s| !s.is_empty())
+        .map(serde_yaml::from_str)
+        .collect::<serde_yaml::Result<HashSet<serde_yaml::Value>>>()?;
+
+    let actual_documents = actual
+        .split("---\n")
+        .map(str::trim)
+        .filter(|s| !s.is_empty())
+        .map(serde_yaml::from_str)
+        .collect::<serde_yaml::Result<HashSet<serde_yaml::Value>>>()?;
+
+    if expected_documents == actual_documents {
+        return Ok(());
+    }
+
+    // TODO diff
+
+    Err(format!("reference mismatch for test {}", path.pretty()))?
 }
 
 fn snapshot(path: &Path, actual: &str) -> datatest_stable::Result<()> {
@@ -73,7 +144,7 @@ fn snapshot(path: &Path, actual: &str) -> datatest_stable::Result<()> {
 
     let formatted = format_chunks(chunks);
     println!("{formatted}");
-    Err(format!("Snapshot mismatch for {}", path.display()))?
+    Err(format!("snapshot mismatch for test {}", path.pretty()))?
 }
 
 fn format_chunks(chunks: Vec<dissimilar::Chunk>) -> String {

@@ -16,9 +16,9 @@ pub struct Gvk {
 impl fmt::Display for Gvk {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         if self.group.is_empty() {
-            write!(f, "{}/{}", self.version, self.kind)
+            write!(f, "{}.{}", self.kind, self.version)
         } else {
-            write!(f, "{}/{}/{}", self.group, self.version, self.kind)
+            write!(f, "{}.{}.{}", self.kind, self.version, self.group)
         }
     }
 }
@@ -36,9 +36,9 @@ pub struct ResId {
 impl fmt::Display for ResId {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         if let Some(namespace) = &self.namespace {
-            write!(f, "{}/{}/{}", namespace, self.gvk.kind, self.name)?;
+            write!(f, "{}/{}.{namespace}", self.gvk, self.name)?;
         } else {
-            write!(f, "{}/{}", self.gvk.kind, self.name)?;
+            write!(f, "{}/{}", self.gvk, self.name)?;
         }
         Ok(())
     }
