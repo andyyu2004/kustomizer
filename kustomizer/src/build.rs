@@ -4,7 +4,7 @@ use crate::{
     Located, PathId, load_file, load_kustomization, load_resource,
     manifest::{
         Component, Generator, KeyValuePairSources, Kustomization, Manifest, Patch,
-        PathOrInlinePatch,
+        PathOrInlinePatch, ResId,
     },
 };
 use anyhow::Context;
@@ -13,21 +13,31 @@ use anyhow::Context;
 pub struct Builder {
     kustomizations: HashMap<PathId, Kustomization>,
     components: HashMap<PathId, Component>,
-    resource: HashMap<PathId, serde_yaml::Value>,
+    resources: HashMap<PathId, serde_yaml::Value>,
     json_patches: HashMap<PathId, json_patch::Patch>,
     strategic_merge_patches: HashMap<PathId, serde_yaml::Value>,
     key_value_files: HashMap<PathId, Box<str>>,
 }
 
 impl Builder {
-    pub async fn build(mut self, kustomization: &Located<Kustomization>) -> anyhow::Result<()> {
+    pub fn build(mut self, kustomization: &Located<Kustomization>) -> anyhow::Result<()> {
         assert!(
             self.kustomizations
                 .insert(kustomization.path, kustomization.value.clone())
                 .is_none()
         );
+
         self.gather(kustomization)?;
-        dbg!(&self);
+        self.build_root(kustomization)?;
+        Ok(())
+    }
+
+    fn build_root(&mut self, kustomization: &Located<Kustomization>) -> anyhow::Result<()> {
+        for resource in kustomization.resources.iter() {
+            let path = PathId::make(kustomization.path.join(resource))?;
+            let _resource = &self.resources[&path];
+        }
+
         Ok(())
     }
 
@@ -41,14 +51,14 @@ impl Builder {
             let path = PathId::make(&path)
                 .with_context(|| format!("canonicalizing resource path {}", path.display()))?;
 
-            if self.resource.contains_key(&path) {
+            if self.resources.contains_key(&path) {
                 continue;
             }
 
             if path.is_file() {
                 let resource = crate::load_resource::<serde_yaml::Value>(path)
                     .with_context(|| format!("loading resource {}", path.display()))?;
-                assert!(self.resource.insert(path, resource).is_none());
+                assert!(self.resources.insert(path, resource).is_none());
             } else {
                 let kustomization = load_kustomization(path).with_context(|| {
                     format!("loading kustomization resource {}", path.display())
@@ -191,4 +201,8 @@ impl Builder {
 
         Ok(())
     }
+}
+
+struct Output {
+    resources: HashMap<ResId, serde_yaml::Value>,
 }

@@ -14,8 +14,7 @@ enum Command {
     Build { dir: PathBuf },
 }
 
-#[tokio::main]
-async fn main() -> anyhow::Result<()> {
+fn main() -> anyhow::Result<()> {
     let args = Args::parse();
     match args.command {
         Command::Build { dir } => {
@@ -24,7 +23,6 @@ async fn main() -> anyhow::Result<()> {
             serde_yaml::to_writer(std::io::stdout(), &kustomization.value)?;
             kustomizer::build::Builder::default()
                 .build(&kustomization)
-                .await
                 .context("gathering build context")?;
         }
     }
