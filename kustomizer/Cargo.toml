@@ -1,0 +1,10 @@
+[package]
+name = "kustomizer"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+compact_str = { version = "0.9.0", features = ["serde"] }
+indexmap = { version = "2.10.0", features = ["serde"] }
+serde = { version = "1.0.219", features = ["derive"] }
+tokio = { version = "1.47.1", features = ["rt-multi-thread", "macros"] }
