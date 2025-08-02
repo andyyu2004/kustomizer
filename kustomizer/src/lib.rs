@@ -85,3 +85,13 @@ where
     let file = std::fs::File::open(id)?;
     Ok(serde_yaml::from_reader(file)?)
 }
+
+#[cfg(test)]
+#[test]
+fn hack_test_tmp() -> anyhow::Result<()> {
+    let status = std::process::Command::new("bash").arg("test.sh").status()?;
+    if !status.success() {
+        return Err(anyhow::anyhow!("test.sh failed with status: {}", status));
+    }
+    Ok(())
+}
