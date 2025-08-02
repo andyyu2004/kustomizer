@@ -1,6 +1,7 @@
 mod build;
 mod intern;
 pub mod manifest;
+mod res;
 mod resmap;
 
 use std::{io::Write, ops::Deref, path::Path};
@@ -74,7 +75,7 @@ fn load_file(path: impl AsRef<Path>) -> anyhow::Result<String> {
         .with_context(|| format!("loading file from path {}", path.as_ref().display()))
 }
 
-fn load_resource<T>(path: impl AsRef<Path>) -> anyhow::Result<T>
+fn load_yaml<T>(path: impl AsRef<Path>) -> anyhow::Result<T>
 where
     T: serde::de::DeserializeOwned,
 {

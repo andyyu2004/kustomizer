@@ -15,7 +15,7 @@ fn test(path: &Path) -> datatest_stable::Result<()> {
     match kustomizer::build(path, &mut out) {
         Ok(()) => {
             let actual = String::from_utf8(out.into_inner())?;
-            snapshot(&success_snapshot_path, &actual)?;
+            let res = snapshot(&success_snapshot_path, &actual);
             if error_snapshot_path.exists() {
                 if should_update_snapshots() {
                     std::fs::remove_file(&error_snapshot_path)
@@ -27,6 +27,7 @@ fn test(path: &Path) -> datatest_stable::Result<()> {
                     ))?;
                 }
             }
+            res?;
         }
         Err(err) => {
             eprintln!(
@@ -35,7 +36,7 @@ fn test(path: &Path) -> datatest_stable::Result<()> {
                 err
             );
 
-            snapshot(&error_snapshot_path, &format!("{:?}", err))?;
+            let res = snapshot(&error_snapshot_path, &format!("{:?}", err));
             if success_snapshot_path.exists() {
                 if should_update_snapshots() {
                     std::fs::remove_file(&success_snapshot_path)
@@ -47,6 +48,7 @@ fn test(path: &Path) -> datatest_stable::Result<()> {
                     ))?;
                 }
             }
+            res?;
         }
     }
     Ok(())
@@ -69,9 +71,8 @@ fn snapshot(path: &Path, actual: &str) -> datatest_stable::Result<()> {
     }
 
     let formatted = format_chunks(chunks);
-    eprintln!("Snapshot mismatch for {}:\n{}", path.display(), formatted);
-
-    Ok(())
+    println!("{formatted}");
+    Err(format!("Snapshot mismatch for {}", path.display()))?
 }
 
 fn format_chunks(chunks: Vec<dissimilar::Chunk>) -> String {

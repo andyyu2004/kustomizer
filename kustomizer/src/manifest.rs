@@ -225,13 +225,9 @@ pub enum Target {
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct Gvk {
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub group: Option<Str>,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub version: Option<Str>,
+    pub group: Str,
+    pub version: Str,
     pub kind: Str,
-    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
-    pub is_cluster_scoped: bool,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize)]

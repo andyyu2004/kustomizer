@@ -1,11 +1,12 @@
 use std::{collections::HashMap, io::Write, path::Path};
 
 use crate::{
-    Located, PathId, load_file, load_kustomization, load_resource,
+    Located, PathId, load_file, load_kustomization, load_yaml,
     manifest::{
         Component, Generator, KeyValuePairSources, Kustomization, Manifest, Patch,
         PathOrInlinePatch,
     },
+    res::Resource,
     resmap::ResourceMap,
 };
 use anyhow::Context;
@@ -16,7 +17,7 @@ pub struct Builder {
     kustomization_dirs: HashMap<PathId, PathId>,
     kustomizations: HashMap<PathId, Kustomization>,
     components: HashMap<PathId, Component>,
-    resources: HashMap<PathId, serde_yaml::Value>,
+    resources: HashMap<PathId, Resource>,
     json_patches: HashMap<PathId, json_patch::Patch>,
     strategic_merge_patches: HashMap<PathId, serde_yaml::Value>,
     key_value_files: HashMap<PathId, Box<str>>,
@@ -26,7 +27,7 @@ impl Builder {
     pub fn build(
         mut self,
         kustomization: &Located<Kustomization>,
-        out: &mut dyn Write,
+        _out: &mut dyn Write,
     ) -> anyhow::Result<()> {
         assert!(
             self.kustomizations
@@ -90,7 +91,7 @@ impl Builder {
             // TODO handle symlinks
             let metadata = std::fs::metadata(path)?;
             if metadata.is_file() {
-                let resource = crate::load_resource::<serde_yaml::Value>(path)
+                let resource = crate::load_yaml(path)
                     .with_context(|| format!("loading resource {}", path.display()))?;
                 assert!(self.resources.insert(path, resource).is_none());
             } else if metadata.is_dir() {
@@ -145,7 +146,7 @@ impl Builder {
                             continue;
                         }
 
-                        let patch = load_resource(path)
+                        let patch = load_yaml(path)
                             .with_context(|| format!("loading json patch {}", path.display()))?;
 
                         assert!(self.json_patches.insert(path, patch).is_none());
@@ -162,7 +163,7 @@ impl Builder {
                         continue;
                     }
 
-                    let patch = load_resource::<serde_yaml::Value>(path).with_context(|| {
+                    let patch = load_yaml::<serde_yaml::Value>(path).with_context(|| {
                         format!("loading strategic merge patch {}", path.display())
                     })?;
 
