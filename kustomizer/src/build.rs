@@ -1,4 +1,4 @@
-use std::{fmt, io::Write, path::Path};
+use std::{io::Write, path::Path};
 
 use crate::{
     Located, PathExt as _, PathId, load_file, load_kustomization, load_yaml,
@@ -34,7 +34,7 @@ impl Builder {
         );
 
         self.gather(kustomization)?;
-        self.build_root(kustomization)?;
+        self.build_kustomization(kustomization)?;
 
         for resource in self.output.iter() {
             if self.output.len() > 1 {
@@ -46,14 +46,27 @@ impl Builder {
     }
 
     #[tracing::instrument(skip_all)]
-    fn build_root(&mut self, kustomization: &Located<Kustomization>) -> anyhow::Result<()> {
-        for (path, resource) in &self.resources {
-            if let Some(old) = self.output.insert(resource.clone()) {
+    fn build_kustomization(&mut self, kustomization: &Kustomization) -> anyhow::Result<()> {
+        for (path, res) in &self.resources {
+            if self.output.insert(res.clone()).is_some() {
                 anyhow::bail!(
                     "merging resources from `{}`: may not add resource with an already registered id `{}`",
                     path.pretty(),
-                    resource.id
+                    res.id
                 );
+            }
+
+            for label in &kustomization.labels {
+                for (key, value) in &label.pairs {
+                    assert!(
+                        self.output[&res.id]
+                            .metadata
+                            .labels
+                            .insert(key.clone(), value.clone())
+                            .is_none(),
+                        "what to do about conflicts?"
+                    );
+                }
             }
         }
 

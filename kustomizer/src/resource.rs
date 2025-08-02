@@ -1,6 +1,7 @@
 use std::fmt;
 
 use compact_str::format_compact;
+use indexmap::IndexMap;
 use serde::{Deserialize, Serialize};
 
 use crate::manifest::Str;
@@ -47,7 +48,7 @@ impl fmt::Display for ResId {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Resource {
     pub id: ResId,
-    pub metadata: serde_yaml::Value,
+    pub metadata: Metadata,
     pub manifest: serde_yaml::Value,
 }
 
@@ -62,10 +63,14 @@ struct Res {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-struct Metadata {
+pub struct Metadata {
     name: Str,
     #[serde(skip_serializing_if = "Option::is_none")]
     namespace: Option<Str>,
+    #[serde(default, skip_serializing_if = "IndexMap::is_empty")]
+    pub labels: IndexMap<Str, Str>,
+    #[serde(default, skip_serializing_if = "IndexMap::is_empty")]
+    pub annotations: IndexMap<Str, Str>,
     #[serde(flatten)]
     rest: serde_yaml::Value,
 }
@@ -84,11 +89,7 @@ impl Serialize for Resource {
         Res {
             api_version,
             kind: self.id.gvk.kind.clone(),
-            metadata: Metadata {
-                name: self.id.name.clone(),
-                namespace: self.id.namespace.clone(),
-                rest: self.metadata.clone(),
-            },
+            metadata: self.metadata.clone(),
             manifest: self.manifest.clone(),
         }
         .serialize(serializer)
@@ -116,13 +117,13 @@ impl<'de> Deserialize<'de> for Resource {
                 version,
                 kind: res.kind,
             },
-            name: res.metadata.name,
-            namespace: res.metadata.namespace,
+            name: res.metadata.name.clone(),
+            namespace: res.metadata.namespace.clone(),
         };
 
         Ok(Resource {
             id,
-            metadata: res.metadata.rest,
+            metadata: res.metadata,
             manifest: res.manifest,
         })
     }

@@ -1,4 +1,5 @@
 use core::fmt;
+use std::ops::{Index, IndexMut};
 
 use indexmap::IndexMap;
 
@@ -26,5 +27,23 @@ impl ResourceMap {
 
     pub fn iter(&self) -> impl ExactSizeIterator<Item = &Resource> + DoubleEndedIterator {
         self.resources.values()
+    }
+}
+
+impl Index<&ResId> for ResourceMap {
+    type Output = Resource;
+
+    fn index(&self, id: &ResId) -> &Self::Output {
+        self.resources
+            .get(id)
+            .unwrap_or_else(|| panic!("resource with id `{id}` not in ResourceMap"))
+    }
+}
+
+impl IndexMut<&ResId> for ResourceMap {
+    fn index_mut(&mut self, id: &ResId) -> &mut Self::Output {
+        self.resources
+            .get_mut(id)
+            .unwrap_or_else(|| panic!("resource with id `{id}` not in ResourceMap"))
     }
 }
