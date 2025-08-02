@@ -1,4 +1,4 @@
-use std::{collections::HashMap, io::Write, path::Path};
+use std::{io::Write, path::Path};
 
 use crate::{
     Located, PathId, load_file, load_kustomization, load_yaml,
@@ -7,15 +7,16 @@ use crate::{
     resource::Resource,
 };
 use anyhow::Context;
+use indexmap::IndexMap;
 
 #[derive(Debug, Default)]
 pub struct Builder {
     /// Maps from a kustomization directory to its kustomization file path.
-    kustomizations: HashMap<PathId, Kustomization>,
-    components: HashMap<PathId, Component>,
-    resources: HashMap<PathId, Resource>,
-    strategic_merge_patches: HashMap<PathId, serde_yaml::Value>,
-    key_value_files: HashMap<PathId, Box<str>>,
+    kustomizations: IndexMap<PathId, Kustomization>,
+    components: IndexMap<PathId, Component>,
+    resources: IndexMap<PathId, Resource>,
+    strategic_merge_patches: IndexMap<PathId, serde_yaml::Value>,
+    key_value_files: IndexMap<PathId, Box<str>>,
     output: ResourceMap,
 }
 

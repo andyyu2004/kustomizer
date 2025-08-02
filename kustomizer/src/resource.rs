@@ -29,6 +29,7 @@ pub struct ResId {
     #[serde(flatten)]
     pub gvk: Gvk,
     pub name: Str,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub namespace: Option<Str>,
 }
 
