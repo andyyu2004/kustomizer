@@ -8,11 +8,14 @@ use serde::{Deserialize, Serialize};
 
 pub type Str = CompactString;
 
+pub type Kustomization = Manifest<KustomizeBeta, KustomizeKind>;
+pub type Component = Manifest<KustomizeAlpha, ComponentKind>;
+
 #[derive(Debug, PartialEq, Eq, Clone, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-pub struct Kustomization {
+pub struct Manifest<A: Symbol, K: Symbol> {
     #[serde(flatten)]
-    pub type_meta: TypeMeta<KustomizeAPIVersion, KustomizeKind>,
+    pub type_meta: TypeMeta<A, K>,
     #[serde(default)]
     pub metadata: ObjectMeta,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -280,8 +283,10 @@ pub struct Label {
     pub include_selectors: bool,
 }
 
-define_symbol!(KustomizeAPIVersion = "kustomize.config.k8s.io/v1beta1");
+define_symbol!(KustomizeAlpha = "kustomize.config.k8s.io/v1alpha1");
+define_symbol!(KustomizeBeta = "kustomize.config.k8s.io/v1beta1");
 define_symbol!(KustomizeKind = "Kustomization");
+define_symbol!(ComponentKind = "Component");
 
 macro_rules! define_symbol {
     ($name:ident = $value:literal) => {
