@@ -9,7 +9,10 @@ use std::{
 
 use crate::{
     Located, PathExt as _, PathId, load_file, load_kustomization, load_yaml,
-    manifest::{Component, Generator, KeyValuePairSources, Kustomization, Manifest, Patch},
+    manifest::{
+        Component, FunctionSpec, Generator, GeneratorSpec, KeyValuePairSources, Kustomization,
+        Manifest, Patch,
+    },
     resmap::ResourceMap,
     resource::Resource,
     transform::{AnnotationTransformer, Transformer},
@@ -24,6 +27,7 @@ pub struct Builder {
     resources_cache: IndexMap<PathId, Resource>,
     strategic_merge_patches_cache: IndexMap<PathId, serde_yaml::Value>,
     key_value_files_cache: IndexMap<PathId, Box<str>>,
+    generator_spec_cache: IndexMap<PathId, FunctionSpec>,
 }
 
 impl Builder {
@@ -51,6 +55,13 @@ impl Builder {
         kustomization: &Located<Kustomization>,
     ) -> anyhow::Result<ResourceMap> {
         let mut resources = self.build_kustomization_base(kustomization)?;
+
+        for path in &kustomization.generators {
+            let path = PathId::make(kustomization.parent_path.join(path))?;
+            let gen_spec = load_yaml::<GeneratorSpec>(path)
+                .with_context(|| format!("loading generator spec from {}", path.pretty()))?;
+        }
+
         AnnotationTransformer(&kustomization.common_annotations).transform(&mut resources);
 
         for resource in resources.iter_mut() {
@@ -64,10 +75,6 @@ impl Builder {
             if let Some(namespace) = &kustomization.namespace {
                 resource.metadata.namespace = Some(namespace.clone());
             }
-        }
-
-        if !kustomization.generators.is_empty() {
-            bail!("generators are not implemented");
         }
 
         // if !kustomization.patches.is_empty() {

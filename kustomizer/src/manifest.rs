@@ -11,7 +11,7 @@ pub type Str = CompactString;
 pub type Kustomization = Manifest<KustomizeBeta, KustomizeKind>;
 pub type Component = Manifest<KustomizeAlpha, ComponentKind>;
 
-#[derive(Debug, PartialEq, Eq, Clone, Deserialize, Serialize, Default)]
+#[derive(Debug, PartialEq, Eq, Clone, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct Manifest<A, K> {
     #[serde(flatten)]
@@ -59,6 +59,42 @@ pub struct Generator {
     pub behavior: Behavior,
     #[serde(flatten)]
     pub sources: KeyValuePairSources,
+}
+
+pub type GeneratorSpec = Resource;
+
+#[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize)]
+pub struct GeneratorAnnotations {
+    #[serde(rename = "kustomize.config.k8s.io/function")]
+    function_spec: FunctionSpec,
+    #[serde(flatten)]
+    rest: IndexMap<Str, Str>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub enum FunctionSpec {
+    ExecSpec(ExecSpec),
+    Container(ContainerSpec),
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub struct ExecSpec {
+    pub path: PathBuf,
+    #[serde(default, skip_serializing_if = "<[_]>::is_empty")]
+    pub args: Box<[Str]>,
+    // TODO this is passed with key=value syntax
+    #[serde(default, skip_serializing_if = "IndexMap::is_empty")]
+    pub env: IndexMap<Str, Str>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub struct ContainerSpec {
+    pub image: Str,
+    #[serde(default, skip_serializing_if = "IndexMap::is_empty")]
+    pub env: IndexMap<Str, Str>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize, Default)]
@@ -259,19 +295,6 @@ pub struct TypeMeta<V, K> {
     pub kind: Option<K>,
 }
 
-#[derive(Debug, Default, Clone, PartialEq, Eq, Deserialize, Serialize)]
-#[serde(default, deny_unknown_fields)]
-pub struct ObjectMeta {
-    #[serde(default, skip_serializing_if = "Str::is_empty")]
-    pub name: Str,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub namespace: Option<Str>,
-    #[serde(skip_serializing_if = "IndexMap::is_empty")]
-    pub labels: IndexMap<Str, Str>,
-    #[serde(skip_serializing_if = "IndexMap::is_empty")]
-    pub annotations: IndexMap<Str, Str>,
-}
-
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct Label {
@@ -331,6 +354,8 @@ macro_rules! define_symbol {
 }
 
 use define_symbol;
+
+use crate::resource::{ObjectMeta, Resource};
 
 pub trait Symbol: fmt::Debug {
     const VALUE: &'static str;

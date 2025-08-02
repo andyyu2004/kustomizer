@@ -48,7 +48,7 @@ impl fmt::Display for ResId {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Resource {
     pub id: ResId,
-    pub metadata: Metadata,
+    pub metadata: ObjectMeta,
     pub data: serde_yaml::Value,
 }
 
@@ -57,23 +57,26 @@ pub struct Resource {
 struct Res {
     api_version: Str,
     kind: Str,
-    metadata: Metadata,
+    metadata: ObjectMeta,
     #[serde(flatten)]
     manifest: serde_yaml::Value,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub struct Metadata {
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
+#[serde(deny_unknown_fields)]
+pub struct ObjectMeta {
     pub name: Str,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub namespace: Option<Str>,
     #[serde(default, skip_serializing_if = "IndexMap::is_empty")]
     pub labels: IndexMap<Str, Str>,
-    #[serde(default, skip_serializing_if = "IndexMap::is_empty")]
-    pub annotations: IndexMap<Str, Str>,
+    #[serde(default, skip_serializing_if = "Annotations::is_empty")]
+    pub annotations: Annotations,
     #[serde(flatten)]
-    rest: serde_yaml::Value,
+    rest: IndexMap<Str, serde_yaml::Value>,
 }
+
+pub type Annotations = IndexMap<Str, Str>;
 
 impl Serialize for Resource {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
