@@ -6,8 +6,8 @@ use crate::{
         Component, Generator, KeyValuePairSources, Kustomization, Manifest, Patch,
         PathOrInlinePatch,
     },
-    res::Resource,
     resmap::ResourceMap,
+    resource::Resource,
 };
 use anyhow::Context;
 
@@ -21,13 +21,14 @@ pub struct Builder {
     json_patches: HashMap<PathId, json_patch::Patch>,
     strategic_merge_patches: HashMap<PathId, serde_yaml::Value>,
     key_value_files: HashMap<PathId, Box<str>>,
+    output: ResourceMap,
 }
 
 impl Builder {
     pub fn build(
         mut self,
         kustomization: &Located<Kustomization>,
-        _out: &mut dyn Write,
+        out: &mut dyn Write,
     ) -> anyhow::Result<()> {
         assert!(
             self.kustomizations
@@ -42,6 +43,13 @@ impl Builder {
 
         self.gather(kustomization)?;
         self.build_root(kustomization)?;
+
+        for resource in self.output.iter() {
+            if self.output.len() > 1 {
+                writeln!(out, "---")?;
+            }
+            serde_yaml::to_writer(&mut *out, resource)?;
+        }
         Ok(())
     }
 
@@ -52,9 +60,12 @@ impl Builder {
             let path = PathId::make(base_path.join(resource))?;
             let metadata = std::fs::metadata(path)?;
             if metadata.is_file() {
-                let _resource = &self.resources.get(&path).unwrap_or_else(|| {
+                let resource = self.resources.get(&path).unwrap_or_else(|| {
                     panic!("resource `{}` not found in resources map", path.display())
                 });
+                if let Some(old) = self.output.insert(resource.clone()) {
+                    todo!("handle duplicate resource: {}", old.id);
+                }
             } else if metadata.is_dir() {
                 let path = self.kustomization_dirs[&path];
                 let _inner = self.kustomizations.get(&path).unwrap_or_else(|| {
@@ -275,8 +286,4 @@ impl Builder {
 
         Ok(())
     }
-}
-
-struct Output {
-    resources: ResourceMap,
 }

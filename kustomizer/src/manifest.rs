@@ -222,23 +222,6 @@ pub enum Target {
     Id(ResId),
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize)]
-#[serde(rename_all = "camelCase", deny_unknown_fields)]
-pub struct Gvk {
-    pub group: Str,
-    pub version: Str,
-    pub kind: Str,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize)]
-#[serde(rename_all = "camelCase", deny_unknown_fields)]
-pub struct ResId {
-    #[serde(flatten)]
-    pub gvk: Gvk,
-    pub name: Str,
-    pub namespace: Option<Str>,
-}
-
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Selector {
     tmp_unparsed: Str,
@@ -344,6 +327,8 @@ macro_rules! define_symbol {
 }
 
 use define_symbol;
+
+use crate::resource::ResId;
 
 pub trait Symbol: fmt::Debug {
     const VALUE: &'static str;
