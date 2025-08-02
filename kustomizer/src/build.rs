@@ -21,23 +21,17 @@ pub struct Builder {
 
 impl Builder {
     pub async fn build(mut self, kustomization: &Located<Kustomization>) -> anyhow::Result<()> {
-        self.gather(kustomization).await?;
-        dbg!(&self);
-        Ok(())
-    }
-
-    async fn gather(&mut self, kustomization: &Located<Kustomization>) -> anyhow::Result<()> {
         assert!(
             self.kustomizations
                 .insert(kustomization.path, kustomization.value.clone())
                 .is_none()
         );
-        self.traverse(kustomization)?;
-
+        self.gather(kustomization)?;
+        dbg!(&self);
         Ok(())
     }
 
-    fn traverse_resources<'a>(
+    fn gather_resources<'a>(
         &mut self,
         base_path: &Path,
         resources: impl Iterator<Item = &'a Path>,
@@ -69,7 +63,7 @@ impl Builder {
                         .insert(kustomization.path, Default::default())
                         .is_none()
                 );
-                self.traverse(&kustomization)?;
+                self.gather(&kustomization)?;
                 assert_eq!(
                     self.kustomizations
                         .insert(kustomization.path, kustomization.value),
@@ -80,7 +74,7 @@ impl Builder {
         Ok(())
     }
 
-    fn traverse_patches<'a>(
+    fn gather_patches<'a>(
         &mut self,
         base_path: &Path,
         patches: impl Iterator<Item = &'a Patch>,
@@ -126,7 +120,7 @@ impl Builder {
         Ok(())
     }
 
-    fn traverse_components<'a>(
+    fn gather_components<'a>(
         &mut self,
         base_path: &Path,
         components: impl Iterator<Item = &'a Path>,
@@ -144,7 +138,7 @@ impl Builder {
 
             // Insert a placeholder to avoid cycles causing overflow. TODO detect cycles and report them.
             assert!(self.components.insert(path, Component::default()).is_none());
-            self.traverse(&component)?;
+            self.gather(&component)?;
             assert_eq!(
                 self.components.insert(path, component.value),
                 Some(Component::default())
@@ -154,19 +148,19 @@ impl Builder {
         Ok(())
     }
 
-    fn traverse_configmap_generators<'a>(
+    fn gather_configmap_generators<'a>(
         &mut self,
         base_path: &Path,
         generators: impl Iterator<Item = &'a Generator>,
     ) -> anyhow::Result<()> {
         for generator in generators {
-            self.traverse_key_value_pair_sources(base_path, &generator.sources)?;
+            self.gather_key_value_pair_sources(base_path, &generator.sources)?;
         }
 
         Ok(())
     }
 
-    fn traverse_key_value_pair_sources(
+    fn gather_key_value_pair_sources(
         &mut self,
         base_path: &Path,
         sources: &KeyValuePairSources,
@@ -180,18 +174,18 @@ impl Builder {
         Ok(())
     }
 
-    // Traverse all referenced files and read them into memory.
-    fn traverse<A, K>(&mut self, manifest: &Located<Manifest<A, K>>) -> anyhow::Result<()> {
+    // gather all referenced files and read them into memory.
+    fn gather<A, K>(&mut self, manifest: &Located<Manifest<A, K>>) -> anyhow::Result<()> {
         let base_path = manifest
             .path
             .parent()
             .expect("this is a file so it has a parent")
             .canonicalize()?;
 
-        self.traverse_resources(&base_path, manifest.resources.iter().map(|p| p.as_path()))?;
-        self.traverse_patches(&base_path, manifest.patches.iter())?;
-        self.traverse_components(&base_path, manifest.components.iter().map(|p| p.as_path()))?;
-        self.traverse_configmap_generators(&base_path, manifest.config_map_generators.iter())?;
+        self.gather_resources(&base_path, manifest.resources.iter().map(|p| p.as_path()))?;
+        self.gather_patches(&base_path, manifest.patches.iter())?;
+        self.gather_components(&base_path, manifest.components.iter().map(|p| p.as_path()))?;
+        self.gather_configmap_generators(&base_path, manifest.config_map_generators.iter())?;
 
         // TODO generators and transformers
 
