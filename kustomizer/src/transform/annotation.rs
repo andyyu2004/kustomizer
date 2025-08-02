@@ -1,6 +1,11 @@
+use std::ops::ControlFlow;
+
 use indexmap::IndexMap;
 
-use crate::manifest::Str;
+use crate::{
+    manifest::Str,
+    visit::{VisitMut, VisitorMut},
+};
 
 use super::{ResourceMap, Transformer};
 
@@ -15,7 +20,27 @@ impl Transformer for AnnotationTransformer {
                 .metadata
                 .annotations
                 .extend(self.annotation.clone());
-            // TODO need to find all annotations fields
+
+            resource.data.visit_with(self);
         }
+    }
+}
+
+impl VisitorMut for AnnotationTransformer {
+    type Break = ();
+
+    fn visit_mapping(&mut self, mapping: &mut serde_yaml::Mapping) -> ControlFlow<Self::Break> {
+        if let Some(serde_yaml::Value::Mapping(annotations)) = mapping.get_mut("annotations") {
+            for (key, value) in &self.annotation {
+                annotations.insert(
+                    serde_yaml::Value::String(key.to_string()),
+                    serde_yaml::Value::String(value.to_string()),
+                );
+            }
+
+            return ControlFlow::Break(());
+        }
+
+        self.walk_mapping(mapping)
     }
 }
