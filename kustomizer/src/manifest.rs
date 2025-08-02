@@ -257,8 +257,8 @@ impl<'de> Deserialize<'de> for Selector {
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize, Default)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct TypeMeta<V, K> {
-    pub api_version: V,
-    pub kind: K,
+    pub api_version: Option<V>,
+    pub kind: Option<K>,
 }
 
 #[derive(Debug, Default, Clone, PartialEq, Eq, Deserialize, Serialize)]
