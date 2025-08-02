@@ -17,8 +17,9 @@ pub fn build(path: impl AsRef<Path>, out: &mut dyn Write) -> anyhow::Result<()> 
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Located<T> {
-    pub value: T,
-    pub path: PathId,
+    value: T,
+    path: PathId,
+    parent_path: PathId,
 }
 
 impl<T> Deref for Located<T> {
@@ -50,15 +51,19 @@ where
         ));
     }
 
-    let mut path = path.canonicalize()?;
+    let mut path = path
+        .canonicalize()
+        .with_context(|| format!("canonicalizing path {}", path.display()))?;
     if path.is_dir() {
         path.push("kustomization.yaml");
     }
 
-    let file = std::fs::File::open(&path)?;
+    let file = std::fs::File::open(&path)
+        .with_context(|| format!("loading manifest from path {}", path.display()))?;
     let value = serde_yaml::from_reader(file)?;
     Ok(Located {
         value,
+        parent_path: PathId::make(path.parent().unwrap())?,
         path: PathId::make(path)?,
     })
 }

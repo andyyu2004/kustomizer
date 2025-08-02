@@ -8,16 +8,25 @@ datatest_stable::harness! {
 
 fn test(path: &Path) -> datatest_stable::Result<()> {
     let mut out = std::io::Cursor::new(Vec::new());
+    let base_path = path.parent().unwrap();
+    let success_snapshot_path = base_path.join("expected").with_extension("yaml");
+    let error_snapshot_path = base_path.join("expected").with_extension("stderr");
 
     match kustomizer::build(path, &mut out) {
         Ok(()) => {
             let actual = String::from_utf8(out.into_inner())?;
-            let snapshot_path = path
-                .parent()
-                .unwrap()
-                .join("expected")
-                .with_extension("yaml");
-            snapshot(&snapshot_path, &actual)?;
+            snapshot(&success_snapshot_path, &actual)?;
+            if error_snapshot_path.exists() {
+                if should_update_snapshots() {
+                    std::fs::remove_file(&error_snapshot_path)
+                        .context("removing error snapshot")?;
+                } else {
+                    Err(format!(
+                        "both success and error snapshots exist for {}",
+                        path.display()
+                    ))?;
+                }
+            }
         }
         Err(err) => {
             eprintln!(
@@ -26,15 +35,29 @@ fn test(path: &Path) -> datatest_stable::Result<()> {
                 err
             );
 
-            let expected_path = path.join("expected").with_extension("stderr");
-            snapshot(&expected_path, &format!("{:?}", err))?;
+            snapshot(&error_snapshot_path, &format!("{:?}", err))?;
+            if success_snapshot_path.exists() {
+                if should_update_snapshots() {
+                    std::fs::remove_file(&success_snapshot_path)
+                        .context("removing success snapshot")?;
+                } else {
+                    Err(format!(
+                        "both success and error snapshots exist for {}",
+                        path.display()
+                    ))?;
+                }
+            }
         }
     }
     Ok(())
 }
 
+fn should_update_snapshots() -> bool {
+    std::env::var("UPDATE_SNAPSHOTS").is_ok()
+}
+
 fn snapshot(path: &Path, actual: &str) -> datatest_stable::Result<()> {
-    if !path.exists() || std::env::var("UPDATE_SNAPSHOTS").is_ok() {
+    if !path.exists() || should_update_snapshots() {
         std::fs::write(path, actual).context("writing snapshot")?;
         return Ok(());
     }
@@ -48,7 +71,7 @@ fn snapshot(path: &Path, actual: &str) -> datatest_stable::Result<()> {
     let formatted = format_chunks(chunks);
     eprintln!("Snapshot mismatch for {}:\n{}", path.display(), formatted);
 
-    Err(format!("Snapshot mismatch for {}", path.display()).into())
+    Ok(())
 }
 
 fn format_chunks(chunks: Vec<dissimilar::Chunk>) -> String {

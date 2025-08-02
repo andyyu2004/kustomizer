@@ -37,8 +37,10 @@ impl Builder {
     }
 
     fn build_root(&mut self, kustomization: &Located<Kustomization>) -> anyhow::Result<()> {
+        let base_path = kustomization.parent_path;
+
         for resource in kustomization.resources.iter() {
-            let path = PathId::make(kustomization.path.join(resource))?;
+            let path = PathId::make(base_path.join(resource))?;
             let _resource = &self.resources[&path];
         }
 
@@ -190,16 +192,39 @@ impl Builder {
 
     // gather all referenced files and read them into memory.
     fn gather<A, K>(&mut self, manifest: &Located<Manifest<A, K>>) -> anyhow::Result<()> {
-        let base_path = manifest
-            .path
-            .parent()
-            .expect("this is a file so it has a parent")
-            .canonicalize()?;
+        let base_path = manifest.parent_path;
 
-        self.gather_resources(&base_path, manifest.resources.iter().map(|p| p.as_path()))?;
-        self.gather_patches(&base_path, manifest.patches.iter())?;
-        self.gather_components(&base_path, manifest.components.iter().map(|p| p.as_path()))?;
-        self.gather_configmap_generators(&base_path, manifest.config_map_generators.iter())?;
+        self.gather_resources(&base_path, manifest.resources.iter().map(|p| p.as_path()))
+            .with_context(|| {
+                format!(
+                    "gathering resources from kustomization at {}",
+                    manifest.path.display()
+                )
+            })?;
+
+        self.gather_patches(&base_path, manifest.patches.iter())
+            .with_context(|| {
+                format!(
+                    "gathering patches from kustomization at {}",
+                    manifest.path.display()
+                )
+            })?;
+
+        self.gather_components(&base_path, manifest.components.iter().map(|p| p.as_path()))
+            .with_context(|| {
+                format!(
+                    "gathering components from kustomization at {}",
+                    manifest.path.display()
+                )
+            })?;
+
+        self.gather_configmap_generators(&base_path, manifest.config_map_generators.iter())
+            .with_context(|| {
+                format!(
+                    "gathering configmap generators from kustomization at {}",
+                    manifest.path.display()
+                )
+            })?;
 
         // TODO generators and transformers
 
