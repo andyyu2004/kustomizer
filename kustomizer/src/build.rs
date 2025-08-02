@@ -1,12 +1,15 @@
 use std::collections::HashMap;
 
-use crate::{Located, manifest::Kustomization};
+use crate::{
+    Located, PathId,
+    manifest::{Component, Kustomization},
+};
 use anyhow::Context;
 
 // temporarily pub
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct BuildContext {
-    components: HashMap<std::path::PathBuf, crate::manifest::Component>,
+    components: HashMap<PathId, Component>,
 }
 
 // temporarily pub
@@ -20,11 +23,7 @@ pub async fn gather_context(
         .canonicalize()?;
     let mut components = HashMap::with_capacity(kustomization.components.len());
     for path in &kustomization.components {
-        let path = base_path
-            .join(path)
-            .join("kustomization.yaml")
-            .canonicalize()?;
-        let component = crate::load_component(&path)
+        let component = crate::load_component(base_path.join(path))
             .with_context(|| format!("loading component {}", path.display()))?;
         components.insert(component.path, component.value);
     }

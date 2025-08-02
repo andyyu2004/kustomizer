@@ -1,17 +1,17 @@
-use std::{
-    ops::Deref,
-    path::{Path, PathBuf},
-};
+pub mod build;
+mod intern;
+pub mod manifest;
+
+use std::{ops::Deref, path::Path};
+
+pub use self::intern::PathId;
 
 use self::manifest::{Component, Kustomization, Manifest, Symbol};
-
-pub mod build;
-pub mod manifest;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Located<T> {
     pub value: T,
-    pub path: PathBuf,
+    pub path: PathId,
 }
 
 impl<T> Deref for Located<T> {
@@ -50,5 +50,8 @@ where
 
     let file = std::fs::File::open(&path)?;
     let value = serde_yaml::from_reader(file)?;
-    Ok(Located { value, path })
+    Ok(Located {
+        value,
+        path: PathId::make(path)?,
+    })
 }
