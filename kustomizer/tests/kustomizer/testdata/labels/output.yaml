@@ -4,6 +4,7 @@ kind: Deployment
 metadata:
   name: test-app
   labels:
+    app: overridden-app
     environment: production
     team: backend
 spec:
@@ -29,6 +30,7 @@ metadata:
   labels:
     environment: production
     team: backend
+    app: overridden-app
 spec:
   selector:
     app: test-app

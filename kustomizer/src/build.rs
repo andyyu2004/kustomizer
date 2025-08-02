@@ -58,14 +58,11 @@ impl Builder {
 
             for label in &kustomization.labels {
                 for (key, value) in &label.pairs {
-                    assert!(
-                        self.output[&res.id]
-                            .metadata
-                            .labels
-                            .insert(key.clone(), value.clone())
-                            .is_none(),
-                        "what to do about conflicts?"
-                    );
+                    // `kustomization.labels` takes precedence over resource metadata labels
+                    self.output[&res.id]
+                        .metadata
+                        .labels
+                        .insert(key.clone(), value.clone());
                 }
             }
         }
