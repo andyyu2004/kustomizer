@@ -1,4 +1,5 @@
 mod build;
+mod generator;
 mod intern;
 pub mod manifest;
 mod resmap;
