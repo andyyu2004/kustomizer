@@ -9,8 +9,8 @@ datatest_stable::harness! {
 fn test(path: &Path) -> datatest_stable::Result<()> {
     let mut out = std::io::Cursor::new(Vec::new());
     let base_path = path.parent().unwrap();
-    let success_snapshot_path = base_path.join("expected").with_extension("yaml");
-    let error_snapshot_path = base_path.join("expected").with_extension("stderr");
+    let success_snapshot_path = base_path.join("output").with_extension("yaml");
+    let error_snapshot_path = base_path.join("error").with_extension("stderr");
 
     match kustomizer::build(path, &mut out) {
         Ok(()) => {
