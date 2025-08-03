@@ -8,10 +8,11 @@ use std::{
 };
 
 use crate::{
-    Located, PathExt as _, PathId, load_file, load_kustomization, load_yaml,
+    Located, PathExt as _, PathId,
+    generator::{FunctionGenerator, Generator as _},
+    load_file, load_kustomization, load_yaml,
     manifest::{
-        Component, FunctionSpec, Generator, GeneratorSpec, KeyValuePairSources, Kustomization,
-        Manifest, Patch,
+        Component, FunctionSpec, Generator, KeyValuePairSources, Kustomization, Manifest, Patch,
     },
     resmap::ResourceMap,
     resource::Resource,
@@ -59,7 +60,7 @@ impl Builder {
 
         for path in &kustomization.generators {
             let path = PathId::make(kustomization.parent_path.join(path))?;
-            let generator_spec = load_yaml::<GeneratorSpec>(path)
+            let generator_spec = load_yaml::<Resource>(path)
                 .with_context(|| format!("loading generator spec from {}", path.pretty()))?;
             let function_spec_str = generator_spec
                 .metadata
@@ -72,10 +73,19 @@ impl Builder {
                     )
                 })?;
 
-            // Do a strange dance where to we to JSON first to avoid serde_yaml's !Tag based enum deserialization.
+            // Do a strange dance where to we convert to JSON first to avoid serde_yaml's !Tag based enum deserialization format.
             let json = serde_yaml::from_str::<serde_json::Value>(function_spec_str)?;
-            let function_spec = serde_json::from_value::<FunctionSpec>(json)
+            let spec = serde_json::from_value::<FunctionSpec>(json)
                 .with_context(|| format!("parsing function spec from {}", path.pretty()))?;
+
+            let generated = FunctionGenerator::new(spec)
+                .generate(&generator_spec)
+                .with_context(|| {
+                    format!(
+                        "generating resources from function spec at {}",
+                        path.pretty()
+                    )
+                })?;
         }
 
         AnnotationTransformer(&kustomization.common_annotations).transform(&mut resources);

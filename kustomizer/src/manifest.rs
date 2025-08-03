@@ -61,8 +61,6 @@ pub struct Generator {
     pub sources: KeyValuePairSources,
 }
 
-pub type GeneratorSpec = Resource;
-
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub enum FunctionSpec {
