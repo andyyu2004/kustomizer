@@ -1,7 +1,7 @@
 use core::fmt;
 use std::ops::{Index, IndexMut};
 
-use indexmap::IndexMap;
+use indexmap::{IndexMap, map::Entry};
 
 use crate::resource::{ResId, Resource};
 
@@ -34,12 +34,14 @@ impl ResourceMap {
         self.resources.len()
     }
 
-    pub fn insert(&mut self, resource: Resource) -> Result<(), Resource> {
-        if let Some(old) = self.resources.insert(resource.id.clone(), resource) {
-            Err(old)?
+    pub fn insert(&mut self, resource: Resource) -> Result<(), Conflict> {
+        match self.resources.entry(resource.id.clone()) {
+            Entry::Occupied(_) => Err(Conflict { resource }),
+            Entry::Vacant(entry) => {
+                entry.insert(resource);
+                Ok(())
+            }
         }
-
-        Ok(())
     }
 
     pub fn iter(&self) -> impl ExactSizeIterator<Item = &Resource> + DoubleEndedIterator {
@@ -53,7 +55,7 @@ impl ResourceMap {
     }
 
     /// In-place merge of two `ResourceMap`s, any conflicting resources will be an error
-    pub fn merge(&mut self, other: ResourceMap) -> Result<(), Resource> {
+    pub fn merge(&mut self, other: ResourceMap) -> Result<(), Conflict> {
         for (_, resource) in other.resources {
             self.insert(resource)?;
         }
@@ -78,3 +80,20 @@ impl IndexMut<&ResId> for ResourceMap {
             .unwrap_or_else(|| panic!("resource with id `{id}` not in ResourceMap"))
     }
 }
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Conflict {
+    pub resource: Resource,
+}
+
+impl fmt::Display for Conflict {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "may not add resource with an already registered id `{}`",
+            self.resource.id
+        )
+    }
+}
+
+impl std::error::Error for Conflict {}

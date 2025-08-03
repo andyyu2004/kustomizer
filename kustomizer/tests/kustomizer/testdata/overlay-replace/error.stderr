@@ -1,1 +1,4 @@
-merging resources from `tests/kustomizer/testdata/overlay-replace/service.yaml`: may not add resource with an already registered id `Service.v1/test-service`
+conflict merging resources from `service.yaml`
+
+Caused by:
+    may not add resource with an already registered id `Service.v1/test-service`

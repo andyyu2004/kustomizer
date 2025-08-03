@@ -66,9 +66,9 @@ impl Generator for FunctionGenerator {
 
                 let resources = serde_yaml::from_slice::<ResourceList>(&output.stdout)?;
                 for resource in resources {
-                    if let Err(old) = resmap.insert(resource) {
-                        bail!("duplicate resource `{}` found in function output", old.id);
-                    }
+                    resmap
+                        .insert(resource)
+                        .context("duplicate resource in function output")?;
                 }
             }
             FunctionSpec::Container(_spec) => {

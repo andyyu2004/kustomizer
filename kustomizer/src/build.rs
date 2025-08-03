@@ -71,18 +71,17 @@ impl Builder {
                 .await
                 .with_context(|| {
                     format!(
-                        "generating resources from function spec at {}",
+                        "failed generating resources from function spec at {}",
                         path.pretty()
                     )
                 })?;
 
-            if let Err(res) = resources.merge(generated) {
-                bail!(
-                    "merging resources from generator `{}`: may not add resource with an already registered id `{}`",
-                    res.id,
-                    path.pretty(),
-                );
-            }
+            resources.merge(generated).with_context(|| {
+                format!(
+                    "conflict merging resources from generator at `{}`",
+                    path.pretty()
+                )
+            })?;
         }
 
         AnnotationTransformer(&kustomization.common_annotations).transform(&mut resources);
@@ -147,25 +146,10 @@ impl Builder {
 
         for (path, resource) in resources {
             match resource {
-                either::Either::Left(res) => {
-                    if let Err(old) = resmap.insert(res) {
-                        bail!(
-                            "merging resources from `{}`: may not add resource with an already registered id `{}`",
-                            path.pretty(),
-                            old.id
-                        );
-                    }
-                }
-                either::Either::Right(base) => {
-                    if let Err(res) = resmap.merge(base) {
-                        bail!(
-                            "merging resources from `{}`: may not add resource with an already registered id `{}`",
-                            res.id,
-                            path.pretty(),
-                        );
-                    }
-                }
+                either::Either::Left(res) => resmap.insert(res),
+                either::Either::Right(base) => resmap.merge(base),
             }
+            .with_context(|| format!("conflict merging resources from `{}`", path.pretty()))?
         }
 
         Ok(resmap)
