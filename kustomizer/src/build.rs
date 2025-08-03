@@ -11,9 +11,10 @@ use std::{
 use crate::{
     Located, PathExt as _, PathId,
     generator::{FunctionGenerator, Generator as _},
-    load_file, load_kustomization, load_yaml,
+    load_component, load_file, load_kustomization, load_yaml,
     manifest::{
         Component, FunctionSpec, Generator, KeyValuePairSources, Kustomization, Manifest, Patch,
+        Symbol,
     },
     reslist::ResourceList,
     resmap::ResourceMap,
@@ -37,11 +38,19 @@ pub struct Builder {
 }
 
 impl Builder {
-    #[tracing::instrument(skip_all, fields(path = %kustomization.path.pretty()))]
-    #[async_recursion::async_recursion]
-    pub async fn build(
+    pub async fn build_kustomization(
         &self,
         kustomization: &Located<Kustomization>,
+    ) -> anyhow::Result<ResourceMap> {
+        self.build(kustomization).await
+    }
+
+    #[tracing::instrument(skip_all, fields(path = %kustomization.path.pretty()))]
+    #[async_recursion::async_recursion]
+    #[allow(clippy::multiple_bound_locations)]
+    pub async fn build<A: Symbol, K: Symbol>(
+        &self,
+        kustomization: &Located<Manifest<A, K>>,
     ) -> anyhow::Result<ResourceMap> {
         let mut resources = self.build_kustomization_base(kustomization).await?;
 
@@ -80,6 +89,18 @@ impl Builder {
             })?;
         }
 
+        for component in &kustomization.components {
+            let component = load_component(kustomization.parent_path.join(component))
+                .with_context(|| format!("loading component `{}`", component.pretty()))?;
+            let built = self.build(&component).await?;
+            resources.merge(built).with_context(|| {
+                format!(
+                    "failure merging resources from component `{}`",
+                    component.path.pretty()
+                )
+            })?;
+        }
+
         AnnotationTransformer(&kustomization.common_annotations).transform(&mut resources);
         LabelTransformer(&kustomization.labels).transform(&mut resources);
         if let Some(namespace) = &kustomization.namespace {
@@ -99,9 +120,6 @@ impl Builder {
         //     bail!("images are not implemented");
         // }
         //
-        // if !kustomization.components.is_empty() {
-        //     bail!("components are not implemented");
-        // }
         //
         // if !kustomization.config_map_generators.is_empty() {
         //     bail!("config map generators are not implemented");
@@ -118,9 +136,9 @@ impl Builder {
         Ok(resources)
     }
 
-    async fn build_kustomization_base(
+    async fn build_kustomization_base<A, K>(
         &self,
-        kustomization: &Located<Kustomization>,
+        kustomization: &Located<Manifest<A, K>>,
     ) -> anyhow::Result<ResourceMap> {
         let mut resmap = ResourceMap::default();
 
@@ -143,9 +161,9 @@ impl Builder {
     }
 
     #[tracing::instrument(skip_all, fields(path = %kustomization.path.pretty(), resource_path = %path.pretty()))]
-    async fn build_resource(
+    async fn build_resource<A, K>(
         &self,
-        kustomization: &Located<Kustomization>,
+        kustomization: &Located<Manifest<A, K>>,
         path: &Path,
     ) -> anyhow::Result<either::Either<Resource, ResourceMap>> {
         let path = PathId::make(kustomization.parent_path.join(path))?;

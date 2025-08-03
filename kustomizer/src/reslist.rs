@@ -16,10 +16,6 @@ impl ResourceList {
             items: resources.into_iter().collect(),
         }
     }
-
-    pub fn iter(&self) -> impl Iterator<Item = &Resource> + fmt::Debug {
-        self.items.iter()
-    }
 }
 
 impl IntoIterator for ResourceList {

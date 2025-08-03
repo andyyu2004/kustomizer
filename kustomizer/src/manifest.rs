@@ -347,6 +347,6 @@ macro_rules! define_symbol {
 
 use define_symbol;
 
-pub trait Symbol: fmt::Debug {
+pub trait Symbol: fmt::Debug + Send + Sync {
     const VALUE: &'static str;
 }
