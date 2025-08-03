@@ -17,9 +17,9 @@ pub use self::intern::PathId;
 
 use self::manifest::{Component, Kustomization, Manifest, Symbol};
 
-pub fn build(path: impl AsRef<Path>, out: &mut dyn Write) -> anyhow::Result<()> {
+pub async fn build(path: impl AsRef<Path>, out: &mut dyn Write) -> anyhow::Result<()> {
     let kustomization = load_kustomization(path)?;
-    build::Builder::default().build(&kustomization, out)
+    build::Builder::default().build(&kustomization, out).await
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]

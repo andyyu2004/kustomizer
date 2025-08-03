@@ -35,13 +35,13 @@ pub struct Builder {
 
 impl Builder {
     #[tracing::instrument(skip_all, fields(path = %kustomization.path.pretty()))]
-    pub fn build(
+    pub async fn build(
         mut self,
         kustomization: &Located<Kustomization>,
         out: &mut dyn Write,
     ) -> anyhow::Result<()> {
         // self.gather(kustomization)?;
-        let output = self.build_kustomization(kustomization)?;
+        let output = self.build_kustomization(kustomization).await?;
 
         for resource in output.iter() {
             if output.len() > 1 {
@@ -53,11 +53,11 @@ impl Builder {
     }
 
     #[tracing::instrument(skip_all, fields(path = %kustomization.path.pretty()))]
-    fn build_kustomization(
+    async fn build_kustomization(
         &mut self,
         kustomization: &Located<Kustomization>,
     ) -> anyhow::Result<ResourceMap> {
-        let mut resources = self.build_kustomization_base(kustomization)?;
+        let mut resources = self.build_kustomization_base(kustomization).await?;
 
         for path in &kustomization.generators {
             let path = PathId::make(kustomization.parent_path.join(path))?;
@@ -144,7 +144,7 @@ impl Builder {
         Ok(resources)
     }
 
-    fn build_kustomization_base(
+    async fn build_kustomization_base(
         &mut self,
         kustomization: &Located<Kustomization>,
     ) -> anyhow::Result<ResourceMap> {
@@ -179,9 +179,11 @@ impl Builder {
                 let kustomization = load_kustomization(path)
                     .with_context(|| format!("loading kustomization resource {}", path.pretty()))?;
 
-                let base = self.build_kustomization(&kustomization).with_context(|| {
-                    format!("building kustomization resource {}", path.pretty())
-                })?;
+                let base = Box::pin(self.build_kustomization(&kustomization))
+                    .await
+                    .with_context(|| {
+                        format!("building kustomization resource {}", path.pretty())
+                    })?;
 
                 if let Err(res_id) = resources.merge(base) {
                     bail!(

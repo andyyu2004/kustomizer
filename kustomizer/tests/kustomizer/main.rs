@@ -7,13 +7,14 @@ datatest_stable::harness! {
     { test = test, root = "tests/kustomizer/testdata", pattern = r".*/kustomization.yaml" },
 }
 
-fn test(path: &Path) -> datatest_stable::Result<()> {
+#[tokio::main]
+async fn test(path: &Path) -> datatest_stable::Result<()> {
     let mut out = std::io::Cursor::new(Vec::new());
     let base_path = path.parent().unwrap();
     let success_snapshot_path = base_path.join("output").with_extension("yaml");
     let error_snapshot_path = base_path.join("error").with_extension("stderr");
 
-    match kustomizer::build(path, &mut out) {
+    match kustomizer::build(path, &mut out).await {
         Ok(()) => {
             let actual = String::from_utf8(out.into_inner())?;
             let res = snapshot(&success_snapshot_path, &actual);
