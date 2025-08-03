@@ -37,6 +37,14 @@ pub struct ResId {
     pub namespace: Option<Str>,
 }
 
+impl Deref for ResId {
+    type Target = Gvk;
+
+    fn deref(&self) -> &Self::Target {
+        &self.gvk
+    }
+}
+
 impl fmt::Display for ResId {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         if let Some(namespace) = &self.namespace {
@@ -52,7 +60,7 @@ impl fmt::Display for ResId {
 pub struct Resource {
     pub id: ResId,
     pub metadata: Metadata,
-    pub data: serde_yaml::Value,
+    pub root: serde_yaml::Value,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -62,7 +70,7 @@ struct Res {
     kind: Str,
     metadata: Metadata,
     #[serde(flatten)]
-    manifest: serde_yaml::Value,
+    root: serde_yaml::Value,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
@@ -146,7 +154,7 @@ impl Serialize for Resource {
             api_version,
             kind: self.id.gvk.kind.clone(),
             metadata: self.metadata.clone(),
-            manifest: self.data.clone(),
+            root: self.root.clone(),
         }
         .serialize(serializer)
     }
@@ -180,7 +188,7 @@ impl<'de> Deserialize<'de> for Resource {
         Ok(Resource {
             id,
             metadata: res.metadata,
-            data: res.manifest,
+            root: res.root,
         })
     }
 }

@@ -195,6 +195,16 @@ impl Behavior {
     }
 }
 
+impl fmt::Display for Behavior {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Create => write!(f, "create"),
+            Self::Merge => write!(f, "merge"),
+            Self::Replace => write!(f, "replace"),
+        }
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize)]
 pub struct Replica {
     pub name: Str,

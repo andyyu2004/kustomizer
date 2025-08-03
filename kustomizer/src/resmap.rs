@@ -1,9 +1,13 @@
 use core::fmt;
 use std::ops::{Index, IndexMut};
 
+use anyhow::bail;
 use indexmap::{IndexMap, map::Entry};
 
-use crate::resource::{ResId, Resource};
+use crate::{
+    manifest::Behavior,
+    resource::{ResId, Resource},
+};
 
 #[derive(Clone, Default)]
 pub struct ResourceMap {
@@ -34,14 +38,51 @@ impl ResourceMap {
         self.resources.len()
     }
 
-    pub fn insert(&mut self, resource: Resource) -> Result<(), Conflict> {
+    pub fn insert(&mut self, resource: Resource) -> anyhow::Result<()> {
+        let behavior = resource.metadata.annotations.behavior;
         match self.resources.entry(resource.id.clone()) {
-            Entry::Occupied(_) => Err(Conflict { resource }),
-            Entry::Vacant(entry) => {
-                entry.insert(resource);
-                Ok(())
-            }
+            Entry::Occupied(mut entry) => match behavior {
+                Behavior::Create => bail!(
+                    "may not add resource with an already registered id `{}`, consider specifying `merge` or `replace` behaviour",
+                    resource.id
+                ),
+                Behavior::Merge => {
+                    let left = entry
+                        .get_mut()
+                        .root
+                        .get_mut("data")
+                        .and_then(|data| data.as_mapping_mut());
+                    let right = resource.root.get("data").and_then(|data| data.as_mapping());
+
+                    // TODO same for string data
+                    // TODO merging metadata and annotations, not sure what is correct behaviour for this
+                    match (left, right) {
+                        (Some(left), Some(right)) => {
+                            for (key, value) in right {
+                                left.insert(key.clone(), value.clone());
+                            }
+                        }
+                        (None, Some(right)) => {
+                            entry.get_mut().root["data"] =
+                                serde_yaml::Value::Mapping(right.clone());
+                        }
+                        (_, None) => {}
+                    }
+                }
+                Behavior::Replace => todo!("replace"),
+            },
+            Entry::Vacant(entry) => match behavior {
+                Behavior::Create => drop(entry.insert(resource)),
+                Behavior::Merge | Behavior::Replace => {
+                    bail!(
+                        "resource id `{}` does not exist, cannot {behavior}",
+                        resource.id
+                    )
+                }
+            },
         }
+
+        Ok(())
     }
 
     pub fn iter(&self) -> impl ExactSizeIterator<Item = &Resource> + DoubleEndedIterator {
@@ -54,8 +95,8 @@ impl ResourceMap {
         self.resources.values_mut()
     }
 
-    /// In-place merge of two `ResourceMap`s, any conflicting resources will be an error
-    pub fn merge(&mut self, other: ResourceMap) -> Result<(), Conflict> {
+    /// In-place merge of two `ResourceMap`s into `self`
+    pub fn merge(&mut self, other: ResourceMap) -> anyhow::Result<()> {
         for (_, resource) in other.resources {
             self.insert(resource)?;
         }
@@ -80,20 +121,3 @@ impl IndexMut<&ResId> for ResourceMap {
             .unwrap_or_else(|| panic!("resource with id `{id}` not in ResourceMap"))
     }
 }
-
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub struct Conflict {
-    pub resource: Resource,
-}
-
-impl fmt::Display for Conflict {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(
-            f,
-            "may not add resource with an already registered id `{}`",
-            self.resource.id
-        )
-    }
-}
-
-impl std::error::Error for Conflict {}

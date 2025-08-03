@@ -25,7 +25,7 @@ impl Transformer for AnnotationTransformer<'_> {
                 .annotations
                 .extend(self.0.iter().map(|(k, v)| (k.clone(), v.clone())));
 
-            resource.data.visit_with(self);
+            resource.root.visit_with(self);
         }
     }
 }
