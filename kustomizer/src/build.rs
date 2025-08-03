@@ -10,7 +10,7 @@ use std::{
 
 use crate::{
     Located, PathExt as _, PathId,
-    generator::{FunctionGenerator, Generator as _},
+    generator::{ConfigMapGenerator, FunctionGenerator, Generator as _},
     load_component, load_file, load_kustomization, load_yaml,
     manifest::{
         Component, FunctionSpec, Generator, KeyValuePairSources, Kustomization, Manifest, Patch,
@@ -18,7 +18,7 @@ use crate::{
     },
     reslist::ResourceList,
     resmap::ResourceMap,
-    resource::Resource,
+    resource::{Gvk, Metadata, ResId, Resource},
     transform::{AnnotationTransformer, LabelTransformer, NamespaceTransformer, Transformer},
 };
 use anyhow::{Context, bail};
@@ -101,6 +101,16 @@ impl Builder {
             })?;
         }
 
+        let configmaps = ConfigMapGenerator::new(&kustomization.config_map_generators)
+            .generate(&kustomization.parent_path, &ResourceList::new([]))
+            .await?;
+        resources.extend(configmaps).with_context(|| {
+            format!(
+                "failure merging resources from configmap generators in `{}`",
+                kustomization.path.pretty()
+            )
+        })?;
+
         AnnotationTransformer(&kustomization.common_annotations).transform(&mut resources);
         LabelTransformer(&kustomization.labels).transform(&mut resources);
         if let Some(namespace) = &kustomization.namespace {
@@ -121,9 +131,6 @@ impl Builder {
         // }
         //
         //
-        // if !kustomization.config_map_generators.is_empty() {
-        //     bail!("config map generators are not implemented");
-        // }
         //
         // if kustomization.name_prefix.is_some() {
         //     bail!("name prefix is not implemented");

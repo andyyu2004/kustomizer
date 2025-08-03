@@ -89,7 +89,7 @@ pub struct Metadata {
     #[serde(default, skip_serializing_if = "Annotations::is_empty")]
     pub annotations: Annotations,
     #[serde(flatten)]
-    rest: IndexMap<Str, serde_yaml::Value>,
+    pub rest: IndexMap<Str, serde_yaml::Value>,
 }
 
 impl Deref for Metadata {
@@ -122,7 +122,7 @@ pub struct Annotations {
     )]
     pub behavior: Behavior,
     #[serde(flatten)]
-    rest: IndexMap<Str, Str>,
+    pub rest: IndexMap<Str, Str>,
 }
 
 impl Annotations {

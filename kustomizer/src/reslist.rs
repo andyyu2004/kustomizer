@@ -7,8 +7,9 @@ pub struct ResourceList {
     kind: kind::ResourceList,
     items: Box<[Resource]>,
 }
+
 impl ResourceList {
-    pub(crate) fn new(resources: impl IntoIterator<Item = Resource>) -> Self {
+    pub fn new(resources: impl IntoIterator<Item = Resource>) -> Self {
         Self {
             kind: kind::ResourceList,
             items: resources.into_iter().collect(),

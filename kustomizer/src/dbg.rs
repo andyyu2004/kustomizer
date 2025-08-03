@@ -36,19 +36,22 @@ pub fn diff_reference_impl(path: &Path, actual: &str) -> anyhow::Result<()> {
     let expected = String::from_utf8(output.stdout).context("parsing kustomize output")?;
 
     // Order of documents and fields within objects do not matter for correctness.
+    // Splitting by --- is easily broken by strings containing ---
     let expected_documents = expected
         .split("---\n")
         .map(str::trim)
         .filter(|s| !s.is_empty())
-        .map(serde_yaml::from_str)
-        .collect::<serde_yaml::Result<HashSet<serde_yaml::Value>>>()?;
+        .map(|s| serde_yaml::from_str(s).context(format!("parsing YAML document\n{s}")))
+        .collect::<anyhow::Result<HashSet<serde_yaml::Value>>>()
+        .context("parsing kustomize output")?;
 
     let actual_documents = actual
         .split("---\n")
         .map(str::trim)
         .filter(|s| !s.is_empty())
         .map(serde_yaml::from_str)
-        .collect::<serde_yaml::Result<HashSet<serde_yaml::Value>>>()?;
+        .collect::<serde_yaml::Result<HashSet<serde_yaml::Value>>>()
+        .context("parsing actual output")?;
 
     if expected_documents == actual_documents {
         return Ok(());
