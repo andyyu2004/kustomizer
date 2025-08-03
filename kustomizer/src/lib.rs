@@ -111,21 +111,61 @@ impl PathExt for Path {
 }
 
 #[cfg(test)]
-#[test]
-fn hack_test_tmp() -> anyhow::Result<()> {
-    let output = std::process::Command::new("bash")
-        .stdin(std::process::Stdio::null())
-        .stdout(std::process::Stdio::piped())
-        .stderr(std::process::Stdio::piped())
-        .arg("test.sh")
-        .output()?;
+mod hack {
+    #[test]
+    fn test_tmp_1() -> anyhow::Result<()> {
+        let output = std::process::Command::new("bash")
+            .stdin(std::process::Stdio::null())
+            .stdout(std::process::Stdio::piped())
+            .stderr(std::process::Stdio::piped())
+            .arg("test-1.sh")
+            .output()?;
 
-    if !output.status.success() {
-        return Err(anyhow::anyhow!(
-            "test.sh failed with status: {}\n{}",
-            output.status,
-            String::from_utf8_lossy(&output.stderr),
-        ));
+        if !output.status.success() {
+            return Err(anyhow::anyhow!(
+                "test-1.sh failed with status {}: {}",
+                output.status,
+                String::from_utf8_lossy(&output.stderr),
+            ));
+        }
+        Ok(())
     }
-    Ok(())
+
+    #[test]
+    fn test_tmp_2() -> anyhow::Result<()> {
+        let output = std::process::Command::new("bash")
+            .stdin(std::process::Stdio::null())
+            .stdout(std::process::Stdio::piped())
+            .stderr(std::process::Stdio::piped())
+            .arg("test-2.sh")
+            .output()?;
+
+        if !output.status.success() {
+            return Err(anyhow::anyhow!(
+                "test-2.sh failed with status {}: {}",
+                output.status,
+                String::from_utf8_lossy(&output.stderr),
+            ));
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn test_tmp_3() -> anyhow::Result<()> {
+        let output = std::process::Command::new("bash")
+            .stdin(std::process::Stdio::null())
+            .stdout(std::process::Stdio::piped())
+            .stderr(std::process::Stdio::piped())
+            .arg("test-3.sh")
+            .output()?;
+
+        if !output.status.success() {
+            return Err(anyhow::anyhow!(
+                "test-3.sh failed with status {}: {}",
+                output.status,
+                String::from_utf8_lossy(&output.stderr),
+            ));
+        }
+        Ok(())
+    }
 }
