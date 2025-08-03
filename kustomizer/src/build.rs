@@ -20,6 +20,8 @@ use crate::{
 use anyhow::{Context, bail};
 use indexmap::{IndexMap, map::Entry};
 
+const KUSTOMIZE_FUNCTION_ANNOTATION: &str = "config.kubernetes.io/function";
+
 #[derive(Debug, Default)]
 pub struct Builder {
     // Filesystem caches to avoid re-reading files.
@@ -27,7 +29,6 @@ pub struct Builder {
     resources_cache: IndexMap<PathId, Resource>,
     strategic_merge_patches_cache: IndexMap<PathId, serde_yaml::Value>,
     key_value_files_cache: IndexMap<PathId, Box<str>>,
-    generator_spec_cache: IndexMap<PathId, FunctionSpec>,
 }
 
 impl Builder {
@@ -58,8 +59,23 @@ impl Builder {
 
         for path in &kustomization.generators {
             let path = PathId::make(kustomization.parent_path.join(path))?;
-            let gen_spec = load_yaml::<GeneratorSpec>(path)
+            let generator_spec = load_yaml::<GeneratorSpec>(path)
                 .with_context(|| format!("loading generator spec from {}", path.pretty()))?;
+            let function_spec_str = generator_spec
+                .metadata
+                .annotations
+                .get(KUSTOMIZE_FUNCTION_ANNOTATION)
+                .ok_or_else(|| {
+                    anyhow::anyhow!(
+                        "generator spec at `{}` is missing `{KUSTOMIZE_FUNCTION_ANNOTATION}` annotation",
+                        path.pretty()
+                    )
+                })?;
+
+            // Do a strange dance where to we to JSON first to avoid serde_yaml's !Tag based enum deserialization.
+            let json = serde_yaml::from_str::<serde_json::Value>(function_spec_str)?;
+            let function_spec = serde_json::from_value::<FunctionSpec>(json)
+                .with_context(|| format!("parsing function spec from {}", path.pretty()))?;
         }
 
         AnnotationTransformer(&kustomization.common_annotations).transform(&mut resources);

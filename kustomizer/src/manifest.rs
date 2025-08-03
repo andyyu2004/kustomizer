@@ -64,17 +64,9 @@ pub struct Generator {
 pub type GeneratorSpec = Resource;
 
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize)]
-pub struct GeneratorAnnotations {
-    #[serde(rename = "kustomize.config.k8s.io/function")]
-    function_spec: FunctionSpec,
-    #[serde(flatten)]
-    rest: IndexMap<Str, Str>,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize)]
-#[serde(rename_all = "camelCase", deny_unknown_fields)]
+#[serde(rename_all = "camelCase")]
 pub enum FunctionSpec {
-    ExecSpec(ExecSpec),
+    Exec(ExecSpec),
     Container(ContainerSpec),
 }
 

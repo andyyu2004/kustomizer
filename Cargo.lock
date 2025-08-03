@@ -323,6 +323,7 @@ dependencies = [
  "indexmap",
  "json-patch",
  "serde",
+ "serde_json",
  "serde_yaml",
  "tracing",
  "tracing-subscriber",

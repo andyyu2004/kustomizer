@@ -16,7 +16,7 @@ pub trait VisitorMut {
     }
 
     fn walk_mapping(&mut self, map: &mut serde_yaml::Mapping) -> ControlFlow<Self::Break> {
-        for value in map.values_mut() {
+        for (_key, value) in map.iter_mut() {
             // No mutable reference to the key
             self.visit_value(value)?;
         }
