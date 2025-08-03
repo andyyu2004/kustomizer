@@ -180,13 +180,19 @@ impl<'de> Deserialize<'de> for KeyValuePair {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize, Default)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Deserialize, Serialize, Default)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub enum Behavior {
     #[default]
     Create,
     Merge,
     Replace,
+}
+
+impl Behavior {
+    pub fn is_default(&self) -> bool {
+        *self == Self::default()
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize)]

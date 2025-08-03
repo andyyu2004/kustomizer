@@ -7,7 +7,7 @@ use compact_str::format_compact;
 use indexmap::IndexMap;
 use serde::{Deserialize, Serialize};
 
-use crate::manifest::{FunctionSpec, Str};
+use crate::manifest::{Behavior, FunctionSpec, Str};
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
@@ -101,6 +101,12 @@ pub struct Annotations {
         skip_serializing_if = "Option::is_none"
     )]
     pub function_spec: Option<FunctionSpec>,
+    #[serde(
+        rename = "kustomize.config.k8s.io/behavior",
+        default,
+        skip_serializing_if = "Behavior::is_default"
+    )]
+    pub behavior: Behavior,
     #[serde(flatten)]
     rest: IndexMap<Str, Str>,
 }
