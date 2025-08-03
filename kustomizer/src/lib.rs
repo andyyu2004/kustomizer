@@ -1,4 +1,5 @@
 mod build;
+pub mod dbg;
 mod generator;
 mod intern;
 pub mod manifest;

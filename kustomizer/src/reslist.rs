@@ -1,5 +1,3 @@
-use core::fmt;
-
 use serde::{Deserialize, Serialize};
 
 use crate::{manifest::kind, resource::Resource};

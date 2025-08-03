@@ -1,0 +1,87 @@
+use anyhow::{Context, bail};
+use std::{collections::HashSet, path::Path};
+
+use crate::PathExt;
+
+// Diff against reference kustomize implementation
+pub fn diff_reference_impl(path: &Path, actual: &str) -> anyhow::Result<()> {
+    let parent = path.parent().unwrap();
+    let output = std::process::Command::new("kustomize")
+        .arg("build")
+        .arg(".")
+        .current_dir(parent)
+        .stdout(std::process::Stdio::piped())
+        .stderr(std::process::Stdio::piped())
+        .output()
+        .context("kustomize build")?;
+
+    if !output.status.success() {
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        if !stderr.is_empty() {
+            eprintln!("kustomize build failed with error: {stderr}");
+        }
+
+        bail!(
+            "kustomize build failed for {} with status: {}",
+            path.pretty(),
+            output.status
+        )
+    }
+
+    let expected = String::from_utf8(output.stdout).context("parsing kustomize output")?;
+
+    // Order of documents and fields within objects do not matter for correctness.
+    let expected_documents = expected
+        .split("---\n")
+        .map(str::trim)
+        .filter(|s| !s.is_empty())
+        .map(serde_yaml::from_str)
+        .collect::<serde_yaml::Result<HashSet<serde_yaml::Value>>>()?;
+
+    let actual_documents = actual
+        .split("---\n")
+        .map(str::trim)
+        .filter(|s| !s.is_empty())
+        .map(serde_yaml::from_str)
+        .collect::<serde_yaml::Result<HashSet<serde_yaml::Value>>>()?;
+
+    if expected_documents == actual_documents {
+        return Ok(());
+    }
+
+    let mut expected = expected_documents
+        .into_iter()
+        .map(|doc| serde_yaml::to_string(&doc).unwrap())
+        .collect::<Vec<_>>();
+    expected.sort();
+
+    let mut actual = actual_documents
+        .into_iter()
+        .map(|doc| serde_yaml::to_string(&doc).unwrap())
+        .collect::<Vec<_>>();
+    actual.sort();
+
+    let actual = actual.join("---\n");
+    let expected = expected.join("---\n");
+    let tmp_dir = Path::new("/tmp/kustomizer-test").join(parent.file_name().unwrap());
+    std::fs::create_dir_all(&tmp_dir).context("creating temporary directory")?;
+    std::fs::write(tmp_dir.join("expected.yaml"), &expected)?;
+    std::fs::write(tmp_dir.join("actual.yaml"), &actual)?;
+    let chunks = dissimilar::diff(&expected, &actual);
+    eprintln!("{}", format_chunks(chunks));
+
+    bail!("reference mismatch for test {}", path.pretty())
+}
+
+pub fn format_chunks(chunks: Vec<dissimilar::Chunk>) -> String {
+    let mut buf = String::new();
+    for chunk in chunks {
+        let formatted = match chunk {
+            dissimilar::Chunk::Equal(text) => text.into(),
+            dissimilar::Chunk::Delete(text) => format!("\x1b[4m\x1b[31m{}\x1b[0m", text),
+            dissimilar::Chunk::Insert(text) => format!("\x1b[4m\x1b[32m{}\x1b[0m", text),
+        };
+        buf.push_str(&formatted);
+    }
+    buf
+}
