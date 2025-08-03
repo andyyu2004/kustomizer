@@ -64,6 +64,9 @@ fn should_update_snapshots() -> bool {
 fn show_reference_impl_error(path: &Path) -> datatest_stable::Result<()> {
     let output = std::process::Command::new("kustomize")
         .arg("build")
+        .arg("--load-restrictor=LoadRestrictionsNone")
+        .arg("--enable-alpha-plugins")
+        .arg("--enable-exec")
         .arg(".")
         .current_dir(path)
         .stdout(std::process::Stdio::piped())

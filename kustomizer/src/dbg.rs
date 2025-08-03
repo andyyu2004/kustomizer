@@ -10,6 +10,9 @@ pub fn diff_reference_impl(path: &Path, actual: &str) -> anyhow::Result<()> {
 
     let output = std::process::Command::new("kustomize")
         .arg("build")
+        .arg("--load-restrictor=LoadRestrictionsNone")
+        .arg("--enable-alpha-plugins")
+        .arg("--enable-exec")
         .arg(".")
         .current_dir(path)
         .stdout(std::process::Stdio::piped())
