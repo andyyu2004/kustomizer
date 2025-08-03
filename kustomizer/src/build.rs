@@ -77,9 +77,9 @@ impl Builder {
                     )
                 })?;
 
-            resources.merge(generated).with_context(|| {
+            resources.extend(generated).with_context(|| {
                 format!(
-                    "conflict merging resources from generator at `{}`",
+                    "failure merging resources from generator at `{}`",
                     path.pretty()
                 )
             })?;
@@ -150,7 +150,7 @@ impl Builder {
                 either::Either::Left(res) => resmap.insert(res),
                 either::Either::Right(base) => resmap.merge(base),
             }
-            .with_context(|| format!("conflict merging resources from `{}`", path.pretty()))?
+            .with_context(|| format!("failure merging resources from `{}`", path.pretty()))?
         }
 
         Ok(resmap)

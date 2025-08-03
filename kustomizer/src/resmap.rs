@@ -102,6 +102,13 @@ impl ResourceMap {
         }
         Ok(())
     }
+
+    pub fn extend(&mut self, resources: impl IntoIterator<Item = Resource>) -> anyhow::Result<()> {
+        for resource in resources {
+            self.insert(resource)?;
+        }
+        Ok(())
+    }
 }
 
 impl Index<&ResId> for ResourceMap {

@@ -4,7 +4,7 @@ use tokio::process::Command;
 
 use anyhow::{Context, bail};
 
-use crate::{manifest::FunctionSpec, reslist::ResourceList, resmap::ResourceMap};
+use crate::{manifest::FunctionSpec, reslist::ResourceList};
 
 #[async_trait::async_trait]
 pub trait Generator {
@@ -12,7 +12,7 @@ pub trait Generator {
         &mut self,
         workdir: &Path,
         input: &ResourceList,
-    ) -> anyhow::Result<ResourceMap>;
+    ) -> anyhow::Result<ResourceList>;
 }
 
 pub struct FunctionGenerator {
@@ -32,8 +32,7 @@ impl Generator for FunctionGenerator {
         &mut self,
         workdir: &Path,
         input: &ResourceList,
-    ) -> anyhow::Result<ResourceMap> {
-        let mut resmap = ResourceMap::default();
+    ) -> anyhow::Result<ResourceList> {
         match &self.spec {
             FunctionSpec::Exec(spec) => {
                 let mut proc = Command::new(&spec.path)
@@ -64,18 +63,11 @@ impl Generator for FunctionGenerator {
                     );
                 }
 
-                let resources = serde_yaml::from_slice::<ResourceList>(&output.stdout)?;
-                for resource in resources {
-                    resmap
-                        .insert(resource)
-                        .context("duplicate resource in function output")?;
-                }
+                Ok(serde_yaml::from_slice::<ResourceList>(&output.stdout)?)
             }
             FunctionSpec::Container(_spec) => {
                 bail!("Container functions are not supported yet")
             }
         }
-
-        Ok(resmap)
     }
 }
