@@ -50,10 +50,11 @@ impl Builder {
             let workdir = path.parent().unwrap();
             let generator_spec = load_yaml::<Resource>(path)
                 .with_context(|| format!("loading generator spec from {}", path.pretty()))?;
-            let function_spec_str = generator_spec
+            let function_spec = generator_spec
                 .metadata
                 .annotations
-                .get(KUSTOMIZE_FUNCTION_ANNOTATION)
+                .function_spec
+                .clone()
                 .ok_or_else(|| {
                     anyhow::anyhow!(
                         "generator spec at `{}` is missing `{KUSTOMIZE_FUNCTION_ANNOTATION}` annotation",
@@ -62,11 +63,11 @@ impl Builder {
                 })?;
 
             // Do a strange dance where to we convert to JSON first to avoid serde_yaml's !Tag based enum deserialization format.
-            let json = serde_yaml::from_str::<serde_json::Value>(function_spec_str)?;
-            let spec = serde_json::from_value::<FunctionSpec>(json)
-                .with_context(|| format!("parsing function spec from {}", path.pretty()))?;
+            // let json = serde_yaml::from_str::<serde_json::Value>(function_spec_str)?;
+            // let spec = serde_json::from_value::<FunctionSpec>(json)
+            //     .with_context(|| format!("parsing function spec from {}", path.pretty()))?;
 
-            let generated = FunctionGenerator::new(spec)
+            let generated = FunctionGenerator::new(function_spec)
                 .generate(workdir, &ResourceList::new([generator_spec]))
                 .await
                 .with_context(|| {

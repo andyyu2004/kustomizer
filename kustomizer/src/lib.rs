@@ -5,6 +5,7 @@ pub mod manifest;
 mod reslist;
 mod resmap;
 mod resource;
+mod serde_ex;
 mod transform;
 mod visit;
 

@@ -1,10 +1,13 @@
-use std::fmt;
+use std::{
+    fmt,
+    ops::{Deref, DerefMut},
+};
 
 use compact_str::format_compact;
 use indexmap::IndexMap;
 use serde::{Deserialize, Serialize};
 
-use crate::manifest::Str;
+use crate::manifest::{FunctionSpec, Str};
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
@@ -75,7 +78,52 @@ pub struct Metadata {
     rest: IndexMap<Str, serde_yaml::Value>,
 }
 
-pub type Annotations = IndexMap<Str, Str>;
+impl Deref for Metadata {
+    type Target = IndexMap<Str, serde_yaml::Value>;
+
+    fn deref(&self) -> &Self::Target {
+        &self.rest
+    }
+}
+
+impl DerefMut for Metadata {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.rest
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Default, Serialize, Deserialize)]
+pub struct Annotations {
+    #[serde(
+        rename = "config.kubernetes.io/function",
+        with = "crate::serde_ex::nested_yaml",
+        default,
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub function_spec: Option<FunctionSpec>,
+    #[serde(flatten)]
+    rest: IndexMap<Str, Str>,
+}
+
+impl Annotations {
+    pub fn is_empty(&self) -> bool {
+        self.function_spec.is_none() && self.rest.is_empty()
+    }
+}
+
+impl Deref for Annotations {
+    type Target = IndexMap<Str, Str>;
+
+    fn deref(&self) -> &Self::Target {
+        &self.rest
+    }
+}
+
+impl DerefMut for Annotations {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.rest
+    }
+}
 
 impl Serialize for Resource {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>

@@ -201,7 +201,7 @@ pub struct Replica {
 // matches kustomize's exact semantics.
 pub enum Patch {
     Json {
-        #[serde(with = "nested_yaml")]
+        #[serde(with = "crate::serde_ex::nested_yaml")]
         patch: JsonPatch,
         target: Target,
     },
@@ -209,30 +209,6 @@ pub enum Patch {
         path: PathBuf,
         target: Option<Target>,
     },
-}
-
-mod nested_yaml {
-    use super::*;
-    use serde::{Deserialize, Deserializer, Serializer};
-
-    pub fn serialize<S, T>(patch: &T, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-        T: ToString,
-    {
-        patch.to_string().serialize(serializer)
-    }
-
-    pub fn deserialize<'de, D, T>(deserializer: D) -> Result<T, D::Error>
-    where
-        D: Deserializer<'de>,
-        T: Deserialize<'de>,
-    {
-        let s: Str = Deserialize::deserialize(deserializer)?;
-        let yaml =
-            serde_yaml::from_str::<serde_yaml::Value>(&s).map_err(serde::de::Error::custom)?;
-        T::deserialize(yaml).map_err(serde::de::Error::custom)
-    }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize)]
