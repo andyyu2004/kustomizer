@@ -9,6 +9,8 @@ use crate::{
 
 use super::{ResourceMap, Transformer};
 
+// This implementation is not right, see following. It should take some well known paths and only patch those.
+// internal/konfig/builtinpluginconsts/commonannotations.go
 pub struct AnnotationTransformer<'a>(pub &'a IndexMap<Str, Str>);
 
 impl Transformer for AnnotationTransformer<'_> {
