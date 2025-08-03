@@ -60,6 +60,8 @@ pub struct Generator {
     pub behavior: Behavior,
     #[serde(flatten)]
     pub sources: KeyValuePairSources,
+    #[serde(default)]
+    pub options: GeneratorOptions,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize)]
@@ -91,9 +93,9 @@ pub struct ContainerSpec {
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize, Default)]
 pub struct GeneratorOptions {
     #[serde(default, skip_serializing_if = "IndexMap::is_empty")]
-    labels: IndexMap<Str, Str>,
+    pub labels: IndexMap<Str, Str>,
     #[serde(default, skip_serializing_if = "IndexMap::is_empty")]
-    annotations: IndexMap<Str, Str>,
+    pub annotations: IndexMap<Str, Str>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub disable_name_suffix_hash: Option<bool>,
     #[serde(default, skip_serializing_if = "std::ops::Not::not")]

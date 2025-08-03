@@ -101,9 +101,12 @@ impl Builder {
             })?;
         }
 
-        let configmaps = ConfigMapGenerator::new(&kustomization.config_map_generators)
-            .generate(&kustomization.parent_path, &ResourceList::new([]))
-            .await?;
+        let configmaps = ConfigMapGenerator::new(
+            &kustomization.config_map_generators,
+            &kustomization.generator_options,
+        )
+        .generate(&kustomization.parent_path, &ResourceList::new([]))
+        .await?;
         resources.extend(configmaps).with_context(|| {
             format!(
                 "failure merging resources from configmap generators in `{}`",
