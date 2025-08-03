@@ -21,8 +21,12 @@ impl ResourceMap {
         self.resources.len()
     }
 
-    pub fn insert(&mut self, resource: Resource) -> Option<Resource> {
-        self.resources.insert(resource.id.clone(), resource)
+    pub fn insert(&mut self, resource: Resource) -> Result<(), Resource> {
+        if let Some(old) = self.resources.insert(resource.id.clone(), resource) {
+            Err(old)?
+        }
+
+        Ok(())
     }
 
     pub fn iter(&self) -> impl ExactSizeIterator<Item = &Resource> + DoubleEndedIterator {
@@ -36,11 +40,9 @@ impl ResourceMap {
     }
 
     /// In-place merge of two `ResourceMap`s, any conflicting resources will be an error
-    pub fn merge(&mut self, other: ResourceMap) -> Result<(), ResId> {
-        for (id, resource) in other.resources {
-            if self.resources.insert(id.clone(), resource).is_some() {
-                Err(id)?
-            }
+    pub fn merge(&mut self, other: ResourceMap) -> Result<(), Resource> {
+        for (_, resource) in other.resources {
+            self.insert(resource)?;
         }
         Ok(())
     }

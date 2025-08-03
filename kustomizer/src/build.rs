@@ -2,6 +2,7 @@
 #![allow(dead_code, unused_imports)]
 
 use std::{
+    cell::RefCell,
     collections::HashMap,
     io::Write,
     path::{Path, PathBuf},
@@ -20,15 +21,17 @@ use crate::{
     transform::{AnnotationTransformer, Transformer},
 };
 use anyhow::{Context, bail};
+use futures_util::future;
 use indexmap::{IndexMap, map::Entry};
+use tokio::sync::Mutex;
 
 const KUSTOMIZE_FUNCTION_ANNOTATION: &str = "config.kubernetes.io/function";
 
 #[derive(Debug, Default)]
 pub struct Builder {
     // Filesystem caches to avoid re-reading files.
-    components_cache: IndexMap<PathId, Component>,
-    resources_cache: IndexMap<PathId, Resource>,
+    components_cache: Mutex<IndexMap<PathId, Component>>,
+    resources_cache: Mutex<IndexMap<PathId, Resource>>,
     strategic_merge_patches_cache: IndexMap<PathId, serde_yaml::Value>,
     key_value_files_cache: IndexMap<PathId, Box<str>>,
 }
@@ -36,7 +39,7 @@ pub struct Builder {
 impl Builder {
     #[tracing::instrument(skip_all, fields(path = %kustomization.path.pretty()))]
     pub async fn build(
-        mut self,
+        self,
         kustomization: &Located<Kustomization>,
         out: &mut dyn Write,
     ) -> anyhow::Result<()> {
@@ -53,8 +56,9 @@ impl Builder {
     }
 
     #[tracing::instrument(skip_all, fields(path = %kustomization.path.pretty()))]
+    #[async_recursion::async_recursion]
     async fn build_kustomization(
-        &mut self,
+        &self,
         kustomization: &Located<Kustomization>,
     ) -> anyhow::Result<ResourceMap> {
         let mut resources = self.build_kustomization_base(kustomization).await?;
@@ -89,9 +93,10 @@ impl Builder {
                     )
                 })?;
 
-            if let Err(id) = resources.merge(generated) {
+            if let Err(res) = resources.merge(generated) {
                 bail!(
-                    "merging resources from generator `{}`: may not add resource with an already registered id `{id}`",
+                    "merging resources from generator `{}`: may not add resource with an already registered id `{}`",
+                    res.id,
                     path.pretty(),
                 );
             }
@@ -145,55 +150,72 @@ impl Builder {
     }
 
     async fn build_kustomization_base(
-        &mut self,
+        &self,
         kustomization: &Located<Kustomization>,
     ) -> anyhow::Result<ResourceMap> {
-        let mut resources = ResourceMap::default();
+        let mut resmap = ResourceMap::default();
 
-        for path in &kustomization.resources {
-            let path = PathId::make(kustomization.parent_path.join(path))?;
+        let resources =
+            future::try_join_all(kustomization.resources.iter().cloned().map(|path| async {
+                let path = PathId::make(kustomization.parent_path.join(path))?;
 
-            let metadata = std::fs::metadata(path)
-                .with_context(|| format!("reading metadata for resource {}", path.pretty()))?;
+                let metadata = std::fs::metadata(path)
+                    .with_context(|| format!("reading metadata for resource {}", path.pretty()))?;
 
-            if metadata.is_symlink() {
-                bail!("symlinks are not implemented: {}", path.pretty());
-            } else if metadata.is_file() {
-                let res = match self.resources_cache.entry(path) {
-                    Entry::Occupied(entry) => entry.into_mut(),
-                    Entry::Vacant(entry) => {
-                        let res = load_yaml::<Resource>(path)
-                            .with_context(|| format!("loading resource {}", path.pretty()))?;
-                        entry.insert(res)
+                if metadata.is_symlink() {
+                    bail!("symlinks are not implemented: {}", path.pretty());
+                } else if metadata.is_file() {
+                    let res = match self.resources_cache.lock().await.entry(path) {
+                        Entry::Occupied(entry) => entry.into_mut(),
+                        Entry::Vacant(entry) => {
+                            let res = load_yaml::<Resource>(path)
+                                .with_context(|| format!("loading resource {}", path.pretty()))?;
+                            entry.insert(res)
+                        }
                     }
-                };
+                    .clone();
 
-                if resources.insert(res.clone()).is_some() {
-                    bail!(
-                        "merging resources from `{}`: may not add resource with an already registered id `{}`",
-                        path.pretty(),
-                        res.id
-                    );
-                }
-            } else {
-                let kustomization = load_kustomization(path)
-                    .with_context(|| format!("loading kustomization resource {}", path.pretty()))?;
-
-                let base = Box::pin(self.build_kustomization(&kustomization))
-                    .await
-                    .with_context(|| {
-                        format!("building kustomization resource {}", path.pretty())
+                    Ok((path, either::Either::Left(res)))
+                } else {
+                    let kustomization = load_kustomization(path).with_context(|| {
+                        format!("loading kustomization resource {}", path.pretty())
                     })?;
 
-                if let Err(res_id) = resources.merge(base) {
-                    bail!(
-                        "merging resources from `{}`: may not add resource with an already registered id `{res_id}`",
-                        path.pretty(),
-                    );
+                    let base = self
+                        .build_kustomization(&kustomization)
+                        .await
+                        .with_context(|| {
+                            format!("building kustomization resource {}", path.pretty())
+                        })?;
+
+                    Ok((path, either::Either::Right(base)))
+                }
+            }))
+            .await?;
+
+        for (path, resource) in resources {
+            match resource {
+                either::Either::Left(res) => {
+                    if let Err(old) = resmap.insert(res) {
+                        bail!(
+                            "merging resources from `{}`: may not add resource with an already registered id `{}`",
+                            path.pretty(),
+                            old.id
+                        );
+                    }
+                }
+                either::Either::Right(base) => {
+                    if let Err(res) = resmap.merge(base) {
+                        bail!(
+                            "merging resources from `{}`: may not add resource with an already registered id `{}`",
+                            res.id,
+                            path.pretty(),
+                        );
+                    }
                 }
             }
         }
 
-        Ok(resources)
+        Ok(resmap)
     }
 }

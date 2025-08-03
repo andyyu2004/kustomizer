@@ -22,6 +22,7 @@ impl FunctionGenerator {
 }
 
 impl Generator for FunctionGenerator {
+    #[tracing::instrument(skip_all, fields(workdir = %workdir.display()))]
     fn generate(&mut self, workdir: &Path, input: &ResourceList) -> anyhow::Result<ResourceMap> {
         let mut resmap = ResourceMap::default();
         match &self.spec {
@@ -54,7 +55,7 @@ impl Generator for FunctionGenerator {
 
                 let resources = serde_yaml::from_reader::<_, ResourceList>(stdout)?;
                 for resource in resources {
-                    if let Some(old) = resmap.insert(resource) {
+                    if let Err(old) = resmap.insert(resource) {
                         bail!("duplicate resource `{}` found in function output", old.id);
                     }
                 }
