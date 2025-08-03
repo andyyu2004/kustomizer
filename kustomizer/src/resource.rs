@@ -27,7 +27,7 @@ impl fmt::Display for Gvk {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash, Deserialize, Serialize)]
+#[derive(Clone, PartialEq, Eq, Hash, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct ResId {
     #[serde(flatten)]
@@ -42,6 +42,12 @@ impl Deref for ResId {
 
     fn deref(&self) -> &Self::Target {
         &self.gvk
+    }
+}
+
+impl fmt::Debug for ResId {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{self}")
     }
 }
 

@@ -18,7 +18,7 @@ use crate::{
     reslist::ResourceList,
     resmap::ResourceMap,
     resource::Resource,
-    transform::{AnnotationTransformer, Transformer},
+    transform::{AnnotationTransformer, LabelTransformer, NamespaceTransformer, Transformer},
 };
 use anyhow::{Context, bail};
 use futures_util::future;
@@ -62,11 +62,6 @@ impl Builder {
                     )
                 })?;
 
-            // Do a strange dance where to we convert to JSON first to avoid serde_yaml's !Tag based enum deserialization format.
-            // let json = serde_yaml::from_str::<serde_json::Value>(function_spec_str)?;
-            // let spec = serde_json::from_value::<FunctionSpec>(json)
-            //     .with_context(|| format!("parsing function spec from {}", path.pretty()))?;
-
             let generated = FunctionGenerator::new(function_spec)
                 .generate(workdir, &ResourceList::new([generator_spec]))
                 .await
@@ -86,18 +81,9 @@ impl Builder {
         }
 
         AnnotationTransformer(&kustomization.common_annotations).transform(&mut resources);
-
-        for resource in resources.iter_mut() {
-            for label in &kustomization.labels {
-                for (key, value) in &label.pairs {
-                    // `kustomization.labels` takes precedence over resource metadata labels
-                    resource.metadata.labels.insert(key.clone(), value.clone());
-                }
-            }
-
-            if let Some(namespace) = &kustomization.namespace {
-                resource.metadata.namespace = Some(namespace.clone());
-            }
+        LabelTransformer(&kustomization.labels).transform(&mut resources);
+        if let Some(namespace) = &kustomization.namespace {
+            NamespaceTransformer(namespace.clone()).transform(&mut resources);
         }
 
         // if !kustomization.patches.is_empty() {
