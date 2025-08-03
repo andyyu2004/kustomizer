@@ -1,3 +1,5 @@
+use core::fmt;
+
 use serde::{Deserialize, Serialize};
 
 use crate::{manifest::kind, resource::Resource};
@@ -13,6 +15,10 @@ impl ResourceList {
             kind: kind::ResourceList,
             items: resources.into_iter().collect(),
         }
+    }
+
+    pub fn iter(&self) -> impl Iterator<Item = &Resource> + fmt::Debug {
+        self.items.iter()
     }
 }
 

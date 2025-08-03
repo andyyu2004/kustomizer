@@ -38,6 +38,10 @@ impl ResourceMap {
         self.resources.len()
     }
 
+    pub fn keys(&self) -> impl ExactSizeIterator<Item = &ResId> + DoubleEndedIterator + fmt::Debug {
+        self.resources.keys()
+    }
+
     pub fn insert(&mut self, resource: Resource) -> anyhow::Result<()> {
         let behavior = resource.metadata.annotations.behavior;
         match self.resources.entry(resource.id.clone()) {
