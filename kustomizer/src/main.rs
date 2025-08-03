@@ -1,4 +1,4 @@
-use std::path::PathBuf;
+use std::{io::Write, path::PathBuf};
 
 use clap::Parser;
 use tracing_subscriber::layer::SubscriberExt as _;
@@ -22,7 +22,12 @@ async fn main() -> anyhow::Result<()> {
 
     let args = Args::parse();
     match args.command {
-        Command::Build { dir } => kustomizer::build(dir, &mut std::io::stdout().lock()).await?,
+        Command::Build { dir } => {
+            let mut stdout = std::io::stdout().lock();
+            let resmap = kustomizer::build(dir).await?;
+            writeln!(stdout, "{resmap}")?;
+            stdout.flush()?;
+        }
     }
 
     Ok(())

@@ -16,6 +16,19 @@ impl fmt::Debug for ResourceMap {
     }
 }
 
+impl fmt::Display for ResourceMap {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        for resource in self.iter() {
+            if self.len() > 1 {
+                writeln!(f, "---")?;
+            }
+            write!(f, "{}", serde_yaml::to_string(resource).unwrap())?;
+        }
+
+        Ok(())
+    }
+}
+
 impl ResourceMap {
     pub fn len(&self) -> usize {
         self.resources.len()

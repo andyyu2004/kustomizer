@@ -38,26 +38,8 @@ pub struct Builder {
 
 impl Builder {
     #[tracing::instrument(skip_all, fields(path = %kustomization.path.pretty()))]
-    pub async fn build(
-        self,
-        kustomization: &Located<Kustomization>,
-        out: &mut dyn Write,
-    ) -> anyhow::Result<()> {
-        // self.gather(kustomization)?;
-        let output = self.build_kustomization(kustomization).await?;
-
-        for resource in output.iter() {
-            if output.len() > 1 {
-                writeln!(out, "---")?;
-            }
-            serde_yaml::to_writer(&mut *out, resource)?;
-        }
-        Ok(())
-    }
-
-    #[tracing::instrument(skip_all, fields(path = %kustomization.path.pretty()))]
     #[async_recursion::async_recursion]
-    async fn build_kustomization(
+    pub async fn build(
         &self,
         kustomization: &Located<Kustomization>,
     ) -> anyhow::Result<ResourceMap> {
@@ -219,7 +201,7 @@ impl Builder {
                 .with_context(|| format!("loading kustomization resource {}", path.pretty()))?;
 
             let base = self
-                .build_kustomization(&kustomization)
+                .build(&kustomization)
                 .await
                 .with_context(|| format!("building kustomization resource {}", path.pretty()))?;
 

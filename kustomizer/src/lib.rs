@@ -9,17 +9,20 @@ mod transform;
 mod visit;
 
 use core::fmt;
-use std::{io::Write, ops::Deref, path::Path};
+use std::{ops::Deref, path::Path};
 
 use anyhow::Context;
 
 pub use self::intern::PathId;
 
-use self::manifest::{Component, Kustomization, Manifest, Symbol};
+use self::{
+    manifest::{Component, Kustomization, Manifest, Symbol},
+    resmap::ResourceMap,
+};
 
-pub async fn build(path: impl AsRef<Path>, out: &mut dyn Write) -> anyhow::Result<()> {
+pub async fn build(path: impl AsRef<Path>) -> anyhow::Result<ResourceMap> {
     let kustomization = load_kustomization(path)?;
-    build::Builder::default().build(&kustomization, out).await
+    build::Builder::default().build(&kustomization).await
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
