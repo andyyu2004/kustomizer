@@ -1,7 +1,6 @@
-use std::{
-    path::Path,
-    process::{Command, Stdio},
-};
+use std::{path::Path, process::Stdio};
+use tokio::io::AsyncWriteExt;
+use tokio::process::Command;
 
 use anyhow::{Context, bail};
 
@@ -49,12 +48,14 @@ impl Generator for FunctionGenerator {
                         format!("failed to spawn command at {}", spec.path.display())
                     })?;
 
-                serde_yaml::to_writer(proc.stdin.as_mut().unwrap(), input)
-                    .with_context(|| "failed to write input to function command")?;
+                let stdin = serde_yaml::to_string(input)?;
+                proc.stdin
+                    .as_mut()
+                    .unwrap()
+                    .write_all(stdin.as_bytes())
+                    .await?;
 
-                let stdout = proc.stdout.take().unwrap();
-
-                let output = proc.wait_with_output()?;
+                let output = proc.wait_with_output().await?;
                 if !output.status.success() {
                     bail!(
                         "function command failed with status {}: {}",
@@ -63,7 +64,7 @@ impl Generator for FunctionGenerator {
                     );
                 }
 
-                let resources = serde_yaml::from_reader::<_, ResourceList>(stdout)?;
+                let resources = serde_yaml::from_slice::<ResourceList>(&output.stdout)?;
                 for resource in resources {
                     if let Err(old) = resmap.insert(resource) {
                         bail!("duplicate resource `{}` found in function output", old.id);
