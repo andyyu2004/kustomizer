@@ -157,39 +157,8 @@ impl Builder {
 
         let resources =
             future::try_join_all(kustomization.resources.iter().cloned().map(|path| async {
-                let path = PathId::make(kustomization.parent_path.join(path))?;
-
-                let metadata = std::fs::metadata(path)
-                    .with_context(|| format!("reading metadata for resource {}", path.pretty()))?;
-
-                if metadata.is_symlink() {
-                    bail!("symlinks are not implemented: {}", path.pretty());
-                } else if metadata.is_file() {
-                    let res = match self.resources_cache.lock().await.entry(path) {
-                        Entry::Occupied(entry) => entry.into_mut(),
-                        Entry::Vacant(entry) => {
-                            let res = load_yaml::<Resource>(path)
-                                .with_context(|| format!("loading resource {}", path.pretty()))?;
-                            entry.insert(res)
-                        }
-                    }
-                    .clone();
-
-                    Ok((path, either::Either::Left(res)))
-                } else {
-                    let kustomization = load_kustomization(path).with_context(|| {
-                        format!("loading kustomization resource {}", path.pretty())
-                    })?;
-
-                    let base = self
-                        .build_kustomization(&kustomization)
-                        .await
-                        .with_context(|| {
-                            format!("building kustomization resource {}", path.pretty())
-                        })?;
-
-                    Ok((path, either::Either::Right(base)))
-                }
+                let built = self.build_resource(kustomization, &path).await?;
+                anyhow::Ok((path, built))
             }))
             .await?;
 
@@ -217,5 +186,42 @@ impl Builder {
         }
 
         Ok(resmap)
+    }
+
+    async fn build_resource(
+        &self,
+        kustomization: &Located<Kustomization>,
+        path: &Path,
+    ) -> anyhow::Result<either::Either<Resource, ResourceMap>> {
+        let path = PathId::make(kustomization.parent_path.join(path))?;
+
+        let metadata = std::fs::metadata(path)
+            .with_context(|| format!("reading metadata for resource {}", path.pretty()))?;
+
+        if metadata.is_symlink() {
+            bail!("symlinks are not implemented: {}", path.pretty());
+        } else if metadata.is_file() {
+            let res = match self.resources_cache.lock().await.entry(path) {
+                Entry::Occupied(entry) => entry.into_mut(),
+                Entry::Vacant(entry) => {
+                    let res = load_yaml::<Resource>(path)
+                        .with_context(|| format!("loading resource {}", path.pretty()))?;
+                    entry.insert(res)
+                }
+            }
+            .clone();
+
+            Ok(either::Either::Left(res))
+        } else {
+            let kustomization = load_kustomization(path)
+                .with_context(|| format!("loading kustomization resource {}", path.pretty()))?;
+
+            let base = self
+                .build_kustomization(&kustomization)
+                .await
+                .with_context(|| format!("building kustomization resource {}", path.pretty()))?;
+
+            Ok(either::Either::Right(base))
+        }
     }
 }
