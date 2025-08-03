@@ -48,7 +48,7 @@ impl fmt::Display for ResId {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Resource {
     pub id: ResId,
-    pub metadata: ObjectMeta,
+    pub metadata: Metadata,
     pub data: serde_yaml::Value,
 }
 
@@ -57,14 +57,13 @@ pub struct Resource {
 struct Res {
     api_version: Str,
     kind: Str,
-    metadata: ObjectMeta,
+    metadata: Metadata,
     #[serde(flatten)]
     manifest: serde_yaml::Value,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
-#[serde(deny_unknown_fields)]
-pub struct ObjectMeta {
+pub struct Metadata {
     pub name: Str,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub namespace: Option<Str>,

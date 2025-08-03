@@ -14,6 +14,7 @@ use crate::{
     manifest::{
         Component, FunctionSpec, Generator, KeyValuePairSources, Kustomization, Manifest, Patch,
     },
+    reslist::ResourceList,
     resmap::ResourceMap,
     resource::Resource,
     transform::{AnnotationTransformer, Transformer},
@@ -60,6 +61,7 @@ impl Builder {
 
         for path in &kustomization.generators {
             let path = PathId::make(kustomization.parent_path.join(path))?;
+            let workdir = path.parent().unwrap();
             let generator_spec = load_yaml::<Resource>(path)
                 .with_context(|| format!("loading generator spec from {}", path.pretty()))?;
             let function_spec_str = generator_spec
@@ -79,13 +81,20 @@ impl Builder {
                 .with_context(|| format!("parsing function spec from {}", path.pretty()))?;
 
             let generated = FunctionGenerator::new(spec)
-                .generate(&generator_spec)
+                .generate(workdir, &ResourceList::new([generator_spec]))
                 .with_context(|| {
                     format!(
                         "generating resources from function spec at {}",
                         path.pretty()
                     )
                 })?;
+
+            if let Err(id) = resources.merge(generated) {
+                bail!(
+                    "merging resources from generator `{}`: may not add resource with an already registered id `{id}`",
+                    path.pretty(),
+                );
+            }
         }
 
         AnnotationTransformer(&kustomization.common_annotations).transform(&mut resources);

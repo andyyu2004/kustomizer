@@ -2,14 +2,15 @@ use core::fmt;
 use json_patch::Patch as JsonPatch;
 use std::path::PathBuf;
 
+use crate::resource::Metadata;
 use compact_str::CompactString;
 use indexmap::IndexMap;
 use serde::{Deserialize, Serialize};
 
 pub type Str = CompactString;
 
-pub type Kustomization = Manifest<KustomizeBeta, KustomizeKind>;
-pub type Component = Manifest<KustomizeAlpha, ComponentKind>;
+pub type Kustomization = Manifest<apiversion::Beta, kind::Kustomize>;
+pub type Component = Manifest<apiversion::Alpha, kind::Component>;
 
 #[derive(Debug, PartialEq, Eq, Clone, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
@@ -17,7 +18,7 @@ pub struct Manifest<A, K> {
     #[serde(flatten)]
     pub type_meta: TypeMeta<A, K>,
     #[serde(default)]
-    pub metadata: ObjectMeta,
+    pub metadata: Metadata,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub namespace: Option<Str>,
     #[serde(default, skip_serializing_if = "<[_]>::is_empty")]
@@ -294,10 +295,19 @@ pub struct Label {
     pub include_selectors: bool,
 }
 
-define_symbol!(KustomizeAlpha = "kustomize.config.k8s.io/v1alpha1");
-define_symbol!(KustomizeBeta = "kustomize.config.k8s.io/v1beta1");
-define_symbol!(KustomizeKind = "Kustomization");
-define_symbol!(ComponentKind = "Component");
+pub mod kind {
+    use super::define_symbol;
+
+    define_symbol!(Kustomize = "Kustomization");
+    define_symbol!(Component = "Component");
+    define_symbol!(ResourceList = "ResourceList");
+}
+
+pub mod apiversion {
+    use super::define_symbol;
+    define_symbol!(Alpha = "kustomize.config.k8s.io/v1alpha1");
+    define_symbol!(Beta = "kustomize.config.k8s.io/v1beta1");
+}
 
 macro_rules! define_symbol {
     ($name:ident = $value:literal) => {
@@ -306,7 +316,7 @@ macro_rules! define_symbol {
         pub struct $name;
 
         impl ::core::fmt::Debug for $name {
-            fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+            fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
                 write!(f, "{}", $value)
             }
         }
@@ -325,7 +335,7 @@ macro_rules! define_symbol {
             where
                 D: serde::Deserializer<'de>,
             {
-                let value: Str = Deserialize::deserialize(deserializer)?;
+                let value: $crate::manifest::Str = ::serde::Deserialize::deserialize(deserializer)?;
                 if value == $value {
                     Ok($name)
                 } else {
@@ -337,15 +347,13 @@ macro_rules! define_symbol {
             }
         }
 
-        impl Symbol for $name {
+        impl $crate::manifest::Symbol for $name {
             const VALUE: &'static str = $value;
         }
     };
 }
 
 use define_symbol;
-
-use crate::resource::{ObjectMeta, Resource};
 
 pub trait Symbol: fmt::Debug {
     const VALUE: &'static str;

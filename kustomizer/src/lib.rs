@@ -2,6 +2,7 @@ mod build;
 mod generator;
 mod intern;
 pub mod manifest;
+mod reslist;
 mod resmap;
 mod resource;
 mod transform;

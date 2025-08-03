@@ -1,11 +1,14 @@
-use std::process::{Command, Stdio};
+use std::{
+    path::Path,
+    process::{Command, Stdio},
+};
 
 use anyhow::{Context, bail};
 
-use crate::{manifest::FunctionSpec, resmap::ResourceMap, resource::Resource};
+use crate::{manifest::FunctionSpec, reslist::ResourceList, resmap::ResourceMap};
 
 pub trait Generator {
-    fn generate(&mut self, input: &Resource) -> anyhow::Result<ResourceMap>;
+    fn generate(&mut self, workdir: &Path, input: &ResourceList) -> anyhow::Result<ResourceMap>;
 }
 
 pub struct FunctionGenerator {
@@ -19,8 +22,8 @@ impl FunctionGenerator {
 }
 
 impl Generator for FunctionGenerator {
-    fn generate(&mut self, input: &Resource) -> anyhow::Result<ResourceMap> {
-        let mut resources = ResourceMap::default();
+    fn generate(&mut self, workdir: &Path, input: &ResourceList) -> anyhow::Result<ResourceMap> {
+        let mut resmap = ResourceMap::default();
         match &self.spec {
             FunctionSpec::Exec(spec) => {
                 let mut proc = Command::new(&spec.path)
@@ -29,6 +32,7 @@ impl Generator for FunctionGenerator {
                     .stdin(Stdio::piped())
                     .stdout(Stdio::piped())
                     .stderr(Stdio::piped())
+                    .current_dir(workdir)
                     .spawn()
                     .with_context(|| {
                         format!("failed to spawn command at {}", spec.path.display())
@@ -37,14 +41,29 @@ impl Generator for FunctionGenerator {
                 serde_yaml::to_writer(proc.stdin.as_mut().unwrap(), input)
                     .with_context(|| "failed to write input to function command")?;
 
+                let stdout = proc.stdout.take().unwrap();
+
                 let output = proc.wait_with_output()?;
-                dbg!(output);
+                if !output.status.success() {
+                    bail!(
+                        "function command failed with status {}: {}",
+                        output.status,
+                        String::from_utf8_lossy(&output.stderr)
+                    );
+                }
+
+                let resources = serde_yaml::from_reader::<_, ResourceList>(stdout)?;
+                for resource in resources {
+                    if let Some(old) = resmap.insert(resource) {
+                        bail!("duplicate resource `{}` found in function output", old.id);
+                    }
+                }
             }
             FunctionSpec::Container(_spec) => {
                 bail!("Container functions are not supported yet")
             }
         }
 
-        Ok(resources)
+        Ok(resmap)
     }
 }
