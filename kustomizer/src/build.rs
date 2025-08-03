@@ -86,6 +86,7 @@ impl Builder {
 
             let generated = FunctionGenerator::new(spec)
                 .generate(workdir, &ResourceList::new([generator_spec]))
+                .await
                 .with_context(|| {
                     format!(
                         "generating resources from function spec at {}",
@@ -188,6 +189,7 @@ impl Builder {
         Ok(resmap)
     }
 
+    #[tracing::instrument(skip_all, fields(path = %kustomization.path.pretty(), resource_path = %path.pretty()))]
     async fn build_resource(
         &self,
         kustomization: &Located<Kustomization>,

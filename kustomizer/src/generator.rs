@@ -7,8 +7,13 @@ use anyhow::{Context, bail};
 
 use crate::{manifest::FunctionSpec, reslist::ResourceList, resmap::ResourceMap};
 
+#[async_trait::async_trait]
 pub trait Generator {
-    fn generate(&mut self, workdir: &Path, input: &ResourceList) -> anyhow::Result<ResourceMap>;
+    async fn generate(
+        &mut self,
+        workdir: &Path,
+        input: &ResourceList,
+    ) -> anyhow::Result<ResourceMap>;
 }
 
 pub struct FunctionGenerator {
@@ -21,9 +26,14 @@ impl FunctionGenerator {
     }
 }
 
+#[async_trait::async_trait]
 impl Generator for FunctionGenerator {
     #[tracing::instrument(skip_all, fields(workdir = %workdir.display()))]
-    fn generate(&mut self, workdir: &Path, input: &ResourceList) -> anyhow::Result<ResourceMap> {
+    async fn generate(
+        &mut self,
+        workdir: &Path,
+        input: &ResourceList,
+    ) -> anyhow::Result<ResourceMap> {
         let mut resmap = ResourceMap::default();
         match &self.spec {
             FunctionSpec::Exec(spec) => {
