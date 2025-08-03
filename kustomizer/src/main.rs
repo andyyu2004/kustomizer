@@ -11,7 +11,18 @@ struct Args {
 
 #[derive(Parser)]
 enum Command {
-    Build { dir: PathBuf },
+    Build {
+        dir: PathBuf,
+    },
+    Debug {
+        #[clap(subcommand)]
+        subcommand: Debug,
+    },
+}
+
+#[derive(Parser)]
+enum Debug {
+    DiffReference { dir: PathBuf },
 }
 
 #[tokio::main]
@@ -23,11 +34,17 @@ async fn main() -> anyhow::Result<()> {
     let args = Args::parse();
     match args.command {
         Command::Build { dir } => {
-            let mut stdout = std::io::stdout().lock();
             let resmap = kustomizer::build(dir).await?;
+            let mut stdout = std::io::stdout().lock();
             writeln!(stdout, "{resmap}")?;
             stdout.flush()?;
         }
+        Command::Debug { subcommand } => match subcommand {
+            Debug::DiffReference { dir } => {
+                let resmap = kustomizer::build(&dir).await?;
+                kustomizer::dbg::diff_reference_impl(&dir, &format!("{resmap}"))?;
+            }
+        },
     }
 
     Ok(())

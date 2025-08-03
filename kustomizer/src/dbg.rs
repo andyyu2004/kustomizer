@@ -5,11 +5,13 @@ use crate::PathExt;
 
 // Diff against reference kustomize implementation
 pub fn diff_reference_impl(path: &Path, actual: &str) -> anyhow::Result<()> {
-    let parent = path.parent().unwrap();
+    assert!(path.exists(), "path does not exist: {}", path.pretty());
+    assert!(path.is_dir(), "path is not a directory: {}", path.pretty());
+
     let output = std::process::Command::new("kustomize")
         .arg("build")
         .arg(".")
-        .current_dir(parent)
+        .current_dir(path)
         .stdout(std::process::Stdio::piped())
         .stderr(std::process::Stdio::piped())
         .output()
@@ -63,7 +65,7 @@ pub fn diff_reference_impl(path: &Path, actual: &str) -> anyhow::Result<()> {
 
     let actual = actual.join("---\n");
     let expected = expected.join("---\n");
-    let tmp_dir = Path::new("/tmp/kustomizer-test").join(parent.file_name().unwrap());
+    let tmp_dir = Path::new("/tmp/kustomizer-test").join(path.file_name().unwrap());
     std::fs::create_dir_all(&tmp_dir).context("creating temporary directory")?;
     std::fs::write(tmp_dir.join("expected.yaml"), &expected)?;
     std::fs::write(tmp_dir.join("actual.yaml"), &actual)?;

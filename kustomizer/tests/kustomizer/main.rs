@@ -33,10 +33,10 @@ async fn test(path: &Path) -> datatest_stable::Result<()> {
             }
             res?;
 
-            diff_reference_impl(path, &actual)?;
+            diff_reference_impl(base_path, &actual)?;
         }
         Err(err) => {
-            show_reference_impl_error(path)?;
+            show_reference_impl_error(base_path)?;
 
             let res = snapshot(&error_snapshot_path, &format!("{err:?}"));
             if success_snapshot_path.exists() {
@@ -65,7 +65,7 @@ fn show_reference_impl_error(path: &Path) -> datatest_stable::Result<()> {
     let output = std::process::Command::new("kustomize")
         .arg("build")
         .arg(".")
-        .current_dir(path.parent().unwrap())
+        .current_dir(path)
         .stdout(std::process::Stdio::piped())
         .stderr(std::process::Stdio::piped())
         .output()
