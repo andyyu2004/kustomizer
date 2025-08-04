@@ -1,6 +1,13 @@
 ---
 apiVersion: apps/v1
 kind: Deployment
+metadata:
+  name: test-app
+  labels:
+    app: test-app
+  annotations:
+    description: Initial description of the test app deployment
+    app.kubernetes.io/managed-by: kustomize
 spec:
   replicas: 1
   selector:
@@ -10,21 +17,21 @@ spec:
     metadata:
       labels:
         app: test-app
+      annotations:
+        app.kubernetes.io/managed-by: kustomize
     spec:
       containers:
       - image: nginx
         name: app
         ports:
         - containerPort: 80
-metadata:
-  name: test-app
-  labels:
-    app: test-app
-  annotations:
-    description: Initial description of the test app deployment
 ---
 apiVersion: v1
 kind: Service
+metadata:
+  name: test-service
+  annotations:
+    app.kubernetes.io/managed-by: kustomize
 spec:
   selector:
     app: test-app
@@ -32,5 +39,3 @@ spec:
   - port: 80
     targetPort: 80
   type: ClusterIP
-metadata:
-  name: test-service

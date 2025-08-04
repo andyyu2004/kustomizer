@@ -1,6 +1,13 @@
 ---
 apiVersion: apps/v1
 kind: Deployment
+metadata:
+  name: test-app
+  namespace: my-namespace
+  labels:
+    app: test-app
+  annotations:
+    description: Initial description of the test app deployment
 spec:
   replicas: 1
   selector:
@@ -16,16 +23,12 @@ spec:
         name: app
         ports:
         - containerPort: 80
-metadata:
-  name: test-app
-  labels:
-    app: test-app
-  annotations:
-    description: Initial description of the test app deployment
-  namespace: my-namespace
 ---
 apiVersion: v1
 kind: Service
+metadata:
+  name: test-service
+  namespace: my-namespace
 spec:
   selector:
     app: test-app
@@ -33,6 +36,3 @@ spec:
   - port: 80
     targetPort: 80
   type: ClusterIP
-metadata:
-  name: test-service
-  namespace: my-namespace

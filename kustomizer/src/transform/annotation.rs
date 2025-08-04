@@ -14,15 +14,19 @@ impl Transformer for AnnotationTransformer<'_> {
             return;
         }
 
-        let _fieldspecs = &fieldspec::Builtin::get().common_annotations;
+        let field_specs = &fieldspec::Builtin::get().common_annotations;
 
-        // for resource in resources.iter_mut() {
-        //     resource
-        //         .metadata_mut()
-        //         .annotations_mut()
-        //         .extend(self.0.iter().map(|(k, v)| (k.clone(), v.clone())));
-        //
-        //     resource.root.visit_with(self);
-        // }
+        for resource in resources.iter_mut() {
+            for field_spec in field_specs.iter() {
+                field_spec.apply(resource, |annotations| {
+                    for (key, value) in self.0 {
+                        annotations.insert(
+                            serde_yaml::Value::String(key.to_string()),
+                            serde_yaml::Value::String(value.to_string()),
+                        );
+                    }
+                });
+            }
+        }
     }
 }
