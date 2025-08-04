@@ -5,6 +5,7 @@ use std::{
     ops::{Deref, DerefMut},
 };
 
+use anyhow::ensure;
 use compact_str::format_compact;
 use indexmap::IndexMap;
 use serde::{Deserialize, Serialize};
@@ -76,9 +77,13 @@ impl Resource {
         metadata: Metadata,
         mut root: serde_yaml::Mapping,
     ) -> anyhow::Result<Self> {
-        root.insert(
-            serde_yaml::Value::String("metadata".into()),
-            serde_yaml::to_value(&metadata)?,
+        ensure!(
+            root.insert(
+                serde_yaml::Value::String("metadata".into()),
+                serde_yaml::to_value(&metadata)?,
+            )
+            .is_none(),
+            "root must not duplicate metadata"
         );
 
         Ok(Resource { id, root })
@@ -136,16 +141,16 @@ pub struct Annotations {
     #[serde(
         rename = "kustomize.config.k8s.io/behavior",
         default,
-        skip_serializing_if = "Behavior::is_default"
+        skip_serializing_if = "Option::is_none"
     )]
-    pub behavior: Behavior,
+    pub behavior: Option<Behavior>,
     #[serde(flatten)]
     pub rest: IndexMap<Str, Str>,
 }
 
 impl Annotations {
     pub fn is_empty(&self) -> bool {
-        self.function_spec.is_none() && self.rest.is_empty()
+        self.function_spec.is_none() && self.behavior.is_none() && self.rest.is_empty()
     }
 }
 

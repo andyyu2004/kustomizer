@@ -191,12 +191,6 @@ pub enum Behavior {
     Replace,
 }
 
-impl Behavior {
-    pub fn is_default(&self) -> bool {
-        *self == Self::default()
-    }
-}
-
 impl fmt::Display for Behavior {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {

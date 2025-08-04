@@ -136,7 +136,7 @@ impl ConfigMapGenerator<'_> {
                 name: generator.name.clone(),
                 namespace: generator.namespace.clone(),
                 annotations: Annotations {
-                    behavior: generator.behavior,
+                    behavior: Some(generator.behavior),
                     rest: annotations,
                     ..Default::default()
                 },
