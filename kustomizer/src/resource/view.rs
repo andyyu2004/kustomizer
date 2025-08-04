@@ -55,16 +55,6 @@ impl AnnotationsView<'_> {
             None => Ok(None),
         }
     }
-
-    pub fn iter(&self) -> impl Iterator<Item = (&str, &str)> + '_ {
-        self.0.iter().filter_map(|(k, v)| {
-            if let (serde_yaml::Value::String(key), serde_yaml::Value::String(value)) = (k, v) {
-                Some((key.as_str(), value.as_str()))
-            } else {
-                None
-            }
-        })
-    }
 }
 
 pub struct MetadataViewMut<'a>(&'a mut serde_yaml::Mapping);

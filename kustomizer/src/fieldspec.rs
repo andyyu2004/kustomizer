@@ -1,7 +1,7 @@
 mod builtin;
 
 use core::fmt;
-use std::str::FromStr;
+use std::{ops::Deref, str::FromStr};
 
 pub use self::builtin::Builtin;
 
@@ -23,6 +23,31 @@ pub struct FieldSpec {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Path {
     segments: Box<[PathSegment]>,
+}
+
+impl AsRef<[PathSegment]> for Path {
+    fn as_ref(&self) -> &[PathSegment] {
+        &self.segments
+    }
+}
+
+impl Deref for Path {
+    type Target = [PathSegment];
+
+    fn deref(&self) -> &Self::Target {
+        &self.segments
+    }
+}
+
+pub type PathRef<'a> = &'a [PathSegment];
+
+impl<'a> IntoIterator for &'a Path {
+    type Item = &'a PathSegment;
+    type IntoIter = std::slice::Iter<'a, PathSegment>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.segments.iter()
+    }
 }
 
 impl FromStr for Path {
@@ -52,7 +77,7 @@ impl fmt::Display for Path {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
-enum PathSegment {
+pub enum PathSegment {
     Field(Str),
     Array(Str),
 }
@@ -91,4 +116,34 @@ impl FieldSpecs {
         fields.extend(other.fields);
         FieldSpecs { fields }
     }
+}
+
+pub fn apply(
+    mut curr: &mut serde_yaml::Mapping,
+    mut path: PathRef<'_>,
+    mut f: impl FnMut(&mut serde_yaml::Mapping),
+) -> Option<()> {
+    while let Some(segment) = path.first() {
+        match segment {
+            PathSegment::Field(field) => {
+                curr = curr
+                    .get_mut(field.as_str())
+                    .and_then(|v| v.as_mapping_mut())?;
+            }
+            PathSegment::Array(field) => {
+                let seq = curr
+                    .get_mut(field.as_str())
+                    .and_then(|v| v.as_sequence_mut())?;
+                for item in seq {
+                    if let Some(map) = item.as_mapping_mut() {
+                        apply(map, &path[1..], &mut f);
+                    }
+                }
+            }
+        }
+        path = &path[1..];
+    }
+
+    f(curr);
+    Some(())
 }
