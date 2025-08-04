@@ -5,7 +5,7 @@ use std::{ops::Deref, str::FromStr};
 
 pub use self::builtin::Builtin;
 
-use crate::manifest::Str;
+use crate::{manifest::Str, resource::Resource};
 use serde::{Deserialize, Serialize};
 
 // See kustomize/internal/konfig/builtinpluginconsts
@@ -109,6 +109,14 @@ pub struct FieldSpecs {
     fields: Vec<FieldSpec>,
 }
 
+impl Deref for FieldSpecs {
+    type Target = [FieldSpec];
+
+    fn deref(&self) -> &Self::Target {
+        &self.fields
+    }
+}
+
 impl FieldSpecs {
     fn extend(&self, other: FieldSpecs) -> FieldSpecs {
         // TODO should check for overlaps
@@ -118,32 +126,52 @@ impl FieldSpecs {
     }
 }
 
-pub fn apply(
-    mut curr: &mut serde_yaml::Mapping,
-    mut path: PathRef<'_>,
-    mut f: impl FnMut(&mut serde_yaml::Mapping),
-) -> Option<()> {
-    while let Some(segment) = path.first() {
-        match segment {
-            PathSegment::Field(field) => {
-                curr = curr
-                    .get_mut(field.as_str())
-                    .and_then(|v| v.as_mapping_mut())?;
-            }
-            PathSegment::Array(field) => {
-                let seq = curr
-                    .get_mut(field.as_str())
-                    .and_then(|v| v.as_sequence_mut())?;
-                for item in seq {
-                    if let Some(map) = item.as_mapping_mut() {
-                        apply(map, &path[1..], &mut f);
+impl FieldSpec {
+    pub fn apply(&self, resource: &mut Resource, f: impl FnMut(&mut serde_yaml::Mapping) + Copy) {
+        // TODO filter by other gvk fields too
+        if self.kind.is_some() && self.kind.as_ref() != Some(resource.kind()) {
+            return;
+        }
+
+        fn apply(
+            mut curr: &mut serde_yaml::Mapping,
+            mut path: PathRef<'_>,
+            mut f: impl FnMut(&mut serde_yaml::Mapping) + Copy,
+            create: bool,
+        ) -> Option<()> {
+            while let Some(segment) = path.first() {
+                match segment {
+                    PathSegment::Field(field) => {
+                        if !curr.contains_key(field.as_str()) {
+                            if !create {
+                                return None;
+                            }
+
+                            let new_value = serde_yaml::Value::Mapping(serde_yaml::Mapping::new());
+                            curr.insert(serde_yaml::Value::String(field.to_string()), new_value);
+                        }
+
+                        curr = curr.get_mut(field.as_str())?.as_mapping_mut()?;
+                    }
+                    PathSegment::Array(field) => {
+                        // TODO handle `create` in this case maybe?
+                        let seq = curr
+                            .get_mut(field.as_str())
+                            .and_then(|v| v.as_sequence_mut())?;
+                        for item in seq {
+                            if let Some(map) = item.as_mapping_mut() {
+                                apply(map, &path[1..], f, create);
+                            }
+                        }
                     }
                 }
+                path = &path[1..];
             }
-        }
-        path = &path[1..];
-    }
 
-    f(curr);
-    Some(())
+            f(curr);
+            Some(())
+        }
+
+        apply(resource.root_mut(), &self.path, f, self.create);
+    }
 }

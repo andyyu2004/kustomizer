@@ -9,7 +9,9 @@ spec:
   template:
     metadata:
       labels:
-        app: test-app
+        app: overridden-app
+        environment: production
+        team: backend
     spec:
       containers:
       - image: nginx
@@ -19,7 +21,9 @@ spec:
 metadata:
   name: test-app
   labels:
-    app: test-app
+    app: overridden-app
+    environment: production
+    team: backend
   annotations:
     description: Initial description of the test app deployment
 ---
@@ -34,3 +38,7 @@ spec:
   type: ClusterIP
 metadata:
   name: test-service
+  labels:
+    environment: production
+    team: backend
+    app: overridden-app

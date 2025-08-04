@@ -96,6 +96,10 @@ impl Resource {
         &self.id
     }
 
+    pub fn kind(&self) -> &Str {
+        &self.id.kind
+    }
+
     pub fn root(&self) -> &serde_yaml::Mapping {
         &self.root
     }
