@@ -1,8 +1,6 @@
-use std::ops::ControlFlow;
-
 use indexmap::IndexMap;
 
-use crate::{fieldspec, manifest::Str, visit::VisitorMut};
+use crate::{fieldspec, manifest::Str};
 
 use super::{ResourceMap, Transformer};
 
@@ -27,30 +25,5 @@ impl Transformer for AnnotationTransformer<'_> {
         //
         //     resource.root.visit_with(self);
         // }
-    }
-}
-
-impl VisitorMut for AnnotationTransformer<'_> {
-    type Break = ();
-
-    fn visit_mapping(&mut self, mapping: &mut serde_yaml::Mapping) -> ControlFlow<Self::Break> {
-        // Matching on `metadata` key is a bit of a hack.
-        if let Some(serde_yaml::Value::Mapping(metadata)) = mapping.get_mut("metadata") {
-            let annotations = metadata
-                .entry(serde_yaml::Value::String("annotations".to_string()))
-                .or_insert_with(|| serde_yaml::Value::Mapping(serde_yaml::Mapping::new()))
-                .as_mapping_mut()
-                .unwrap();
-            for (key, value) in self.0 {
-                annotations.insert(
-                    serde_yaml::Value::String(key.to_string()),
-                    serde_yaml::Value::String(value.to_string()),
-                );
-            }
-
-            return ControlFlow::Break(());
-        }
-
-        self.walk_mapping(mapping)
     }
 }

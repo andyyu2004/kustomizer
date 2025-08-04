@@ -3,7 +3,7 @@ use anyhow::{Context, bail};
 use crate::{
     PathExt,
     manifest::{self, GeneratorOptions},
-    resource::{Annotations, Gvk, Metadata, ResId, Resource},
+    resource::{Gvk, ResId, Resource},
 };
 
 use super::*;

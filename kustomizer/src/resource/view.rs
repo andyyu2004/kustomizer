@@ -14,7 +14,7 @@ impl Resource {
 
 pub struct MetadataView<'a>(&'a serde_yaml::Mapping);
 
-impl<'a> MetadataView<'a> {
+impl MetadataView<'_> {
     pub fn annotations(&self) -> Option<AnnotationsView<'_>> {
         self.0
             .get("annotations")
@@ -29,10 +29,10 @@ impl<'a> MetadataView<'a> {
 
 pub struct AnnotationsView<'a>(&'a serde_yaml::Mapping);
 
-impl<'a> AnnotationsView<'a> {
+impl AnnotationsView<'_> {
     pub fn get(&self, key: &str) -> Option<&str> {
         self.0
-            .get(&serde_yaml::Value::String(key.to_string()))
+            .get(serde_yaml::Value::String(key.to_string()))
             .and_then(|v| v.as_str())
     }
 
@@ -66,7 +66,7 @@ impl<'a> AnnotationsView<'a> {
 
 pub struct MetadataViewMut<'a>(&'a mut serde_yaml::Mapping);
 
-impl<'a> MetadataViewMut<'a> {
+impl MetadataViewMut<'_> {
     pub fn annotations_mut(&mut self) -> Option<AnnotationsViewMut> {
         self.0
             .get_mut("annotations")
@@ -104,7 +104,7 @@ impl<'a> AnnotationsViewMut<'a> {
 
     pub fn remove(&mut self, key: &str) {
         self.annotations
-            .remove(&serde_yaml::Value::String(key.to_string()));
+            .remove(serde_yaml::Value::String(key.to_string()));
     }
 
     pub fn iter(&self) -> impl Iterator<Item = (&str, &str)> + '_ {

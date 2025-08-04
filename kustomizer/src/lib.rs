@@ -9,7 +9,6 @@ mod resmap;
 mod resource;
 mod serde_ex;
 mod transform;
-mod visit;
 
 use core::fmt;
 use std::{ops::Deref, path::Path};

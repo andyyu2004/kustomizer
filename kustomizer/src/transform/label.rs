@@ -7,7 +7,6 @@ pub struct LabelTransformer<'a>(pub &'a [Label]);
 impl Transformer for LabelTransformer<'_> {
     fn transform(&mut self, resources: &mut ResourceMap) {
         if self.0.is_empty() {
-            return;
         }
 
         // TODO use field specs
