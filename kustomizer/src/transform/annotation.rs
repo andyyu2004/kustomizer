@@ -3,6 +3,7 @@ use std::ops::ControlFlow;
 use indexmap::IndexMap;
 
 use crate::{
+    fieldspec,
     manifest::Str,
     visit::{VisitMut, VisitorMut},
 };
@@ -18,6 +19,9 @@ impl Transformer for AnnotationTransformer<'_> {
         if self.0.is_empty() {
             return;
         }
+
+        let _fieldspecs = &fieldspec::Builtin::get().common_annotations;
+        dbg!(_fieldspecs);
 
         for resource in resources.iter_mut() {
             resource

@@ -1,5 +1,6 @@
 mod build;
 pub mod dbg;
+mod fieldspec;
 mod generator;
 mod intern;
 pub mod manifest;
