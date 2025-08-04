@@ -17,9 +17,7 @@ spec:
   template:
     metadata:
       labels:
-        app: overridden-app
-        environment: production
-        team: backend
+        app: test-app
     spec:
       containers:
       - image: nginx
