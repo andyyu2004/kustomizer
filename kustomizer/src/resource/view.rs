@@ -1,3 +1,5 @@
+use serde::Deserialize as _;
+
 use crate::manifest::{Behavior, FunctionSpec};
 
 use super::Resource;
@@ -31,13 +33,11 @@ pub struct AnnotationsView<'a>(&'a serde_yaml::Mapping);
 
 impl AnnotationsView<'_> {
     pub fn get(&self, key: &str) -> Option<&str> {
-        self.0
-            .get(serde_yaml::Value::String(key.to_string()))
-            .and_then(|v| v.as_str())
+        self.0.get(key).and_then(|v| v.as_str())
     }
 
     pub fn behavior(&self) -> anyhow::Result<Behavior> {
-        match self.get("config.kubernetes.io/behavior") {
+        match self.get("kustomize.config.k8s.io/behavior") {
             Some(value) => serde_yaml::from_str(value)
                 .map_err(|err| anyhow::anyhow!("failed to parse behavior: {err}")),
             None => Ok(Behavior::default()),
@@ -46,9 +46,12 @@ impl AnnotationsView<'_> {
 
     pub fn function_spec(&self) -> anyhow::Result<Option<FunctionSpec>> {
         match self.get("config.kubernetes.io/function") {
-            Some(yaml) => serde_yaml::from_str(yaml)
-                .map_err(|err| anyhow::anyhow!("failed to parse function spec: {err}"))
-                .map(Some),
+            Some(yaml) => {
+                let json = serde_yaml::from_str::<serde_json::Value>(yaml)?;
+                FunctionSpec::deserialize(json)
+                    .map_err(|err| anyhow::anyhow!("failed to deserialize function spec: {err}"))
+                    .map(Some)
+            }
             None => Ok(None),
         }
     }

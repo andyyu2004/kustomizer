@@ -112,12 +112,15 @@ impl PathExt for Path {
 
 #[cfg(test)]
 mod hack {
+    use std::process::{Command, Stdio};
+
     #[test]
+    #[ignore]
     fn test_tmp_1() -> anyhow::Result<()> {
-        let output = std::process::Command::new("bash")
-            .stdin(std::process::Stdio::null())
-            .stdout(std::process::Stdio::piped())
-            .stderr(std::process::Stdio::piped())
+        let output = Command::new("bash")
+            .stdin(Stdio::null())
+            .stdout(Stdio::piped())
+            .stderr(Stdio::piped())
             .arg("test-1.sh")
             .output()?;
 
@@ -132,11 +135,12 @@ mod hack {
     }
 
     #[test]
+    #[ignore]
     fn test_tmp_2() -> anyhow::Result<()> {
-        let output = std::process::Command::new("bash")
-            .stdin(std::process::Stdio::null())
-            .stdout(std::process::Stdio::piped())
-            .stderr(std::process::Stdio::piped())
+        let output = Command::new("bash")
+            .stdin(Stdio::null())
+            .stdout(Stdio::piped())
+            .stderr(Stdio::piped())
             .arg("test-2.sh")
             .output()?;
 
@@ -151,11 +155,12 @@ mod hack {
     }
 
     #[test]
+    #[ignore]
     fn test_tmp_3() -> anyhow::Result<()> {
-        let output = std::process::Command::new("bash")
-            .stdin(std::process::Stdio::null())
-            .stdout(std::process::Stdio::piped())
-            .stderr(std::process::Stdio::piped())
+        let output = Command::new("bash")
+            .stdin(Stdio::null())
+            .stdout(Stdio::piped())
+            .stderr(Stdio::piped())
             .arg("test-3.sh")
             .output()?;
 

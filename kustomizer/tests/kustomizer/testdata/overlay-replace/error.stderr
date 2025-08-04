@@ -1,4 +1,4 @@
 failure merging resources from `service.yaml`
 
 Caused by:
-    may not add resource with an already registered id `Service.v1/test-service`, consider specifying `merge` or `replace` behaviour
+    may not add resource with an already registered id `Service.v1/test-service`, consider specifying `merge` or `replace` behavior

@@ -47,22 +47,25 @@ impl ResourceMap {
             .metadata()
             .annotations()
             .map_or(Ok(Behavior::Create), |annotations| annotations.behavior())?;
-        match self.resources.entry(resource.id.clone()) {
+        match self.resources.entry(resource.id().clone()) {
             Entry::Occupied(mut entry) => match behavior {
                 Behavior::Create => bail!(
-                    "may not add resource with an already registered id `{}`, consider specifying `merge` or `replace` behaviour",
-                    resource.id
+                    "may not add resource with an already registered id `{}`, consider specifying `merge` or `replace` behavior",
+                    resource.id()
                 ),
                 Behavior::Merge => {
                     let left = entry
                         .get_mut()
-                        .root
+                        .root_mut()
                         .get_mut("data")
                         .and_then(|data| data.as_mapping_mut());
-                    let right = resource.root.get("data").and_then(|data| data.as_mapping());
+                    let right = resource
+                        .root()
+                        .get("data")
+                        .and_then(|data| data.as_mapping());
 
                     // TODO same for string data
-                    // TODO merging metadata and annotations, not sure what is correct behaviour for this
+                    // TODO merging metadata and annotations, not sure what is correct behavior for this
                     match (left, right) {
                         (Some(left), Some(right)) => {
                             for (key, value) in right {
@@ -70,7 +73,7 @@ impl ResourceMap {
                             }
                         }
                         (None, Some(right)) => {
-                            entry.get_mut().root["data"] =
+                            entry.get_mut().root_mut()["data"] =
                                 serde_yaml::Value::Mapping(right.clone());
                         }
                         (_, None) => {}
@@ -83,7 +86,7 @@ impl ResourceMap {
                 Behavior::Merge | Behavior::Replace => {
                     bail!(
                         "resource id `{}` does not exist, cannot {behavior}",
-                        resource.id
+                        resource.id()
                     )
                 }
             },

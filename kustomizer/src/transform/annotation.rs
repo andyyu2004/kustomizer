@@ -15,7 +15,6 @@ impl Transformer for AnnotationTransformer<'_> {
         }
 
         let _fieldspecs = &fieldspec::Builtin::get().common_annotations;
-        dbg!(_fieldspecs);
 
         // for resource in resources.iter_mut() {
         //     resource

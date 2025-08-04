@@ -66,19 +66,35 @@ impl fmt::Display for ResId {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Resource {
-    pub id: ResId,
-    // pub metadata: Metadata,
-    pub root: serde_yaml::Value,
+    id: ResId,
+    root: serde_yaml::Mapping,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-struct Res {
-    api_version: Str,
-    kind: Str,
-    metadata: Metadata,
-    #[serde(flatten)]
-    root: serde_yaml::Value,
+impl Resource {
+    pub fn new(
+        id: ResId,
+        metadata: Metadata,
+        mut root: serde_yaml::Mapping,
+    ) -> anyhow::Result<Self> {
+        root.insert(
+            serde_yaml::Value::String("metadata".into()),
+            serde_yaml::to_value(&metadata)?,
+        );
+
+        Ok(Resource { id, root })
+    }
+
+    pub fn id(&self) -> &ResId {
+        &self.id
+    }
+
+    pub fn root(&self) -> &serde_yaml::Mapping {
+        &self.root
+    }
+
+    pub fn root_mut(&mut self) -> &mut serde_yaml::Mapping {
+        &mut self.root
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
@@ -158,11 +174,23 @@ impl Serialize for Resource {
             format_compact!("{}/{}", self.id.gvk.group, self.id.gvk.version)
         };
 
+        assert!(
+            self.root.contains_key("metadata"),
+            "Resource root must contain metadata"
+        );
+
+        #[derive(Debug, Serialize, Deserialize)]
+        #[serde(rename_all = "camelCase")]
+        struct Res {
+            api_version: Str,
+            kind: Str,
+            #[serde(flatten)]
+            root: serde_yaml::Mapping,
+        }
+
         Res {
             api_version,
             kind: self.id.gvk.kind.clone(),
-            metadata: Default::default(),
-            // root contains metadata
             root: self.root.clone(),
         }
         .serialize(serializer)
@@ -174,7 +202,17 @@ impl<'de> Deserialize<'de> for Resource {
     where
         D: serde::de::Deserializer<'de>,
     {
-        let mut res = Res::deserialize(deserializer)
+        #[derive(Debug, Serialize, Deserialize)]
+        #[serde(rename_all = "camelCase")]
+        struct Res {
+            api_version: Str,
+            kind: Str,
+            metadata: Metadata,
+            #[serde(flatten)]
+            root: serde_yaml::Mapping,
+        }
+
+        let res = Res::deserialize(deserializer)
             .map_err(|err| serde::de::Error::custom(format!("parsing resource: {err}")))?;
 
         let (group, version) = res
@@ -194,11 +232,6 @@ impl<'de> Deserialize<'de> for Resource {
             namespace: res.metadata.namespace.clone(),
         };
 
-        res.root.as_mapping_mut().unwrap().insert(
-            serde_yaml::Value::String("metadata".into()),
-            serde_yaml::to_value(&res.metadata).map_err(serde::de::Error::custom)?,
-        );
-
-        Ok(Resource { id, root: res.root })
+        Resource::new(id, res.metadata, res.root).map_err(serde::de::Error::custom)
     }
 }

@@ -42,5 +42,5 @@ impl Builtin {
 #[cfg(test)]
 #[test]
 fn ensure_builtin_fieldspecs_valid() {
-    eprintln!("{:#?}", Builtin::get())
+    Builtin::get();
 }

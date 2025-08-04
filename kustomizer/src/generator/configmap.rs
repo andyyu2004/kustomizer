@@ -3,7 +3,7 @@ use anyhow::{Context, bail};
 use crate::{
     PathExt,
     manifest::{self, GeneratorOptions},
-    resource::{Gvk, ResId, Resource},
+    resource::{Annotations, Gvk, Metadata, ResId, Resource},
 };
 
 use super::*;
@@ -122,8 +122,8 @@ impl ConfigMapGenerator<'_> {
             );
         }
 
-        let configmap = Resource {
-            id: ResId {
+        Resource::new(
+            ResId {
                 gvk: Gvk {
                     group: "".into(),
                     version: "v1".into(),
@@ -132,20 +132,18 @@ impl ConfigMapGenerator<'_> {
                 name: generator.name.clone(),
                 namespace: generator.namespace.clone(),
             },
-            // metadata: Metadata {
-            //     name: generator.name.clone(),
-            //     namespace: generator.namespace.clone(),
-            //     annotations: Annotations {
-            //         behavior: generator.behavior,
-            //         rest: annotations,
-            //         ..Default::default()
-            //     },
-            //     labels: labels.clone(),
-            //     ..Default::default()
-            // },
-            root: serde_yaml::Value::Mapping(root),
-        };
-
-        Ok(configmap)
+            Metadata {
+                name: generator.name.clone(),
+                namespace: generator.namespace.clone(),
+                annotations: Annotations {
+                    behavior: generator.behavior,
+                    rest: annotations,
+                    ..Default::default()
+                },
+                labels: labels.clone(),
+                ..Default::default()
+            },
+            root,
+        )
     }
 }
