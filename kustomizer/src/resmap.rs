@@ -43,7 +43,10 @@ impl ResourceMap {
     }
 
     pub fn insert(&mut self, resource: Resource) -> anyhow::Result<()> {
-        let behavior = resource.metadata.annotations.behavior;
+        let behavior = resource
+            .metadata()
+            .annotations()
+            .map_or(Ok(Behavior::Create), |annotations| annotations.behavior())?;
         match self.resources.entry(resource.id.clone()) {
             Entry::Occupied(mut entry) => match behavior {
                 Behavior::Create => bail!(

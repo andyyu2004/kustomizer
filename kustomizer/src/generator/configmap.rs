@@ -132,17 +132,17 @@ impl ConfigMapGenerator<'_> {
                 name: generator.name.clone(),
                 namespace: generator.namespace.clone(),
             },
-            metadata: Metadata {
-                name: generator.name.clone(),
-                namespace: generator.namespace.clone(),
-                annotations: Annotations {
-                    behavior: generator.behavior,
-                    rest: annotations,
-                    ..Default::default()
-                },
-                labels: labels.clone(),
-                ..Default::default()
-            },
+            // metadata: Metadata {
+            //     name: generator.name.clone(),
+            //     namespace: generator.namespace.clone(),
+            //     annotations: Annotations {
+            //         behavior: generator.behavior,
+            //         rest: annotations,
+            //         ..Default::default()
+            //     },
+            //     labels: labels.clone(),
+            //     ..Default::default()
+            // },
             root: serde_yaml::Value::Mapping(root),
         };
 

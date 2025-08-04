@@ -18,7 +18,7 @@ use crate::{
     },
     reslist::ResourceList,
     resmap::ResourceMap,
-    resource::{Gvk, Metadata, ResId, Resource},
+    resource::{Gvk, ResId, Resource},
     transform::{AnnotationTransformer, LabelTransformer, NamespaceTransformer, Transformer},
 };
 use anyhow::{Context, bail};
@@ -59,17 +59,20 @@ impl Builder {
             let workdir = path.parent().unwrap();
             let generator_spec = load_yaml::<Resource>(path)
                 .with_context(|| format!("loading generator spec from {}", path.pretty()))?;
-            let function_spec = generator_spec
-                .metadata
-                .annotations
-                .function_spec
-                .clone()
-                .ok_or_else(|| {
-                    anyhow::anyhow!(
+            let function_spec = match generator_spec.metadata().annotations() {
+                Some(annotations) => match annotations.function_spec() {
+                    Ok(Some(spec)) => spec,
+                    Ok(None) => bail!(
                         "generator spec at `{}` is missing `{KUSTOMIZE_FUNCTION_ANNOTATION}` annotation",
                         path.pretty()
-                    )
-                })?;
+                    ),
+                    Err(err) => bail!("failed parsing function spec: {err}"),
+                },
+                None => bail!(
+                    "generator spec at `{}` is missing `{KUSTOMIZE_FUNCTION_ANNOTATION}` annotation",
+                    path.pretty()
+                ),
+            };
 
             let generated = FunctionGenerator::new(function_spec)
                 .generate(workdir, &ResourceList::new([generator_spec]))

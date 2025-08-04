@@ -2,11 +2,7 @@ use std::ops::ControlFlow;
 
 use indexmap::IndexMap;
 
-use crate::{
-    fieldspec,
-    manifest::Str,
-    visit::{VisitMut, VisitorMut},
-};
+use crate::{fieldspec, manifest::Str, visit::VisitorMut};
 
 use super::{ResourceMap, Transformer};
 
@@ -23,14 +19,14 @@ impl Transformer for AnnotationTransformer<'_> {
         let _fieldspecs = &fieldspec::Builtin::get().common_annotations;
         dbg!(_fieldspecs);
 
-        for resource in resources.iter_mut() {
-            resource
-                .metadata
-                .annotations
-                .extend(self.0.iter().map(|(k, v)| (k.clone(), v.clone())));
-
-            resource.root.visit_with(self);
-        }
+        // for resource in resources.iter_mut() {
+        //     resource
+        //         .metadata_mut()
+        //         .annotations_mut()
+        //         .extend(self.0.iter().map(|(k, v)| (k.clone(), v.clone())));
+        //
+        //     resource.root.visit_with(self);
+        // }
     }
 }
 

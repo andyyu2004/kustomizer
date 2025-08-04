@@ -1,3 +1,5 @@
+mod view;
+
 use std::{
     fmt,
     ops::{Deref, DerefMut},
@@ -65,7 +67,7 @@ impl fmt::Display for ResId {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Resource {
     pub id: ResId,
-    pub metadata: Metadata,
+    // pub metadata: Metadata,
     pub root: serde_yaml::Value,
 }
 
@@ -159,7 +161,8 @@ impl Serialize for Resource {
         Res {
             api_version,
             kind: self.id.gvk.kind.clone(),
-            metadata: self.metadata.clone(),
+            metadata: Default::default(),
+            // root contains metadata
             root: self.root.clone(),
         }
         .serialize(serializer)
@@ -171,7 +174,7 @@ impl<'de> Deserialize<'de> for Resource {
     where
         D: serde::de::Deserializer<'de>,
     {
-        let res = Res::deserialize(deserializer)
+        let mut res = Res::deserialize(deserializer)
             .map_err(|err| serde::de::Error::custom(format!("parsing resource: {err}")))?;
 
         let (group, version) = res
@@ -191,10 +194,11 @@ impl<'de> Deserialize<'de> for Resource {
             namespace: res.metadata.namespace.clone(),
         };
 
-        Ok(Resource {
-            id,
-            metadata: res.metadata,
-            root: res.root,
-        })
+        res.root.as_mapping_mut().unwrap().insert(
+            serde_yaml::Value::String("metadata".into()),
+            serde_yaml::to_value(&res.metadata).map_err(serde::de::Error::custom)?,
+        );
+
+        Ok(Resource { id, root: res.root })
     }
 }

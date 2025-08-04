@@ -10,16 +10,20 @@ impl Transformer for LabelTransformer<'_> {
             return;
         }
 
-        for resource in resources.iter_mut() {
-            for label in self.0 {
-                // if label.include_selectors {
-                //     todo!("include_selectors is not implemented");
-                // }
-
-                for (key, value) in &label.pairs {
-                    resource.metadata.labels.insert(key.clone(), value.clone());
-                }
-            }
-        }
+        // TODO use field specs
+        // for resource in resources.iter_mut() {
+        //     for label in self.0 {
+        //         // if label.include_selectors {
+        //         //     todo!("include_selectors is not implemented");
+        //         // }
+        //
+        //         for (key, value) in &label.pairs {
+        //             resource
+        //                 .metadata_mut()
+        //                 .labels_mut()
+        //                 .insert(key.clone(), value.clone());
+        //         }
+        //     }
+        // }
     }
 }

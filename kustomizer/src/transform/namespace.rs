@@ -7,7 +7,7 @@ pub struct NamespaceTransformer(pub Str);
 impl Transformer for NamespaceTransformer {
     fn transform(&mut self, resources: &mut ResourceMap) {
         for resource in resources.iter_mut() {
-            resource.metadata.namespace = Some(self.0.clone());
+            resource.metadata_mut().set("namespace", self.0.clone());
         }
     }
 }
