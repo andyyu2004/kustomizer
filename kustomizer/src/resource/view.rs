@@ -64,44 +64,63 @@ impl MetadataViewMut<'_> {
         self.0
             .get_mut("annotations")
             .and_then(|v| v.as_mapping_mut())
-            .map(AnnotationsViewMut::new)
+            .map(AnnotationsViewMut)
     }
 
-    pub fn labels_mut(&mut self) -> Option<&mut serde_yaml::Mapping> {
-        self.0.get_mut("labels").and_then(|v| v.as_mapping_mut())
+    pub fn labels_mut(&mut self) -> Option<LabelsViewMut<'_>> {
+        self.0
+            .get_mut("labels")
+            .and_then(|v| v.as_mapping_mut())
+            .map(LabelsViewMut)
     }
 
-    pub fn set(&mut self, key: impl Into<String>, value: impl Into<String>) {
+    pub fn set(
+        &mut self,
+        key: impl Into<String>,
+        value: impl Into<String>,
+    ) -> Option<serde_yaml::Value> {
         self.0.insert(
             serde_yaml::Value::String(key.into()),
             serde_yaml::Value::String(value.into()),
-        );
+        )
     }
 }
 
-pub struct AnnotationsViewMut<'a> {
-    annotations: &'a mut serde_yaml::Mapping,
+pub struct LabelsViewMut<'a>(&'a mut serde_yaml::Mapping);
+
+impl<'a> LabelsViewMut<'a> {
+    pub fn insert(
+        &mut self,
+        key: impl Into<String>,
+        value: impl Into<String>,
+    ) -> Option<serde_yaml::Value> {
+        self.0.insert(
+            serde_yaml::Value::String(key.into()),
+            serde_yaml::Value::String(value.into()),
+        )
+    }
+
+    pub fn remove(&mut self, key: &str) {
+        self.0.remove(serde_yaml::Value::String(key.to_string()));
+    }
 }
+
+pub struct AnnotationsViewMut<'a>(&'a mut serde_yaml::Mapping);
 
 impl<'a> AnnotationsViewMut<'a> {
-    fn new(annotations: &'a mut serde_yaml::Mapping) -> Self {
-        AnnotationsViewMut { annotations }
-    }
-
     pub fn insert(&mut self, key: &str, value: &str) {
-        self.annotations.insert(
+        self.0.insert(
             serde_yaml::Value::String(key.to_string()),
             serde_yaml::Value::String(value.to_string()),
         );
     }
 
     pub fn remove(&mut self, key: &str) {
-        self.annotations
-            .remove(serde_yaml::Value::String(key.to_string()));
+        self.0.remove(serde_yaml::Value::String(key.to_string()));
     }
 
     pub fn iter(&self) -> impl Iterator<Item = (&str, &str)> + '_ {
-        self.annotations.iter().filter_map(|(k, v)| {
+        self.0.iter().filter_map(|(k, v)| {
             if let (serde_yaml::Value::String(key), serde_yaml::Value::String(value)) = (k, v) {
                 Some((key.as_str(), value.as_str()))
             } else {

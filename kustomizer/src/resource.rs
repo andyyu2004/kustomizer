@@ -175,6 +175,16 @@ impl DerefMut for Annotations {
     }
 }
 
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct Res {
+    api_version: Str,
+    kind: Str,
+    metadata: Metadata,
+    #[serde(flatten)]
+    root: serde_yaml::Mapping,
+}
+
 impl Serialize for Resource {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
@@ -186,24 +196,21 @@ impl Serialize for Resource {
             format_compact!("{}/{}", self.id.gvk.group, self.id.gvk.version)
         };
 
-        assert!(
+        debug_assert!(
             self.root.contains_key("metadata"),
             "Resource root must contain metadata"
         );
 
-        #[derive(Debug, Serialize, Deserialize)]
-        #[serde(rename_all = "camelCase")]
-        struct Res {
-            api_version: Str,
-            kind: Str,
-            #[serde(flatten)]
-            root: serde_yaml::Mapping,
-        }
+        let mut root = self.root.clone();
+        let metadata = root.remove("metadata").unwrap();
+
+        let metadata = serde_yaml::from_value(metadata).expect("invalid metadata");
 
         Res {
             api_version,
-            kind: self.id.gvk.kind.clone(),
-            root: self.root.clone(),
+            kind: self.kind().clone(),
+            metadata,
+            root,
         }
         .serialize(serializer)
     }
@@ -214,16 +221,6 @@ impl<'de> Deserialize<'de> for Resource {
     where
         D: serde::de::Deserializer<'de>,
     {
-        #[derive(Debug, Serialize, Deserialize)]
-        #[serde(rename_all = "camelCase")]
-        struct Res {
-            api_version: Str,
-            kind: Str,
-            metadata: Metadata,
-            #[serde(flatten)]
-            root: serde_yaml::Mapping,
-        }
-
         let res = Res::deserialize(deserializer)
             .map_err(|err| serde::de::Error::custom(format!("parsing resource: {err}")))?;
 
