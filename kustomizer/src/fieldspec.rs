@@ -9,6 +9,7 @@ use crate::{
     manifest::Str,
     resource::{GvkMatcher, Resource},
 };
+use anyhow::bail;
 use serde::{Deserialize, Serialize};
 
 // See kustomize/internal/konfig/builtinpluginconsts
@@ -24,7 +25,7 @@ pub struct FieldSpec {
 }
 
 impl FieldSpec {
-    fn overlaps_with(&self, other: &FieldSpec) -> bool {
+    pub fn overlaps_with(&self, other: &FieldSpec) -> bool {
         self.matcher.overlaps_with(&other.matcher)
             && self.path == other.path
             && self.create == other.create
@@ -68,7 +69,10 @@ impl FromStr for Path {
         let segments = s
             .split('/')
             .map(|segment| segment.parse::<PathSegment>())
-            .collect::<Result<_, _>>()?;
+            .collect::<Result<Box<_>, _>>()?;
+        if segments.is_empty() {
+            return Err(anyhow::anyhow!("path cannot be empty"));
+        }
         Ok(Path { segments })
     }
 }
@@ -178,50 +182,68 @@ impl FieldSpecs {
 }
 
 impl FieldSpec {
-    pub fn apply(&self, resource: &mut Resource, f: impl FnMut(&mut serde_yaml::Mapping) + Copy) {
+    pub fn apply(
+        &self,
+        resource: &mut Resource,
+        f: impl FnMut(&mut serde_yaml::Mapping) -> anyhow::Result<()> + Copy,
+    ) -> anyhow::Result<()> {
         if !self.matcher.matches(resource.id()) {
-            return;
+            return Ok(());
         }
 
         fn go(
             mut curr: &mut serde_yaml::Mapping,
             mut path: PathRef<'_>,
-            mut f: impl FnMut(&mut serde_yaml::Mapping) + Copy,
+            mut f: impl FnMut(&mut serde_yaml::Mapping) -> anyhow::Result<()> + Copy,
             create: bool,
-        ) -> Option<()> {
+        ) -> anyhow::Result<()> {
             while let Some(segment) = path.first() {
                 match segment {
                     PathSegment::Field(field) => {
                         if !curr.contains_key(field.as_str()) {
                             if !create {
-                                return None;
+                                return Ok(());
                             }
 
                             let new_value = serde_yaml::Value::Mapping(serde_yaml::Mapping::new());
                             curr.insert(serde_yaml::Value::String(field.to_string()), new_value);
                         }
 
-                        curr = curr.get_mut(field.as_str())?.as_mapping_mut()?;
+                        curr = curr
+                            .get_mut(field.as_str())
+                            .unwrap()
+                            .as_mapping_mut()
+                            .ok_or_else(|| {
+                                anyhow::anyhow!(
+                                    "expected a mapping at `{field}` but found a different type",
+                                )
+                            })?;
                     }
                     PathSegment::Array(field) => {
-                        // TODO handle `create` in this case maybe?
-                        let seq = curr
-                            .get_mut(field.as_str())
-                            .and_then(|v| v.as_sequence_mut())?;
-                        for item in seq {
-                            if let Some(map) = item.as_mapping_mut() {
-                                go(map, &path[1..], f, create);
-                            }
+                        match curr.get_mut(field.as_str()) {
+                            Some(v) => match v.as_sequence_mut() {
+                                Some(seq) => {
+                                    for item in seq {
+                                        if let Some(map) = item.as_mapping_mut() {
+                                            go(map, &path[1..], f, create)?;
+                                        }
+                                    }
+                                }
+                                None => bail!(
+                                    "expected a sequence at `{field}` but found a different type",
+                                ),
+                            },
+                            // No point creating an empty array, so `create` has no effect here.
+                            None => return Ok(()),
                         }
                     }
                 }
                 path = &path[1..];
             }
 
-            f(curr);
-            Some(())
+            f(curr)
         }
 
-        go(resource.root_mut(), &self.path, f, self.create);
+        go(resource.root_mut(), &self.path, f, self.create)
     }
 }

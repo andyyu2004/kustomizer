@@ -293,12 +293,14 @@ pub mod kind {
     define_symbol!(Kustomize = "Kustomization");
     define_symbol!(Component = "Component");
     define_symbol!(ResourceList = "ResourceList");
+    define_symbol!(ImageTagTransformer = "ImageTagTransformer");
 }
 
 pub mod apiversion {
     use super::define_symbol;
     define_symbol!(Alpha = "kustomize.config.k8s.io/v1alpha1");
     define_symbol!(Beta = "kustomize.config.k8s.io/v1beta1");
+    define_symbol!(Builtin = "builtin");
 }
 
 macro_rules! define_symbol {

@@ -33,7 +33,8 @@ impl Transformer for LabelTransformer<'_> {
                                 serde_yaml::Value::String(value.to_string()),
                             );
                         }
-                    });
+                        Ok(())
+                    })?;
                 }
             }
         }

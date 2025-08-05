@@ -24,7 +24,8 @@ impl Transformer for AnnotationTransformer<'_> {
                             serde_yaml::Value::String(value.to_string()),
                         );
                     }
-                });
+                    Ok(())
+                })?;
             }
         }
 
