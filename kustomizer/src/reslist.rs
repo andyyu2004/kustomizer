@@ -1,11 +1,20 @@
 use serde::{Deserialize, Serialize};
 
-use crate::{manifest::kind, resource::Resource};
+use crate::{manifest::kind, resmap::ResourceMap, resource::Resource};
 
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize)]
 pub struct ResourceList {
     kind: kind::ResourceList,
     items: Box<[Resource]>,
+}
+
+impl From<ResourceMap> for ResourceList {
+    fn from(map: ResourceMap) -> Self {
+        Self {
+            kind: kind::ResourceList,
+            items: map.into_iter().collect(),
+        }
+    }
 }
 
 impl ResourceList {

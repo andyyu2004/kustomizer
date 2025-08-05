@@ -139,30 +139,26 @@ impl Builder {
             let path = PathId::make(kustomization.parent_path.join(path))?;
             let transformer_spec = load_yaml::<Resource>(path)
                 .with_context(|| format!("loading transformer spec from {}", path.pretty()))?;
-            let function_spec = match transformer_spec.metadata().annotations() {
-                Some(annotations) => match annotations.function_spec() {
-                    Ok(Some(spec)) => spec,
+            if let Some(annotations) = transformer_spec.metadata().annotations() {
+                match annotations.function_spec() {
+                    Ok(Some(function_spec)) => {
+                        FunctionPlugin::new(function_spec)
+                            .transform(&mut resources)
+                            .await
+                            .with_context(|| {
+                                format!(
+                                    "failed transforming resources with function spec at `{}`",
+                                    path.pretty()
+                                )
+                            })?;
+                    }
                     Ok(None) => bail!(
                         "transformer spec at `{}` is missing `{KUSTOMIZE_FUNCTION_ANNOTATION}` annotation",
                         path.pretty()
                     ),
                     Err(err) => bail!("failed parsing function spec: {err}"),
-                },
-                None => bail!(
-                    "transformer spec at `{}` is missing `{KUSTOMIZE_FUNCTION_ANNOTATION}` annotation",
-                    path.pretty()
-                ),
+                }
             };
-
-            FunctionPlugin::new(function_spec)
-                .transform(&mut resources)
-                .await
-                .with_context(|| {
-                    format!(
-                        "failed transforming resources with function spec at `{}`",
-                        path.pretty()
-                    )
-                })?;
         }
 
         //

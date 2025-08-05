@@ -121,6 +121,15 @@ impl ResourceMap {
     }
 }
 
+impl IntoIterator for ResourceMap {
+    type Item = Resource;
+    type IntoIter = indexmap::map::IntoValues<ResId, Resource>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.resources.into_values()
+    }
+}
+
 impl Index<&ResId> for ResourceMap {
     type Output = Resource;
 

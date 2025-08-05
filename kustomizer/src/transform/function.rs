@@ -1,13 +1,15 @@
-use crate::{plugin::FunctionPlugin, resmap::ResourceMap};
+use std::path::Path;
+
+use crate::{plugin::FunctionPlugin, reslist::ResourceList, resmap::ResourceMap};
 
 use super::Transformer;
 
 #[async_trait::async_trait]
 impl Transformer for FunctionPlugin {
-    async fn transform(&mut self, resources: &mut ResourceMap) -> anyhow::Result<()> {
-        match self.spec() {
-            crate::manifest::FunctionSpec::Exec(exec_spec) => todo!(),
-            crate::manifest::FunctionSpec::Container(container_spec) => todo!(),
-        }
+    async fn transform(&mut self, input: &mut ResourceMap) -> anyhow::Result<()> {
+        let resources = ResourceList::from(std::mem::take(input));
+        let output = self.exec_krm(Path::new("."), &resources).await?;
+        input.extend(output)?;
+        Ok(())
     }
 }
