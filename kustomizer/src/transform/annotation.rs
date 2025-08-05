@@ -16,21 +16,19 @@ impl Transformer for AnnotationTransformer<'_> {
         let field_specs = &fieldspec::Builtin::get().common_annotations;
 
         for resource in resources.iter_mut() {
-            for field_spec in field_specs.iter() {
-                field_spec.apply(resource, |annotations| {
-                    let annotations = annotations.as_mapping_mut().ok_or_else(|| {
-                        anyhow::anyhow!("expected a yaml mapping for annotations")
-                    })?;
+            field_specs.apply(resource, |annotations| {
+                let annotations = annotations
+                    .as_mapping_mut()
+                    .ok_or_else(|| anyhow::anyhow!("expected a yaml mapping for annotations"))?;
 
-                    for (key, value) in self.0 {
-                        annotations.insert(
-                            serde_yaml::Value::String(key.to_string()),
-                            serde_yaml::Value::String(value.to_string()),
-                        );
-                    }
-                    Ok(())
-                })?;
-            }
+                for (key, value) in self.0 {
+                    annotations.insert(
+                        serde_yaml::Value::String(key.to_string()),
+                        serde_yaml::Value::String(value.to_string()),
+                    );
+                }
+                Ok(())
+            })?;
         }
 
         Ok(())

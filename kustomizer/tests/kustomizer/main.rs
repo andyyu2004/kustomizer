@@ -38,7 +38,8 @@ async fn test(path: &Path) -> datatest_stable::Result<()> {
             diff_reference_impl(base_path, &actual)?;
         }
         Err(err) => {
-            show_reference_impl_error(base_path)?;
+            show_reference_impl_error(base_path)
+                .with_context(|| format!("kustomizer error {err} at {}", path.pretty()))?;
 
             let res = snapshot(&error_snapshot_path, &format!("{err:?}"));
             if success_snapshot_path.exists() {
@@ -63,7 +64,7 @@ fn should_update_snapshots() -> bool {
 }
 
 // Diff against reference kustomize implementation
-fn show_reference_impl_error(path: &Path) -> datatest_stable::Result<()> {
+fn show_reference_impl_error(path: &Path) -> anyhow::Result<()> {
     let output = std::process::Command::new("kustomize")
         .arg("build")
         .arg("--load-restrictor=LoadRestrictionsNone")
@@ -77,7 +78,7 @@ fn show_reference_impl_error(path: &Path) -> datatest_stable::Result<()> {
         .context("kustomize build")?;
 
     if output.status.success() {
-        Err(format!(
+        Err(anyhow::anyhow!(
             "kustomize build succeeded for {} but expected failure",
             path.pretty()
         ))?;

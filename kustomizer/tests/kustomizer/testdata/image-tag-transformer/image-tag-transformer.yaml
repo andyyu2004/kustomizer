@@ -1,0 +1,9 @@
+apiVersion: builtin
+kind: ImageTagTransformer
+metadata:
+  name: data-ingestor-itt
+imageTag:
+  name: some-image-tag
+  newName: some-image
+  newTag: some-tag
+

@@ -20,6 +20,7 @@ pub struct FieldSpec {
     pub matcher: GvkMatcher,
     #[serde(with = "crate::serde_ex::string")]
     pub path: Path,
+    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
     /// The `create` field indicates whether the field should be created if it does not exist.
     pub create: bool,
 }
@@ -125,23 +126,14 @@ impl FromStr for PathSegment {
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(transparent)]
 pub struct FieldSpecs {
-    fields: Vec<FieldSpec>,
-}
-
-impl IntoIterator for FieldSpecs {
-    type Item = FieldSpec;
-    type IntoIter = std::vec::IntoIter<FieldSpec>;
-
-    fn into_iter(self) -> Self::IntoIter {
-        self.fields.into_iter()
-    }
+    specs: Vec<FieldSpec>,
 }
 
 impl Deref for FieldSpecs {
     type Target = [FieldSpec];
 
     fn deref(&self) -> &Self::Target {
-        &self.fields
+        &self.specs
     }
 }
 
@@ -164,8 +156,8 @@ impl fmt::Display for Conflict {
 impl std::error::Error for Conflict {}
 
 impl FieldSpecs {
-    pub fn merge(&mut self, specs: impl IntoIterator<Item = FieldSpec>) -> Result<(), Conflict> {
-        for spec in specs {
+    pub fn merge(&mut self, other: FieldSpecs) -> Result<(), Conflict> {
+        for spec in other.specs {
             self.add(spec)?;
         }
 
@@ -173,26 +165,38 @@ impl FieldSpecs {
     }
 
     pub fn add(&mut self, spec: FieldSpec) -> Result<(), Conflict> {
-        if let Some(conflicts_with) = self.fields.iter().find(|s| s.overlaps_with(&spec)) {
+        if let Some(conflicts_with) = self.specs.iter().find(|s| s.overlaps_with(&spec)) {
             Err(Conflict {
                 conflicts_with: Box::new(conflicts_with.clone()),
                 field_spec: Box::new(spec),
             })
         } else {
-            self.fields.push(spec);
+            self.specs.push(spec);
             Ok(())
         }
     }
-}
 
-impl FieldSpec {
     pub fn apply(
         &self,
         resource: &mut Resource,
         f: impl FnMut(&mut serde_yaml::Value) -> anyhow::Result<()> + Copy,
     ) -> anyhow::Result<()> {
+        for spec in &self.specs {
+            spec.apply(resource, f)?;
+        }
+
+        Ok(())
+    }
+}
+
+impl FieldSpec {
+    fn apply(
+        &self,
+        resource: &mut Resource,
+        f: impl FnMut(&mut serde_yaml::Value) -> anyhow::Result<()> + Copy,
+    ) -> anyhow::Result<usize> {
         if !self.matcher.matches(resource.id()) {
-            return Ok(());
+            return Ok(0);
         }
 
         fn go(
@@ -200,13 +204,13 @@ impl FieldSpec {
             mut path: PathRef<'_>,
             mut f: impl FnMut(&mut serde_yaml::Value) -> anyhow::Result<()> + Copy,
             create: bool,
-        ) -> anyhow::Result<()> {
+        ) -> anyhow::Result<usize> {
             while let Some(segment) = path.first() {
                 match segment {
                     PathSegment::Field(field) => {
                         if !curr.contains_key(field.as_str()) {
                             if !create {
-                                return Ok(());
+                                return Ok(0);
                             }
 
                             let new_value = serde_yaml::Value::Mapping(serde_yaml::Mapping::new());
@@ -215,7 +219,8 @@ impl FieldSpec {
 
                         let val = curr.get_mut(field.as_str()).unwrap();
                         if path.len() == 1 {
-                            return f(val);
+                            f(val)?;
+                            return Ok(1);
                         }
 
                         curr = val.as_mapping_mut().ok_or_else(|| {
@@ -228,25 +233,28 @@ impl FieldSpec {
                         match curr.get_mut(field.as_str()) {
                             Some(v) => match v.as_sequence_mut() {
                                 Some(seq) => {
+                                    let mut count = 0;
                                     for item in seq {
                                         if let Some(map) = item.as_mapping_mut() {
-                                            go(map, &path[1..], f, create)?;
+                                            count += go(map, &path[1..], f, create)?;
                                         }
                                     }
+
+                                    return Ok(count);
                                 }
                                 None => bail!(
                                     "expected a sequence at `{field}` but found a different type",
                                 ),
                             },
                             // No point creating an empty array, so `create` has no effect here.
-                            None => return Ok(()),
+                            None => return Ok(0),
                         }
                     }
                 }
                 path = &path[1..];
             }
 
-            Ok(())
+            Ok(0)
         }
 
         go(resource.root_mut(), &self.path, f, self.create)

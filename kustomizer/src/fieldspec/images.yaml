@@ -1,12 +1,13 @@
+# In the reference implementation create is always true but that doesn't make sense to me.
 - path: spec/containers[]/image
-  create: true
+  # create: true
 - path: spec/initContainers[]/image
-  create: true
+  # create: true
 - path: spec/volumes[]/image/reference
-  create: true
+  # create: true
 - path: spec/template/spec/containers[]/image
-  create: true
+  # create: true
 - path: spec/template/spec/initContainers[]/image
-  create: true
+  # create: true
 - path: spec/template/spec/volumes[]/image/reference
-  create: true
+  # create: true
