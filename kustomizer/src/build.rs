@@ -20,7 +20,10 @@ use crate::{
     reslist::ResourceList,
     resmap::ResourceMap,
     resource::{Gvk, ResId, Resource},
-    transform::{AnnotationTransformer, LabelTransformer, NamespaceTransformer, Transformer},
+    transform::{
+        AnnotationTransformer, ImageTagTransformer, LabelTransformer, NamespaceTransformer,
+        Transformer,
+    },
 };
 use anyhow::{Context, bail};
 use futures_util::future;
@@ -91,8 +94,9 @@ impl Builder {
                 })?;
             } else {
                 bail!(
-                    "generator spec at `{}` is missing `{KUSTOMIZE_FUNCTION_ANNOTATION}` annotation",
-                    path.pretty()
+                    "only custom generators with the `{KUSTOMIZE_FUNCTION_ANNOTATION}` annotation are supported `{}`, got {}",
+                    path.pretty(),
+                    generator_spec.id()
                 );
             }
         }
@@ -113,6 +117,7 @@ impl Builder {
         for component in &kustomization.components {
             let component = load_component(kustomization.parent_path.join(component))
                 .with_context(|| format!("loading component `{}`", component.pretty()))?;
+            // FIXME This isn't right, the transformers patches of the components need to be applied to the base as well
             let built = self.build(&component).await?;
             resources.merge(built).with_context(|| {
                 format!(
@@ -157,10 +162,29 @@ impl Builder {
                             path.pretty()
                         )
                     })?;
+            } else if transformer_spec.api_version() == "builtin" {
+                match transformer_spec.kind().as_str() {
+                    "ImageTagTransformer" => {
+                        serde_yaml::from_value::<ImageTagTransformer>(serde_yaml::Value::Mapping(
+                            transformer_spec.root().clone(),
+                        ))
+                        .with_context(|| {
+                            format!("failed parsing ImageTagTransformer at `{}`", path.pretty())
+                        })?
+                        .transform(&mut resources)
+                        .await?
+                    }
+                    _ => bail!(
+                        "unknown builtin transformer kind `{}` at `{}`",
+                        transformer_spec.kind(),
+                        path.pretty()
+                    ),
+                }
             } else {
                 bail!(
-                    "only custom transformers with `{KUSTOMIZE_FUNCTION_ANNOTATION}` annotation are supported `{}`",
-                    path.pretty()
+                    "only builtin or custom transformers with `{KUSTOMIZE_FUNCTION_ANNOTATION}` annotation are supported `{}`, got {}",
+                    path.pretty(),
+                    transformer_spec.id()
                 );
             }
         }

@@ -139,6 +139,10 @@ impl Resource {
         &self.id.gvk
     }
 
+    pub fn api_version(&self) -> &Str {
+        &self.id.gvk.version
+    }
+
     pub fn kind(&self) -> &Str {
         &self.id.kind
     }

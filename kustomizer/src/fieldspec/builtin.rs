@@ -5,6 +5,7 @@ use serde::Deserialize;
 use super::FieldSpecs;
 
 const COMMON_ANNOTATIONS: &[u8] = include_bytes!("commonAnnotations.yaml");
+const IMAGES: &[u8] = include_bytes!("images.yaml");
 const METADATA_LABELS: &[u8] = include_bytes!("metadataLabels.yaml");
 const TEMPLATE_LABELS: &[u8] = include_bytes!("templateLabels.yaml");
 const OTHER_LABELS: &[u8] = include_bytes!("otherLabels.yaml");
@@ -13,6 +14,7 @@ const OTHER_LABELS: &[u8] = include_bytes!("otherLabels.yaml");
 #[serde(deny_unknown_fields, rename_all = "camelCase")]
 pub struct Builtin {
     pub metadata_labels: FieldSpecs,
+    pub images: FieldSpecs,
     pub common_annotations: FieldSpecs,
     pub template_labels: FieldSpecs,
     pub common_labels: FieldSpecs,
@@ -24,6 +26,8 @@ impl Builtin {
         INSTANCE.get_or_init(|| {
             let common_annotations = serde_yaml::from_slice::<FieldSpecs>(COMMON_ANNOTATIONS)
                 .expect("common annotations");
+
+            let images = serde_yaml::from_slice::<FieldSpecs>(IMAGES).expect("images");
 
             let template_labels =
                 serde_yaml::from_slice::<FieldSpecs>(TEMPLATE_LABELS).expect("template labels");
@@ -39,9 +43,10 @@ impl Builtin {
             Builtin {
                 common_annotations,
                 common_labels,
+                images,
+                template_labels,
                 metadata_labels: serde_yaml::from_slice::<FieldSpecs>(METADATA_LABELS)
                     .expect("metadata labels"),
-                template_labels,
             }
         })
     }
