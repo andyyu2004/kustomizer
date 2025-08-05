@@ -9,6 +9,14 @@ impl Resource {
         MetadataView(self.root["metadata"].as_mapping().unwrap())
     }
 
+    pub fn labels(&self) -> Option<&serde_yaml::Mapping> {
+        self.metadata().labels()
+    }
+
+    pub fn annotations(&self) -> Option<AnnotationsView<'_>> {
+        self.metadata().annotations()
+    }
+
     pub fn metadata_mut(&mut self) -> MetadataViewMut<'_> {
         MetadataViewMut(self.root["metadata"].as_mapping_mut().unwrap())
     }
@@ -16,15 +24,15 @@ impl Resource {
 
 pub struct MetadataView<'a>(&'a serde_yaml::Mapping);
 
-impl MetadataView<'_> {
-    pub fn annotations(&self) -> Option<AnnotationsView<'_>> {
+impl<'a> MetadataView<'a> {
+    pub fn annotations(&self) -> Option<AnnotationsView<'a>> {
         self.0
             .get("annotations")
             .and_then(|v| v.as_mapping())
             .map(AnnotationsView)
     }
 
-    pub fn labels(&self) -> Option<&serde_yaml::Mapping> {
+    pub fn labels(&self) -> Option<&'a serde_yaml::Mapping> {
         self.0.get("labels").and_then(|v| v.as_mapping())
     }
 }
@@ -34,6 +42,10 @@ pub struct AnnotationsView<'a>(&'a serde_yaml::Mapping);
 impl AnnotationsView<'_> {
     pub fn get(&self, key: &str) -> Option<&str> {
         self.0.get(key).and_then(|v| v.as_str())
+    }
+
+    pub fn has(&self, key: &str) -> bool {
+        self.0.contains_key(key)
     }
 
     pub fn behavior(&self) -> anyhow::Result<Behavior> {
@@ -60,7 +72,7 @@ impl AnnotationsView<'_> {
 pub struct MetadataViewMut<'a>(&'a mut serde_yaml::Mapping);
 
 impl MetadataViewMut<'_> {
-    pub fn annotations_mut(&mut self) -> Option<AnnotationsViewMut> {
+    pub fn annotations_mut(&mut self) -> Option<AnnotationsViewMut<'_>> {
         self.0
             .get_mut("annotations")
             .and_then(|v| v.as_mapping_mut())

@@ -60,37 +60,41 @@ impl Builder {
             let workdir = path.parent().unwrap();
             let generator_spec = load_yaml::<Resource>(path)
                 .with_context(|| format!("loading generator spec from {}", path.pretty()))?;
-            let function_spec = match generator_spec.metadata().annotations() {
-                Some(annotations) => match annotations.function_spec() {
-                    Ok(Some(spec)) => spec,
-                    Ok(None) => bail!(
-                        "generator spec at `{}` is missing `{KUSTOMIZE_FUNCTION_ANNOTATION}` annotation",
-                        path.pretty()
-                    ),
-                    Err(err) => bail!("failed parsing function spec: {err}"),
-                },
-                None => bail!(
-                    "generator spec at `{}` is missing `{KUSTOMIZE_FUNCTION_ANNOTATION}` annotation",
-                    path.pretty()
-                ),
-            };
 
-            let generated = FunctionPlugin::new(function_spec)
-                .generate(workdir, &ResourceList::new([generator_spec]))
-                .await
-                .with_context(|| {
+            if let Some(annotations) = generator_spec.annotations()
+                && annotations.has(KUSTOMIZE_FUNCTION_ANNOTATION)
+            {
+                let function_spec = annotations
+                    .function_spec()
+                    .with_context(|| {
+                        format!(
+                            "failed parsing function spec from generator spec at `{}`",
+                            path.pretty()
+                        )
+                    })?
+                    .unwrap();
+                let generated = FunctionPlugin::new(function_spec)
+                    .generate(workdir, &ResourceList::new([generator_spec]))
+                    .await
+                    .with_context(|| {
+                        format!(
+                            "failed generating resources from function spec at {}",
+                            path.pretty()
+                        )
+                    })?;
+
+                resources.extend(generated).with_context(|| {
                     format!(
-                        "failed generating resources from function spec at {}",
+                        "failure merging resources from generator at `{}`",
                         path.pretty()
                     )
                 })?;
-
-            resources.extend(generated).with_context(|| {
-                format!(
-                    "failure merging resources from generator at `{}`",
+            } else {
+                bail!(
+                    "generator spec at `{}` is missing `{KUSTOMIZE_FUNCTION_ANNOTATION}` annotation",
                     path.pretty()
-                )
-            })?;
+                );
+            }
         }
 
         let configmaps = ConfigMapGenerator::new(
@@ -139,26 +143,26 @@ impl Builder {
             let path = PathId::make(kustomization.parent_path.join(path))?;
             let transformer_spec = load_yaml::<Resource>(path)
                 .with_context(|| format!("loading transformer spec from {}", path.pretty()))?;
-            if let Some(annotations) = transformer_spec.metadata().annotations() {
-                match annotations.function_spec() {
-                    Ok(Some(function_spec)) => {
-                        FunctionPlugin::new(function_spec)
-                            .transform(&mut resources)
-                            .await
-                            .with_context(|| {
-                                format!(
-                                    "failed transforming resources with function spec at `{}`",
-                                    path.pretty()
-                                )
-                            })?;
-                    }
-                    Ok(None) => bail!(
-                        "transformer spec at `{}` is missing `{KUSTOMIZE_FUNCTION_ANNOTATION}` annotation",
-                        path.pretty()
-                    ),
-                    Err(err) => bail!("failed parsing function spec: {err}"),
-                }
-            };
+
+            if let Some(annotations) = transformer_spec.annotations()
+                && annotations.has(KUSTOMIZE_FUNCTION_ANNOTATION)
+            {
+                let function_spec = annotations.function_spec()?.unwrap();
+                FunctionPlugin::new(function_spec)
+                    .transform(&mut resources)
+                    .await
+                    .with_context(|| {
+                        format!(
+                            "failed transforming resources with function spec at `{}`",
+                            path.pretty()
+                        )
+                    })?;
+            } else {
+                bail!(
+                    "only custom transformers with `{KUSTOMIZE_FUNCTION_ANNOTATION}` annotation are supported `{}`",
+                    path.pretty()
+                );
+            }
         }
 
         //
