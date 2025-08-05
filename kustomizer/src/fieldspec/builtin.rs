@@ -31,15 +31,17 @@ impl Builtin {
             let other_labels =
                 serde_yaml::from_slice::<FieldSpecs>(OTHER_LABELS).expect("other labels");
 
-            let common_labels = template_labels.extend(other_labels);
+            let mut common_labels = template_labels.clone();
+            common_labels
+                .merge(other_labels)
+                .expect("overlapping labels between template and other");
 
             Builtin {
                 common_annotations,
                 common_labels,
                 metadata_labels: serde_yaml::from_slice::<FieldSpecs>(METADATA_LABELS)
                     .expect("metadata labels"),
-                template_labels: serde_yaml::from_slice::<FieldSpecs>(TEMPLATE_LABELS)
-                    .expect("template labels"),
+                template_labels,
             }
         })
     }

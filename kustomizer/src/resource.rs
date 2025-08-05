@@ -30,6 +30,48 @@ impl fmt::Display for Gvk {
     }
 }
 
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Deserialize, Serialize)]
+pub struct GvkMatcher {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub group: Option<Str>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub version: Option<Str>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub kind: Option<Str>,
+}
+
+impl fmt::Display for GvkMatcher {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        if let Some(kind) = &self.kind {
+            write!(f, "{kind}.")?;
+        }
+
+        if let Some(version) = &self.version {
+            write!(f, "{version}.")?;
+        }
+
+        if let Some(group) = &self.group {
+            write!(f, "{group}")
+        } else {
+            write!(f, "*")
+        }
+    }
+}
+
+impl GvkMatcher {
+    pub fn matches(&self, gvk: &Gvk) -> bool {
+        (self.group.is_none() || self.group.as_ref() == Some(&gvk.group))
+            && (self.version.is_none() || self.version.as_ref() == Some(&gvk.version))
+            && (self.kind.is_none() || self.kind.as_ref() == Some(&gvk.kind))
+    }
+
+    pub fn overlaps_with(&self, other: &GvkMatcher) -> bool {
+        (self.group.is_none() || other.group.is_none() || self.group == other.group)
+            && (self.version.is_none() || other.version.is_none() || self.version == other.version)
+            && (self.kind.is_none() || other.kind.is_none() || self.kind == other.kind)
+    }
+}
+
 #[derive(Clone, PartialEq, Eq, Hash, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct ResId {
@@ -91,6 +133,10 @@ impl Resource {
 
     pub fn id(&self) -> &ResId {
         &self.id
+    }
+
+    pub fn gvk(&self) -> &Gvk {
+        &self.id.gvk
     }
 
     pub fn kind(&self) -> &Str {

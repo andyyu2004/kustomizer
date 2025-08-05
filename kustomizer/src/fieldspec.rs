@@ -5,19 +5,30 @@ use std::{ops::Deref, str::FromStr};
 
 pub use self::builtin::Builtin;
 
-use crate::{manifest::Str, resource::Resource};
+use crate::{
+    manifest::Str,
+    resource::{GvkMatcher, Resource},
+};
 use serde::{Deserialize, Serialize};
 
 // See kustomize/internal/konfig/builtinpluginconsts
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct FieldSpec {
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub kind: Option<Str>,
+    #[serde(flatten)]
+    pub matcher: GvkMatcher,
     #[serde(with = "crate::serde_ex::string")]
     pub path: Path,
     /// The `create` field indicates whether the field should be created if it does not exist.
     pub create: bool,
+}
+
+impl FieldSpec {
+    fn overlaps_with(&self, other: &FieldSpec) -> bool {
+        self.matcher.overlaps_with(&other.matcher)
+            && self.path == other.path
+            && self.create == other.create
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -109,6 +120,15 @@ pub struct FieldSpecs {
     fields: Vec<FieldSpec>,
 }
 
+impl IntoIterator for FieldSpecs {
+    type Item = FieldSpec;
+    type IntoIter = std::vec::IntoIter<FieldSpec>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.fields.into_iter()
+    }
+}
+
 impl Deref for FieldSpecs {
     type Target = [FieldSpec];
 
@@ -117,23 +137,53 @@ impl Deref for FieldSpecs {
     }
 }
 
+#[derive(Debug)]
+pub struct Conflict {
+    pub conflicts_with: Box<FieldSpec>,
+    pub field_spec: Box<FieldSpec>,
+}
+
+impl fmt::Display for Conflict {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "cannot add field spec `{}` because it conflicts with existing field spec `{}`",
+            self.field_spec.matcher, self.conflicts_with.matcher
+        )
+    }
+}
+
+impl std::error::Error for Conflict {}
+
 impl FieldSpecs {
-    fn extend(&self, other: FieldSpecs) -> FieldSpecs {
-        // TODO should check for overlaps
-        let mut fields = self.fields.clone();
-        fields.extend(other.fields);
-        FieldSpecs { fields }
+    pub fn merge(&mut self, specs: impl IntoIterator<Item = FieldSpec>) -> Result<(), Conflict> {
+        for spec in specs {
+            self.add(spec)?;
+        }
+
+        Ok(())
+    }
+
+    pub fn add(&mut self, spec: FieldSpec) -> Result<(), Conflict> {
+        if let Some(conflicts_with) = self.fields.iter().find(|s| s.overlaps_with(&spec)) {
+            Err(Conflict {
+                conflicts_with: Box::new(conflicts_with.clone()),
+                field_spec: Box::new(spec),
+            })
+        } else {
+            self.fields.push(spec);
+            Ok(())
+        }
     }
 }
 
 impl FieldSpec {
     pub fn apply(&self, resource: &mut Resource, f: impl FnMut(&mut serde_yaml::Mapping) + Copy) {
-        // TODO filter by other gvk fields too
-        if self.kind.is_some() && self.kind.as_ref() != Some(resource.kind()) {
+        if !self.matcher.matches(resource.id()) {
             return;
         }
 
-        fn apply(
+        fn go(
             mut curr: &mut serde_yaml::Mapping,
             mut path: PathRef<'_>,
             mut f: impl FnMut(&mut serde_yaml::Mapping) + Copy,
@@ -160,7 +210,7 @@ impl FieldSpec {
                             .and_then(|v| v.as_sequence_mut())?;
                         for item in seq {
                             if let Some(map) = item.as_mapping_mut() {
-                                apply(map, &path[1..], f, create);
+                                go(map, &path[1..], f, create);
                             }
                         }
                     }
@@ -172,6 +222,6 @@ impl FieldSpec {
             Some(())
         }
 
-        apply(resource.root_mut(), &self.path, f, self.create);
+        go(resource.root_mut(), &self.path, f, self.create);
     }
 }
