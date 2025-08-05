@@ -10,10 +10,7 @@ use compact_str::format_compact;
 use indexmap::IndexMap;
 use serde::{Deserialize, Serialize};
 
-use crate::{
-    fieldspec::{self, FieldSpec},
-    manifest::{Behavior, FunctionSpec, Str},
-};
+use crate::manifest::{Behavior, FunctionSpec, Str};
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]

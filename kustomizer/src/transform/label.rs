@@ -11,6 +11,9 @@ impl Transformer for LabelTransformer<'_> {
         }
 
         let builtins = fieldspec::Builtin::get();
+
+        // FIXME double check definition of these kustomizer/src/fieldspec/metadataLabels.yaml
+        // seems to overshoot what reference impl does
         // let field_specs = if label.include_selectors {
         //     builtins.common_labels
         // } else {

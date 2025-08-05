@@ -88,7 +88,7 @@ impl MetadataViewMut<'_> {
 
 pub struct LabelsViewMut<'a>(&'a mut serde_yaml::Mapping);
 
-impl<'a> LabelsViewMut<'a> {
+impl LabelsViewMut<'_> {
     pub fn insert(
         &mut self,
         key: impl Into<String>,
@@ -107,7 +107,7 @@ impl<'a> LabelsViewMut<'a> {
 
 pub struct AnnotationsViewMut<'a>(&'a mut serde_yaml::Mapping);
 
-impl<'a> AnnotationsViewMut<'a> {
+impl AnnotationsViewMut<'_> {
     pub fn insert(&mut self, key: &str, value: &str) {
         self.0.insert(
             serde_yaml::Value::String(key.to_string()),
