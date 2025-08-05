@@ -27,12 +27,17 @@ impl Transformer for LabelTransformer<'_> {
             for resource in resources.iter_mut() {
                 for field_spec in field_specs.iter() {
                     field_spec.apply(resource, |l| {
+                        let l = l
+                            .as_mapping_mut()
+                            .ok_or_else(|| anyhow::anyhow!("expected a yaml mapping for labels"))?;
+
                         for (key, value) in &label.pairs {
                             l.insert(
                                 serde_yaml::Value::String(key.to_string()),
                                 serde_yaml::Value::String(value.to_string()),
                             );
                         }
+
                         Ok(())
                     })?;
                 }

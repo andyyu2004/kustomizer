@@ -70,10 +70,14 @@ impl FromStr for Path {
             .split('/')
             .map(|segment| segment.parse::<PathSegment>())
             .collect::<Result<Box<_>, _>>()?;
-        if segments.is_empty() {
-            return Err(anyhow::anyhow!("path cannot be empty"));
+
+        match segments.last() {
+            Some(PathSegment::Array(_)) => {
+                Err(anyhow::anyhow!("path cannot end with an array segment"))?
+            }
+            None => Err(anyhow::anyhow!("path cannot be empty"))?,
+            _ => Ok(Path { segments }),
         }
-        Ok(Path { segments })
     }
 }
 
@@ -185,7 +189,7 @@ impl FieldSpec {
     pub fn apply(
         &self,
         resource: &mut Resource,
-        f: impl FnMut(&mut serde_yaml::Mapping) -> anyhow::Result<()> + Copy,
+        f: impl FnMut(&mut serde_yaml::Value) -> anyhow::Result<()> + Copy,
     ) -> anyhow::Result<()> {
         if !self.matcher.matches(resource.id()) {
             return Ok(());
@@ -194,7 +198,7 @@ impl FieldSpec {
         fn go(
             mut curr: &mut serde_yaml::Mapping,
             mut path: PathRef<'_>,
-            mut f: impl FnMut(&mut serde_yaml::Mapping) -> anyhow::Result<()> + Copy,
+            mut f: impl FnMut(&mut serde_yaml::Value) -> anyhow::Result<()> + Copy,
             create: bool,
         ) -> anyhow::Result<()> {
             while let Some(segment) = path.first() {
@@ -209,15 +213,16 @@ impl FieldSpec {
                             curr.insert(serde_yaml::Value::String(field.to_string()), new_value);
                         }
 
-                        curr = curr
-                            .get_mut(field.as_str())
-                            .unwrap()
-                            .as_mapping_mut()
-                            .ok_or_else(|| {
-                                anyhow::anyhow!(
-                                    "expected a mapping at `{field}` but found a different type",
-                                )
-                            })?;
+                        let val = curr.get_mut(field.as_str()).unwrap();
+                        if path.len() == 1 {
+                            return f(val);
+                        }
+
+                        curr = val.as_mapping_mut().ok_or_else(|| {
+                            anyhow::anyhow!(
+                                "expected a mapping at `{field}` but found a different type",
+                            )
+                        })?;
                     }
                     PathSegment::Array(field) => {
                         match curr.get_mut(field.as_str()) {
@@ -241,7 +246,7 @@ impl FieldSpec {
                 path = &path[1..];
             }
 
-            f(curr)
+            Ok(())
         }
 
         go(resource.root_mut(), &self.path, f, self.create)

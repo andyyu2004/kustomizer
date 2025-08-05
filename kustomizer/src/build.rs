@@ -127,10 +127,10 @@ impl Builder {
             })?;
         }
 
-        AnnotationTransformer(&kustomization.common_annotations)
+        LabelTransformer(&kustomization.labels)
             .transform(&mut resources)
             .await?;
-        LabelTransformer(&kustomization.labels)
+        AnnotationTransformer(&kustomization.common_annotations)
             .transform(&mut resources)
             .await?;
         if let Some(namespace) = &kustomization.namespace {
