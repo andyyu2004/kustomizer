@@ -92,18 +92,6 @@ impl Builder {
             })?;
         }
 
-        for component in &kustomization.components {
-            let component = load_component(kustomization.parent_path.join(component))
-                .with_context(|| format!("loading component `{}`", component.pretty()))?;
-            let built = self.build(&component).await?;
-            resources.merge(built).with_context(|| {
-                format!(
-                    "failure merging resources from component `{}`",
-                    component.path.pretty()
-                )
-            })?;
-        }
-
         let configmaps = ConfigMapGenerator::new(
             &kustomization.config_map_generators,
             &kustomization.generator_options,
@@ -116,6 +104,18 @@ impl Builder {
                 kustomization.path.pretty()
             )
         })?;
+
+        for component in &kustomization.components {
+            let component = load_component(kustomization.parent_path.join(component))
+                .with_context(|| format!("loading component `{}`", component.pretty()))?;
+            let built = self.build(&component).await?;
+            resources.merge(built).with_context(|| {
+                format!(
+                    "failure merging resources from component `{}`",
+                    component.path.pretty()
+                )
+            })?;
+        }
 
         AnnotationTransformer(&kustomization.common_annotations).transform(&mut resources);
         LabelTransformer(&kustomization.labels).transform(&mut resources);
