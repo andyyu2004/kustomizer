@@ -28,9 +28,22 @@ pub struct ImageTag {
 impl Transformer for ImageTagTransformer {
     async fn transform(&mut self, resources: &mut ResourceMap) -> anyhow::Result<()> {
         let field_specs = &crate::fieldspec::Builtin::get().images;
+
         for resource in resources.iter_mut() {
             for field_spec in field_specs.iter() {
-                field_spec.apply(resource, |images| Ok(()))?;
+                field_spec.apply(resource, |image_value| {
+                    let image = image_value.as_str().ok_or_else(|| {
+                        anyhow::anyhow!("expected a string for image field: {}", field_spec.path)
+                    })?;
+
+                    if image == self.image_tag.name {
+                        let new_image =
+                            format!("{}:{}", self.image_tag.new_name, self.image_tag.new_tag);
+                        *image_value = serde_yaml::Value::String(new_image);
+                    }
+
+                    Ok(())
+                })?;
             }
         }
         Ok(())
