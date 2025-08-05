@@ -1,4 +1,5 @@
 use super::Generator;
+use crate::plugin::FunctionPlugin;
 use crate::{manifest::FunctionSpec, reslist::ResourceList};
 use anyhow::{Context, bail};
 use std::path::Path;
@@ -6,25 +7,15 @@ use std::process::Stdio;
 use tokio::io::AsyncWriteExt;
 use tokio::process::Command;
 
-pub struct FunctionGenerator {
-    spec: FunctionSpec,
-}
-
-impl FunctionGenerator {
-    pub fn new(spec: FunctionSpec) -> Self {
-        Self { spec }
-    }
-}
-
 #[async_trait::async_trait]
-impl Generator for FunctionGenerator {
+impl Generator for FunctionPlugin {
     #[tracing::instrument(skip_all, fields(workdir = %workdir.display()))]
     async fn generate(
         &mut self,
         workdir: &Path,
         input: &ResourceList,
     ) -> anyhow::Result<ResourceList> {
-        match &self.spec {
+        match self.spec() {
             FunctionSpec::Exec(spec) => {
                 let mut proc = Command::new(&spec.path)
                     .args(&spec.args)

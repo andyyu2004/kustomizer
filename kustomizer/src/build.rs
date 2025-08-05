@@ -10,12 +10,13 @@ use std::{
 
 use crate::{
     Located, PathExt as _, PathId,
-    generator::{ConfigMapGenerator, FunctionGenerator, Generator as _},
+    generator::{ConfigMapGenerator, Generator as _},
     load_component, load_file, load_kustomization, load_yaml,
     manifest::{
         Component, FunctionSpec, Generator, KeyValuePairSources, Kustomization, Manifest, Patch,
         Symbol,
     },
+    plugin::FunctionPlugin,
     reslist::ResourceList,
     resmap::ResourceMap,
     resource::{Gvk, ResId, Resource},
@@ -74,7 +75,7 @@ impl Builder {
                 ),
             };
 
-            let generated = FunctionGenerator::new(function_spec)
+            let generated = FunctionPlugin::new(function_spec)
                 .generate(workdir, &ResourceList::new([generator_spec]))
                 .await
                 .with_context(|| {
@@ -117,25 +118,58 @@ impl Builder {
             })?;
         }
 
-        AnnotationTransformer(&kustomization.common_annotations).transform(&mut resources);
-        LabelTransformer(&kustomization.labels).transform(&mut resources);
+        AnnotationTransformer(&kustomization.common_annotations)
+            .transform(&mut resources)
+            .await?;
+        LabelTransformer(&kustomization.labels)
+            .transform(&mut resources)
+            .await?;
         if let Some(namespace) = &kustomization.namespace {
-            NamespaceTransformer(namespace.clone()).transform(&mut resources);
+            NamespaceTransformer(namespace.clone())
+                .transform(&mut resources)
+                .await?;
         }
 
         // if !kustomization.patches.is_empty() {
         //     bail!("patches are not implemented");
         // }
         //
-        // if !kustomization.transformers.is_empty() {
-        //     bail!("transformers are not implemented");
-        // }
+
+        for path in &kustomization.transformers {
+            let path = PathId::make(kustomization.parent_path.join(path))?;
+            let transformer_spec = load_yaml::<Resource>(path)
+                .with_context(|| format!("loading transformer spec from {}", path.pretty()))?;
+            let function_spec = match transformer_spec.metadata().annotations() {
+                Some(annotations) => match annotations.function_spec() {
+                    Ok(Some(spec)) => spec,
+                    Ok(None) => bail!(
+                        "transformer spec at `{}` is missing `{KUSTOMIZE_FUNCTION_ANNOTATION}` annotation",
+                        path.pretty()
+                    ),
+                    Err(err) => bail!("failed parsing function spec: {err}"),
+                },
+                None => bail!(
+                    "transformer spec at `{}` is missing `{KUSTOMIZE_FUNCTION_ANNOTATION}` annotation",
+                    path.pretty()
+                ),
+            };
+
+            FunctionPlugin::new(function_spec)
+                .transform(&mut resources)
+                .await
+                .with_context(|| {
+                    format!(
+                        "failed transforming resources with function spec at `{}`",
+                        path.pretty()
+                    )
+                })?;
+        }
+
         //
         //
         // if !kustomization.replicas.is_empty() {
         //     bail!("images are not implemented");
         // }
-        //
         //
         //
         // if kustomization.name_prefix.is_some() {

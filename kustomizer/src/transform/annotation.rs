@@ -8,10 +8,11 @@ use super::{ResourceMap, Transformer};
 // internal/konfig/builtinpluginconsts/commonannotations.go
 pub struct AnnotationTransformer<'a>(pub &'a IndexMap<Str, Str>);
 
+#[async_trait::async_trait]
 impl Transformer for AnnotationTransformer<'_> {
-    fn transform(&mut self, resources: &mut ResourceMap) {
+    async fn transform(&mut self, resources: &mut ResourceMap) -> anyhow::Result<()> {
         if self.0.is_empty() {
-            return;
+            return Ok(());
         }
 
         let field_specs = &fieldspec::Builtin::get().common_annotations;
@@ -28,5 +29,7 @@ impl Transformer for AnnotationTransformer<'_> {
                 });
             }
         }
+
+        Ok(())
     }
 }

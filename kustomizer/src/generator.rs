@@ -2,7 +2,6 @@ mod configmap;
 mod function;
 
 pub use self::configmap::ConfigMapGenerator;
-pub use self::function::FunctionGenerator;
 
 use crate::reslist::ResourceList;
 use std::path::Path;

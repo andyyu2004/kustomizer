@@ -1,4 +1,5 @@
 mod annotation;
+mod function;
 mod label;
 mod namespace;
 
@@ -8,6 +9,7 @@ pub use self::namespace::NamespaceTransformer;
 
 use crate::resmap::ResourceMap;
 
+#[async_trait::async_trait]
 pub trait Transformer {
-    fn transform(&mut self, resources: &mut ResourceMap);
+    async fn transform(&mut self, resources: &mut ResourceMap) -> anyhow::Result<()>;
 }

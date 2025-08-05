@@ -4,6 +4,7 @@ mod fieldspec;
 mod generator;
 mod intern;
 pub mod manifest;
+mod plugin;
 mod reslist;
 mod resmap;
 mod resource;
