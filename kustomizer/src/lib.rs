@@ -12,7 +12,7 @@ mod serde_ex;
 mod transform;
 
 use core::fmt;
-use std::{ops::Deref, path::Path};
+use std::{ffi::OsStr, ops::Deref, path::Path};
 
 use anyhow::Context;
 
@@ -58,10 +58,7 @@ where
 {
     let path = path.as_ref();
     if !path.exists() {
-        return Err(anyhow::anyhow!(
-            "load manifest: path does not exist: {}",
-            path.display()
-        ));
+        return Err(anyhow::anyhow!("path does not exist: {}", path.display()));
     }
 
     let mut path = path
@@ -69,6 +66,13 @@ where
         .with_context(|| format!("canonicalizing path {}", path.display()))?;
     if path.is_dir() {
         path.push("kustomization.yaml");
+    }
+
+    if path.file_name() != Some(OsStr::new("kustomization.yaml")) {
+        return Err(anyhow::anyhow!(
+            "path is not a kustomization.yaml file: {}",
+            path.pretty()
+        ));
     }
 
     let file = std::fs::File::open(&path)

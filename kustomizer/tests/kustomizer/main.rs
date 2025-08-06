@@ -9,7 +9,7 @@ use std::path::Path;
 use anyhow::Context;
 
 datatest_stable::harness! {
-    { test = test, root = "tests/kustomizer/testdata", pattern = r".*/kustomization.yaml" },
+    { test = test, root = "tests/kustomizer/testdata", pattern = r".*/test" },
 }
 
 #[tokio::main]
@@ -18,7 +18,7 @@ async fn test(path: &Path) -> datatest_stable::Result<()> {
     let success_snapshot_path = base_path.join("output").with_extension("yaml");
     let error_snapshot_path = base_path.join("error").with_extension("stderr");
 
-    match kustomizer::build(path).await {
+    match kustomizer::build(base_path).await {
         Ok(resmap) => {
             let actual = resmap.to_string();
             let res = snapshot(&success_snapshot_path, &actual);
