@@ -25,7 +25,7 @@ use self::{
 
 pub async fn build(path: impl AsRef<Path>) -> anyhow::Result<ResourceMap> {
     let kustomization = load_kustomization(path)?;
-    build::Builder::default().build(&kustomization).await
+    build::Builder::default().build_kust(&kustomization).await
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]

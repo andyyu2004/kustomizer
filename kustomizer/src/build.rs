@@ -42,21 +42,22 @@ pub struct Builder {
 }
 
 impl Builder {
-    pub async fn build_kustomization(
+    pub async fn build_kust(
         &self,
         kustomization: &Located<Kustomization>,
     ) -> anyhow::Result<ResourceMap> {
-        self.build(kustomization).await
+        self.build(Default::default(), kustomization).await
     }
 
     #[tracing::instrument(skip_all, fields(path = %kustomization.path.pretty()))]
     #[async_recursion::async_recursion]
     #[allow(clippy::multiple_bound_locations)]
-    pub async fn build<A: Symbol, K: Symbol>(
+    async fn build<A: Symbol, K: Symbol>(
         &self,
+        resmap: ResourceMap,
         kustomization: &Located<Manifest<A, K>>,
     ) -> anyhow::Result<ResourceMap> {
-        let mut resources = self.build_kustomization_base(kustomization).await?;
+        let mut resmap = self.build_kustomization_base(resmap, kustomization).await?;
 
         for path in &kustomization.generators {
             let path = PathId::make(kustomization.parent_path.join(path))?;
@@ -86,7 +87,7 @@ impl Builder {
                         )
                     })?;
 
-                resources.extend(generated).with_context(|| {
+                resmap.extend(generated).with_context(|| {
                     format!(
                         "failure merging resources from generator at `{}`",
                         path.pretty()
@@ -107,7 +108,7 @@ impl Builder {
         )
         .generate(&kustomization.parent_path, &ResourceList::new([]))
         .await?;
-        resources.extend(configmaps).with_context(|| {
+        resmap.extend(configmaps).with_context(|| {
             format!(
                 "failure merging resources from configmap generators in `{}`",
                 kustomization.path.pretty()
@@ -117,25 +118,18 @@ impl Builder {
         for component in &kustomization.components {
             let component = load_component(kustomization.parent_path.join(component))
                 .with_context(|| format!("loading component `{}`", component.pretty()))?;
-            // FIXME This isn't right, the transformers patches of the components need to be applied to the base as well
-            let built = self.build(&component).await?;
-            resources.merge(built).with_context(|| {
-                format!(
-                    "failure merging resources from component `{}`",
-                    component.path.pretty()
-                )
-            })?;
+            resmap = self.build(resmap, &component).await?;
         }
 
         LabelTransformer(&kustomization.labels)
-            .transform(&mut resources)
+            .transform(&mut resmap)
             .await?;
         AnnotationTransformer(&kustomization.common_annotations)
-            .transform(&mut resources)
+            .transform(&mut resmap)
             .await?;
         if let Some(namespace) = &kustomization.namespace {
             NamespaceTransformer(namespace.clone())
-                .transform(&mut resources)
+                .transform(&mut resmap)
                 .await?;
         }
 
@@ -154,7 +148,7 @@ impl Builder {
             {
                 let function_spec = annotations.function_spec()?.unwrap();
                 FunctionPlugin::new(function_spec)
-                    .transform(&mut resources)
+                    .transform(&mut resmap)
                     .await
                     .with_context(|| {
                         format!(
@@ -171,7 +165,7 @@ impl Builder {
                         .with_context(|| {
                             format!("failed parsing ImageTagTransformer at `{}`", path.pretty())
                         })?
-                        .transform(&mut resources)
+                        .transform(&mut resmap)
                         .await?
                     }
                     _ => bail!(
@@ -204,15 +198,14 @@ impl Builder {
         //     bail!("name suffix is not implemented");
         // }
 
-        Ok(resources)
+        Ok(resmap)
     }
 
     async fn build_kustomization_base<A, K>(
         &self,
+        mut resmap: ResourceMap,
         kustomization: &Located<Manifest<A, K>>,
     ) -> anyhow::Result<ResourceMap> {
-        let mut resmap = ResourceMap::default();
-
         let resources =
             future::try_join_all(kustomization.resources.iter().cloned().map(|path| async {
                 let built = self.build_resource(kustomization, &path).await?;
@@ -261,7 +254,7 @@ impl Builder {
                 .with_context(|| format!("loading kustomization resource {}", path.pretty()))?;
 
             let base = self
-                .build(&kustomization)
+                .build(Default::default(), &kustomization)
                 .await
                 .with_context(|| format!("building kustomization resource {}", path.pretty()))?;
 
