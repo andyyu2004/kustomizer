@@ -21,8 +21,8 @@ use crate::{
     resmap::ResourceMap,
     resource::{Gvk, ResId, Resource},
     transform::{
-        AnnotationTransformer, ImageTagTransformer, LabelTransformer, NamespaceTransformer,
-        ReplicaTransformer, Transformer,
+        AnnotationTransformer, ImageTagTransformer, LabelTransformer, NameTransformer,
+        NamespaceTransformer, ReplicaTransformer, Transformer,
     },
 };
 use anyhow::{Context, bail};
@@ -138,12 +138,16 @@ impl Builder {
                 .await?;
         }
 
-        if kustomization.name_prefix.is_some() {
-            bail!("name prefix is not implemented");
+        if let Some(prefix) = &kustomization.name_prefix {
+            NameTransformer::new(|name| format!("{prefix}{name}"))
+                .transform(&mut resmap)
+                .await?;
         }
 
-        if kustomization.name_suffix.is_some() {
-            bail!("name suffix is not implemented");
+        if let Some(suffix) = &kustomization.name_suffix {
+            NameTransformer::new(|name| format!("{name}{suffix}"))
+                .transform(&mut resmap)
+                .await?;
         }
 
         for path in &kustomization.transformers {

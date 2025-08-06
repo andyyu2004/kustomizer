@@ -179,10 +179,10 @@ impl FieldSpecs {
     pub fn apply(
         &self,
         resource: &mut Resource,
-        f: impl FnMut(&mut serde_yaml::Value) -> anyhow::Result<()> + Copy,
+        mut f: impl FnMut(&mut serde_yaml::Value) -> anyhow::Result<()>,
     ) -> anyhow::Result<()> {
         for spec in &self.specs {
-            spec.apply(resource, f)?;
+            spec.apply(resource, &mut f)?;
         }
 
         Ok(())
@@ -193,7 +193,7 @@ impl FieldSpec {
     fn apply(
         &self,
         resource: &mut Resource,
-        f: impl FnMut(&mut serde_yaml::Value) -> anyhow::Result<()> + Copy,
+        f: &mut impl FnMut(&mut serde_yaml::Value) -> anyhow::Result<()>,
     ) -> anyhow::Result<usize> {
         if !self.matcher.matches(resource.id()) {
             return Ok(0);
@@ -202,7 +202,7 @@ impl FieldSpec {
         fn go(
             mut curr: &mut serde_yaml::Mapping,
             mut path: PathRef<'_>,
-            mut f: impl FnMut(&mut serde_yaml::Value) -> anyhow::Result<()> + Copy,
+            f: &mut impl FnMut(&mut serde_yaml::Value) -> anyhow::Result<()>,
             create: bool,
         ) -> anyhow::Result<usize> {
             while let Some(segment) = path.first() {

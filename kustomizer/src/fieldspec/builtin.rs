@@ -10,10 +10,12 @@ const METADATA_LABELS: &[u8] = include_bytes!("metadataLabels.yaml");
 const TEMPLATE_LABELS: &[u8] = include_bytes!("templateLabels.yaml");
 const OTHER_LABELS: &[u8] = include_bytes!("otherLabels.yaml");
 const REPLICAS: &[u8] = include_bytes!("replicas.yaml");
+const NAME: &[u8] = include_bytes!("name.yaml");
 
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize)]
 #[serde(deny_unknown_fields, rename_all = "camelCase")]
 pub struct Builtin {
+    pub name: FieldSpecs,
     pub metadata_labels: FieldSpecs,
     pub images: FieldSpecs,
     pub common_annotations: FieldSpecs,
@@ -44,7 +46,10 @@ impl Builtin {
 
             let replicas = serde_yaml::from_slice::<FieldSpecs>(REPLICAS).expect("replicas");
 
+            let name = serde_yaml::from_slice::<FieldSpecs>(NAME).expect("name");
+
             Builtin {
+                name,
                 common_annotations,
                 common_labels,
                 images,
