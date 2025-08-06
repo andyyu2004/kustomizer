@@ -22,7 +22,7 @@ use crate::{
     resource::{Gvk, ResId, Resource},
     transform::{
         AnnotationTransformer, ImageTagTransformer, LabelTransformer, NameTransformer,
-        NamespaceTransformer, ReplicaTransformer, Transformer,
+        NamespaceTransformer, PatchTransformer, ReplicaTransformer, Transformer,
     },
 };
 use anyhow::{Context, bail};
@@ -127,16 +127,13 @@ impl Builder {
                 .await?;
         }
 
-        // if !kustomization.patches.is_empty() {
-        //     bail!("patches are not implemented");
-        // }
-        //
+        PatchTransformer::new(&kustomization.patches)
+            .transform(&mut resmap)
+            .await?;
 
-        if kustomization.replicas.is_empty() {
-            ReplicaTransformer::new(&kustomization.replicas)
-                .transform(&mut resmap)
-                .await?;
-        }
+        ReplicaTransformer::new(&kustomization.replicas)
+            .transform(&mut resmap)
+            .await?;
 
         if let Some(prefix) = &kustomization.name_prefix {
             NameTransformer::new(|name| format!("{prefix}{name}"))

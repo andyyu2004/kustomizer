@@ -2,7 +2,10 @@ use core::fmt;
 use json_patch::Patch as JsonPatch;
 use std::path::PathBuf;
 
-use crate::{fieldspec, resource::Metadata};
+use crate::{
+    fieldspec,
+    resource::{Metadata, Resource},
+};
 use compact_str::CompactString;
 use indexmap::IndexMap;
 use serde::{Deserialize, Serialize};
@@ -232,6 +235,17 @@ pub enum Target {
     Pattern(Pattern),
 }
 
+impl Target {
+    pub fn matches(&self, resource: &Resource) -> bool {
+        match self {
+            Target::LabelSelector(_) | Target::AnnotationSelector(_) => {
+                todo!("kube selectors not implemented yet")
+            }
+            Target::Pattern(pat) => pat.matches(resource),
+        }
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize)]
 pub struct Pattern {
     pub kind: Str,
@@ -239,6 +253,14 @@ pub struct Pattern {
     pub name: Option<Str>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub namespace: Option<Str>,
+}
+
+impl Pattern {
+    pub fn matches(&self, resource: &Resource) -> bool {
+        self.kind == resource.kind()
+            && (self.name.is_none() || self.name.as_ref() == Some(resource.name()))
+            && (self.namespace.is_none() || self.namespace.as_ref() == resource.namespace())
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]

@@ -139,6 +139,10 @@ impl Resource {
         &self.id.name
     }
 
+    pub fn namespace(&self) -> Option<&Str> {
+        self.id.namespace.as_ref()
+    }
+
     pub fn gvk(&self) -> &Gvk {
         &self.id.gvk
     }
