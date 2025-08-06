@@ -58,11 +58,11 @@ impl ResourceMap {
                         .get_mut()
                         .root_mut()
                         .get_mut("data")
-                        .and_then(|data| data.as_mapping_mut());
+                        .and_then(|data| data.as_object_mut());
                     let right = resource
                         .root()
                         .get("data")
-                        .and_then(|data| data.as_mapping());
+                        .and_then(|data| data.as_object());
 
                     // TODO same for string data
                     // TODO merging metadata and annotations, not sure what is correct behavior for this
@@ -74,7 +74,7 @@ impl ResourceMap {
                         }
                         (None, Some(right)) => {
                             entry.get_mut().root_mut()["data"] =
-                                serde_yaml::Value::Mapping(right.clone());
+                                serde_json::Value::Object(right.clone());
                         }
                         (_, None) => {}
                     }

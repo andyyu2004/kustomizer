@@ -7,7 +7,7 @@ pub use self::builtin::Builtin;
 
 use crate::{
     manifest::Str,
-    resource::{GvkMatcher, Resource},
+    resource::{AnyObject, GvkMatcher, Resource},
 };
 use anyhow::bail;
 use serde::{Deserialize, Serialize};
@@ -179,7 +179,7 @@ impl FieldSpecs {
     pub fn apply(
         &self,
         resource: &mut Resource,
-        mut f: impl FnMut(&mut serde_yaml::Value) -> anyhow::Result<()>,
+        mut f: impl FnMut(&mut serde_json::Value) -> anyhow::Result<()>,
     ) -> anyhow::Result<()> {
         for spec in &self.specs {
             spec.apply(resource, &mut f)?;
@@ -193,16 +193,16 @@ impl FieldSpec {
     fn apply(
         &self,
         resource: &mut Resource,
-        f: &mut impl FnMut(&mut serde_yaml::Value) -> anyhow::Result<()>,
+        f: &mut impl FnMut(&mut serde_json::Value) -> anyhow::Result<()>,
     ) -> anyhow::Result<usize> {
         if !self.matcher.matches(resource.id()) {
             return Ok(0);
         }
 
         fn go(
-            mut curr: &mut serde_yaml::Mapping,
+            mut curr: &mut AnyObject,
             mut path: PathRef<'_>,
-            f: &mut impl FnMut(&mut serde_yaml::Value) -> anyhow::Result<()>,
+            f: &mut impl FnMut(&mut serde_json::Value) -> anyhow::Result<()>,
             create: bool,
         ) -> anyhow::Result<usize> {
             while let Some(segment) = path.first() {
@@ -213,8 +213,8 @@ impl FieldSpec {
                                 return Ok(0);
                             }
 
-                            let new_value = serde_yaml::Value::Mapping(serde_yaml::Mapping::new());
-                            curr.insert(serde_yaml::Value::String(field.to_string()), new_value);
+                            let new_value = serde_json::Value::Object(AnyObject::new());
+                            curr.insert(field.to_string(), new_value);
                         }
 
                         let val = curr.get_mut(field.as_str()).unwrap();
@@ -223,7 +223,7 @@ impl FieldSpec {
                             return Ok(1);
                         }
 
-                        curr = val.as_mapping_mut().ok_or_else(|| {
+                        curr = val.as_object_mut().ok_or_else(|| {
                             anyhow::anyhow!(
                                 "expected a mapping at `{field}` but found a different type",
                             )
@@ -231,11 +231,11 @@ impl FieldSpec {
                     }
                     PathSegment::Array(field) => {
                         match curr.get_mut(field.as_str()) {
-                            Some(v) => match v.as_sequence_mut() {
+                            Some(v) => match v.as_array_mut() {
                                 Some(seq) => {
                                     let mut count = 0;
                                     for item in seq {
-                                        if let Some(map) = item.as_mapping_mut() {
+                                        if let Some(map) = item.as_object_mut() {
                                             count += go(map, &path[1..], f, create)?;
                                         }
                                     }

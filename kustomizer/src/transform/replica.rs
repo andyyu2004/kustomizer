@@ -37,7 +37,7 @@ impl Transformer for ReplicaTransformer {
                         anyhow::bail!("expected replicas to be a number for resource `{id}`",);
                     }
                     *replicas =
-                        serde_yaml::Value::Number(serde_yaml::Number::from(*desired_replicas));
+                        serde_json::Value::Number(serde_json::Number::from(*desired_replicas));
 
                     Ok(())
                 })?;

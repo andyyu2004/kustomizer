@@ -168,7 +168,7 @@ impl Builder {
             } else if transformer_spec.api_version() == "builtin" {
                 match transformer_spec.kind().as_str() {
                     "ImageTagTransformer" => {
-                        serde_yaml::from_value::<ImageTagTransformer>(serde_yaml::Value::Mapping(
+                        serde_json::from_value::<ImageTagTransformer>(serde_json::Value::Object(
                             transformer_spec.root().clone(),
                         ))
                         .with_context(|| {

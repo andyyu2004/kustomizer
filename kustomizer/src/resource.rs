@@ -110,21 +110,16 @@ impl fmt::Display for ResId {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Resource {
     id: ResId,
-    root: serde_yaml::Mapping,
+    root: AnyObject,
 }
 
+pub type AnyObject = serde_json::Map<String, serde_json::Value>;
+
 impl Resource {
-    pub fn new(
-        id: ResId,
-        metadata: Metadata,
-        mut root: serde_yaml::Mapping,
-    ) -> anyhow::Result<Self> {
+    pub fn new(id: ResId, metadata: Metadata, mut root: AnyObject) -> anyhow::Result<Self> {
         ensure!(
-            root.insert(
-                serde_yaml::Value::String("metadata".into()),
-                serde_yaml::to_value(&metadata)?,
-            )
-            .is_none(),
+            root.insert("metadata".into(), serde_json::to_value(&metadata)?,)
+                .is_none(),
             "root must not duplicate metadata"
         );
 
@@ -155,11 +150,11 @@ impl Resource {
         &self.id.kind
     }
 
-    pub fn root(&self) -> &serde_yaml::Mapping {
+    pub fn root(&self) -> &AnyObject {
         &self.root
     }
 
-    pub fn root_mut(&mut self) -> &mut serde_yaml::Mapping {
+    pub fn root_mut(&mut self) -> &mut AnyObject {
         &mut self.root
     }
 }
@@ -237,7 +232,7 @@ struct Res {
     kind: Str,
     metadata: Metadata,
     #[serde(flatten)]
-    root: serde_yaml::Mapping,
+    root: AnyObject,
 }
 
 impl Serialize for Resource {
@@ -259,7 +254,7 @@ impl Serialize for Resource {
         let mut root = self.root.clone();
         let metadata = root.remove("metadata").unwrap();
 
-        let metadata = serde_yaml::from_value(metadata).expect("invalid metadata");
+        let metadata = serde_json::from_value(metadata).expect("invalid metadata");
 
         Res {
             api_version,

@@ -18,13 +18,13 @@ impl Transformer for AnnotationTransformer<'_> {
         for resource in resources.iter_mut() {
             field_specs.apply(resource, |annotations| {
                 let annotations = annotations
-                    .as_mapping_mut()
+                    .as_object_mut()
                     .ok_or_else(|| anyhow::anyhow!("expected a yaml mapping for annotations"))?;
 
                 for (key, value) in self.0 {
                     annotations.insert(
-                        serde_yaml::Value::String(key.to_string()),
-                        serde_yaml::Value::String(value.to_string()),
+                        key.to_string(),
+                        serde_json::Value::String(value.to_string()),
                     );
                 }
                 Ok(())

@@ -38,7 +38,7 @@ impl Transformer for ImageTagTransformer {
                 if image == self.image_tag.name {
                     let new_image =
                         format!("{}:{}", self.image_tag.new_name, self.image_tag.new_tag);
-                    *image_value = serde_yaml::Value::String(new_image);
+                    *image_value = serde_json::Value::String(new_image);
                 }
 
                 Ok(())

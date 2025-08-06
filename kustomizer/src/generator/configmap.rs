@@ -3,7 +3,7 @@ use anyhow::{Context, bail};
 use crate::{
     PathExt,
     manifest::{self, GeneratorOptions},
-    resource::{Annotations, Gvk, Metadata, ResId, Resource},
+    resource::{Annotations, AnyObject, Gvk, Metadata, ResId, Resource},
 };
 
 use super::*;
@@ -85,7 +85,7 @@ impl ConfigMapGenerator<'_> {
             bail!("ConfigMapGenerator does not support enabling name suffix hash yet");
         }
 
-        let mut mapping = serde_yaml::Mapping::new();
+        let mut object = AnyObject::new();
 
         for kv in &generator.sources.files {
             let path = workdir.join(&kv.value);
@@ -99,27 +99,18 @@ impl ConfigMapGenerator<'_> {
                 .await
                 .with_context(|| format!("failed to read file {}", path.pretty()))?;
 
-            if mapping
-                .insert(
-                    serde_yaml::Value::String(key.to_string()),
-                    serde_yaml::Value::String(data),
-                )
+            if object
+                .insert(key.to_string(), serde_json::Value::String(data))
                 .is_some()
             {
                 bail!("duplicate key `{key}` in ConfigMapGenerator sources");
             }
         }
 
-        let mut root = serde_yaml::Mapping::from_iter([(
-            serde_yaml::Value::String("data".into()),
-            serde_yaml::Value::Mapping(mapping),
-        )]);
+        let mut root = AnyObject::from_iter([("data".into(), serde_json::Value::Object(object))]);
 
         if immutable {
-            root.insert(
-                serde_yaml::Value::String("immutable".into()),
-                serde_yaml::Value::Bool(true),
-            );
+            root.insert("immutable".into(), serde_json::Value::Bool(true));
         }
 
         Resource::new(
