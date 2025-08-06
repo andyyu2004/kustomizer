@@ -7,6 +7,8 @@ use tracing_subscriber::layer::SubscriberExt as _;
 struct Args {
     #[clap(subcommand)]
     command: Command,
+    #[clap(long, short, default_value_t = false)]
+    verbose: bool,
 }
 
 #[derive(Parser)]
@@ -27,11 +29,13 @@ enum Debug {
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
-    let subscriber =
-        tracing_subscriber::Registry::default().with(tracing_tree::HierarchicalLayer::new(2));
-    tracing::subscriber::set_global_default(subscriber).unwrap();
-
     let args = Args::parse();
+    if args.verbose {
+        let subscriber =
+            tracing_subscriber::Registry::default().with(tracing_tree::HierarchicalLayer::new(2));
+        tracing::subscriber::set_global_default(subscriber).unwrap();
+    }
+
     match args.command {
         Command::Build { dir } => {
             let resmap = kustomizer::build(dir).await?;
