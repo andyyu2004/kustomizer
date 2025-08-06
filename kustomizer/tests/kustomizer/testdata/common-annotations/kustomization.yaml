@@ -1,5 +1,5 @@
 resources:
-  - ../base
+  - ../bases/deployment
 
 commonAnnotations:
   app.kubernetes.io/managed-by: kustomize
