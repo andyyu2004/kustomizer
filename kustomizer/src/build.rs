@@ -22,7 +22,7 @@ use crate::{
     resource::{Gvk, ResId, Resource},
     transform::{
         AnnotationTransformer, ImageTagTransformer, LabelTransformer, NamespaceTransformer,
-        Transformer,
+        ReplicaTransformer, Transformer,
     },
 };
 use anyhow::{Context, bail};
@@ -115,12 +115,6 @@ impl Builder {
             )
         })?;
 
-        for component in &kustomization.components {
-            let component = load_component(kustomization.parent_path.join(component))
-                .with_context(|| format!("loading component `{}`", component.pretty()))?;
-            resmap = self.build(resmap, &component).await?;
-        }
-
         LabelTransformer(&kustomization.labels)
             .transform(&mut resmap)
             .await?;
@@ -137,6 +131,20 @@ impl Builder {
         //     bail!("patches are not implemented");
         // }
         //
+
+        if kustomization.replicas.is_empty() {
+            ReplicaTransformer::new(&kustomization.replicas)
+                .transform(&mut resmap)
+                .await?;
+        }
+
+        if kustomization.name_prefix.is_some() {
+            bail!("name prefix is not implemented");
+        }
+
+        if kustomization.name_suffix.is_some() {
+            bail!("name suffix is not implemented");
+        }
 
         for path in &kustomization.transformers {
             let path = PathId::make(kustomization.parent_path.join(path))?;
@@ -183,20 +191,11 @@ impl Builder {
             }
         }
 
-        //
-        //
-        // if !kustomization.replicas.is_empty() {
-        //     bail!("images are not implemented");
-        // }
-        //
-        //
-        // if kustomization.name_prefix.is_some() {
-        //     bail!("name prefix is not implemented");
-        // }
-        //
-        // if kustomization.name_suffix.is_some() {
-        //     bail!("name suffix is not implemented");
-        // }
+        for component in &kustomization.components {
+            let component = load_component(kustomization.parent_path.join(component))
+                .with_context(|| format!("loading component `{}`", component.pretty()))?;
+            resmap = self.build(resmap, &component).await?;
+        }
 
         Ok(resmap)
     }

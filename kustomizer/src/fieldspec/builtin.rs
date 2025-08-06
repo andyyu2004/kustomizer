@@ -9,6 +9,7 @@ const IMAGES: &[u8] = include_bytes!("images.yaml");
 const METADATA_LABELS: &[u8] = include_bytes!("metadataLabels.yaml");
 const TEMPLATE_LABELS: &[u8] = include_bytes!("templateLabels.yaml");
 const OTHER_LABELS: &[u8] = include_bytes!("otherLabels.yaml");
+const REPLICAS: &[u8] = include_bytes!("replicas.yaml");
 
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize)]
 #[serde(deny_unknown_fields, rename_all = "camelCase")]
@@ -18,6 +19,7 @@ pub struct Builtin {
     pub common_annotations: FieldSpecs,
     pub template_labels: FieldSpecs,
     pub common_labels: FieldSpecs,
+    pub replicas: FieldSpecs,
 }
 
 impl Builtin {
@@ -40,11 +42,14 @@ impl Builtin {
                 .merge(other_labels)
                 .expect("overlapping labels between template and other");
 
+            let replicas = serde_yaml::from_slice::<FieldSpecs>(REPLICAS).expect("replicas");
+
             Builtin {
                 common_annotations,
                 common_labels,
                 images,
                 template_labels,
+                replicas,
                 metadata_labels: serde_yaml::from_slice::<FieldSpecs>(METADATA_LABELS)
                     .expect("metadata labels"),
             }

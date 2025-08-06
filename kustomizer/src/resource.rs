@@ -135,6 +135,10 @@ impl Resource {
         &self.id
     }
 
+    pub fn name(&self) -> &Str {
+        &self.id.name
+    }
+
     pub fn gvk(&self) -> &Gvk {
         &self.id.gvk
     }
