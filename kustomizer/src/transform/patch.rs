@@ -50,6 +50,14 @@ impl<A: Send + Sync, K: Send + Sync> Transformer for PatchTransformer<'_, A, K> 
                                 path.pretty()
                             )
                         })?;
+
+                        resource.patch(patch).with_context(|| {
+                            format!(
+                                "applying strategic merge patch from `{}` to resource `{}`",
+                                path.pretty(),
+                                resource.id()
+                            )
+                        })?;
                     }
                 }
             }

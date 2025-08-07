@@ -169,6 +169,11 @@ impl Resource {
     pub fn root_mut(&mut self) -> &mut AnyObject {
         &mut self.root
     }
+
+    pub fn patch(&mut self, patch: Self) -> anyhow::Result<()> {
+        crate::patch::apply(self, patch)
+            .with_context(|| format!("applying patch to resource `{}`", self.id))
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]

@@ -1,13 +1,28 @@
-use std::sync::OnceLock;
+use std::{str::FromStr, sync::OnceLock};
 
 use indexmap::IndexMap;
 use serde::{Deserialize, Serialize};
+
+use crate::resource::Gvk;
 
 const SPEC_V2_GZ: &[u8] = include_bytes!("./openapi-v2-kubernetes-1.32-minimized.json.gz");
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Spec {
-    definitions: IndexMap<String, Schema>,
+    definitions: IndexMap<DefinitionId, Schema>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub struct DefinitionId {
+    gvk: Gvk,
+}
+
+impl FromStr for DefinitionId {
+    type Err = anyhow::Error;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        todo!()
+    }
 }
 
 impl Spec {
