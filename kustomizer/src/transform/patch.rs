@@ -31,6 +31,11 @@ impl Transformer for PatchTransformer<'_> {
                         {
                             continue;
                         }
+
+                        todo!(
+                            "apply strategic merge patch: {path:?} to resource: {}",
+                            resource.id()
+                        );
                     }
                 }
             }
