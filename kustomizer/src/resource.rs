@@ -128,14 +128,35 @@ impl Resource {
         Ok(serde_yaml::from_reader(file)?)
     }
 
+    pub fn dummy() -> Self {
+        Resource {
+            id: ResId {
+                gvk: Gvk {
+                    group: Default::default(),
+                    version: Default::default(),
+                    kind: "Dummy".into(),
+                },
+                name: "dummy".into(),
+                namespace: Default::default(),
+            },
+            root: Default::default(),
+        }
+    }
+
     pub fn new(id: ResId, metadata: Metadata, mut root: AnyObject) -> anyhow::Result<Self> {
+        assert_eq!(id.name, metadata.name);
         ensure!(
-            root.insert("metadata".into(), serde_json::to_value(&metadata)?,)
+            root.insert("metadata".into(), serde_json::to_value(&metadata)?)
                 .is_none(),
             "root must not duplicate metadata"
         );
 
         Ok(Resource { id, root })
+    }
+
+    pub fn into_parts(self) -> (ResId, AnyObject) {
+        let Resource { id, root } = self;
+        (id, root)
     }
 
     pub fn id(&self) -> &ResId {
@@ -171,7 +192,7 @@ impl Resource {
     }
 
     pub fn patch(&mut self, patch: Self) -> anyhow::Result<()> {
-        crate::patch::apply(self, patch)
+        crate::patch::patch(self, patch)
             .with_context(|| format!("applying patch to resource `{}`", self.id))
     }
 }

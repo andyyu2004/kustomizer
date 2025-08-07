@@ -3,7 +3,7 @@ use std::{fmt, str::FromStr, sync::OnceLock};
 use indexmap::IndexMap;
 use serde::{Deserialize, Serialize};
 
-use crate::resource::Gvk;
+use crate::{manifest::Str, resource::Gvk};
 
 const SPEC_V2_GZ: &[u8] = include_bytes!("./openapi-v2-kubernetes-1.32-minimized.json.gz");
 
@@ -14,7 +14,8 @@ pub struct Spec {
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct DefinitionId {
-    gvk: Gvk,
+    api_version: Str,
+    kind: Str,
 }
 
 impl Serialize for DefinitionId {
@@ -43,25 +44,25 @@ impl FromStr for DefinitionId {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let (s, kind) = s
             .rsplit_once('.')
-            .ok_or_else(|| anyhow::anyhow!("missing kind"))?;
+            .ok_or_else(|| anyhow::anyhow!("missing kind: {s}"))?;
 
-        let (group, version) = s
-            .rsplit_once('.')
-            .ok_or_else(|| anyhow::anyhow!("missing version"))?;
+        // TODO group has an extra prefix such as "io.k8s.api." in the spec.
+        // We only use apiVersion and kind to match resources, so we can ignore it for now.
+        let (_group, api_version) = match s.rsplit_once(".") {
+            Some((group, api_version)) => (group, api_version),
+            None => ("", s),
+        };
 
         Ok(Self {
-            gvk: Gvk {
-                group: group.into(),
-                version: version.into(),
-                kind: kind.into(),
-            },
+            api_version: api_version.into(),
+            kind: kind.into(),
         })
     }
 }
 
 impl fmt::Display for DefinitionId {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self.gvk)
+        write!(f, "{}.{}", self.api_version, self.kind)
     }
 }
 
@@ -72,6 +73,22 @@ impl Spec {
             serde_json::from_reader(flate2::read::GzDecoder::new(SPEC_V2_GZ))
                 .expect("test should guarantee this is valid")
         })
+    }
+
+    pub(crate) fn schema_for(&self, gvk: &Gvk) -> Option<&ObjectSchema> {
+        let definition_id = DefinitionId {
+            api_version: gvk.version.clone(),
+            kind: gvk.kind.clone(),
+        };
+        self.definitions
+            .get(&definition_id)
+            .map(|schema| match &schema.ty {
+                Some(Type::Object(schema)) => schema,
+                _ => panic!(
+                    "expected ObjectSchema for {definition_id}, found: {:?}",
+                    schema.ty
+                ),
+            })
     }
 }
 
@@ -95,14 +112,15 @@ pub struct Ref {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
+pub struct ObjectSchema {
+    pub properties: IndexMap<String, Schema>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "camelCase")]
 pub enum Type {
-    Object {
-        properties: IndexMap<String, Schema>,
-    },
-    Array {
-        items: InlineOrRef<Box<Schema>>,
-    },
+    Object(ObjectSchema),
+    Array { items: InlineOrRef<Box<Schema>> },
     String,
     Integer,
     Boolean,
