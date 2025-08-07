@@ -13,7 +13,7 @@ impl Transformer for AnnotationTransformer<'_> {
             return Ok(());
         }
 
-        let field_specs = &fieldspec::Builtin::get().common_annotations;
+        let field_specs = &fieldspec::Builtin::load().common_annotations;
 
         for resource in resources.iter_mut() {
             field_specs.apply(resource, |annotations| {

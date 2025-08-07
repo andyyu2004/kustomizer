@@ -11,7 +11,7 @@ impl Transformer for LabelTransformer<'_> {
             return Ok(());
         }
 
-        let builtins = fieldspec::Builtin::get();
+        let builtins = fieldspec::Builtin::load();
 
         for label in self.0 {
             if label.pairs.is_empty() {

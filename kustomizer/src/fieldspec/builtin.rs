@@ -25,7 +25,7 @@ pub struct Builtin {
 }
 
 impl Builtin {
-    pub fn get() -> &'static Self {
+    pub fn load() -> &'static Self {
         static INSTANCE: OnceLock<Builtin> = OnceLock::new();
         INSTANCE.get_or_init(|| {
             let common_annotations = serde_yaml::from_slice::<FieldSpecs>(COMMON_ANNOTATIONS)
@@ -65,5 +65,5 @@ impl Builtin {
 #[cfg(test)]
 #[test]
 fn ensure_builtin_fieldspecs_valid() {
-    Builtin::get();
+    Builtin::load();
 }

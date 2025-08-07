@@ -28,7 +28,7 @@ impl Transformer for ReplicaTransformer {
         &mut self,
         resources: &mut crate::resmap::ResourceMap,
     ) -> anyhow::Result<()> {
-        let field_specs = &fieldspec::Builtin::get().replicas;
+        let field_specs = &fieldspec::Builtin::load().replicas;
         for resource in resources.iter_mut() {
             if let Some(desired_replicas) = self.replicas.get(resource.name()) {
                 let id = resource.id().clone();

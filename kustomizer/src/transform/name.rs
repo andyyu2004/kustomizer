@@ -15,7 +15,7 @@ impl<F: FnMut(&str) -> String> NameTransformer<F> {
 #[async_trait::async_trait]
 impl<F: FnMut(&str) -> String + Send> Transformer for NameTransformer<F> {
     async fn transform(&mut self, resources: &mut ResourceMap) -> anyhow::Result<()> {
-        let field_specs = &fieldspec::Builtin::get().name;
+        let field_specs = &fieldspec::Builtin::load().name;
         for resource in resources.iter_mut() {
             let id = resource.id().clone();
             field_specs.apply(resource, |name_ref| match name_ref.as_str() {
