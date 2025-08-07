@@ -81,7 +81,7 @@ pub fn diff_reference_impl(path: &Path, actual: &str) -> anyhow::Result<()> {
     bail!("reference mismatch for test {}", path.pretty())
 }
 
-pub fn format_chunks(chunks: Vec<dissimilar::Chunk>) -> String {
+pub fn format_chunks(chunks: Vec<dissimilar::Chunk<'_>>) -> String {
     let mut buf = String::new();
     for chunk in chunks {
         let formatted = match chunk {

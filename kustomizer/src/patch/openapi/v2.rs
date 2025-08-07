@@ -1,4 +1,4 @@
-use std::{str::FromStr, sync::OnceLock};
+use std::{fmt, str::FromStr, sync::OnceLock};
 
 use indexmap::IndexMap;
 use serde::{Deserialize, Serialize};
@@ -12,16 +12,56 @@ pub struct Spec {
     definitions: IndexMap<DefinitionId, Schema>,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct DefinitionId {
     gvk: Gvk,
+}
+
+impl Serialize for DefinitionId {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        serializer.collect_str(self)
+    }
+}
+
+impl<'de> Deserialize<'de> for DefinitionId {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        let s = String::deserialize(deserializer)
+            .map_err(|err| serde::de::Error::custom(format!("parsing DefinitionId: {err}")))?;
+        Self::from_str(&s).map_err(serde::de::Error::custom)
+    }
 }
 
 impl FromStr for DefinitionId {
     type Err = anyhow::Error;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        todo!()
+        let (s, kind) = s
+            .rsplit_once('.')
+            .ok_or_else(|| anyhow::anyhow!("missing kind"))?;
+
+        let (group, version) = s
+            .rsplit_once('.')
+            .ok_or_else(|| anyhow::anyhow!("missing version"))?;
+
+        Ok(Self {
+            gvk: Gvk {
+                group: group.into(),
+                version: version.into(),
+                kind: kind.into(),
+            },
+        })
+    }
+}
+
+impl fmt::Display for DefinitionId {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.gvk)
     }
 }
 

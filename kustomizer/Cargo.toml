@@ -25,6 +25,9 @@ flate2 = { version = "1.1.2", default-features = false, features = ["zlib-rs"] }
 
 dissimilar = "1.0.10"
 
+[lints]
+workspace = true
+
 [dev-dependencies]
 datatest-stable = "0.3.2"
 

@@ -27,9 +27,9 @@ pub struct Gvk {
 impl fmt::Display for Gvk {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         if self.group.is_empty() {
-            write!(f, "{}.{}", self.kind, self.version)
+            write!(f, "{}.{}", self.version, self.kind)
         } else {
-            write!(f, "{}.{}.{}", self.kind, self.version, self.group)
+            write!(f, "{}.{}.{}", self.group, self.version, self.kind)
         }
     }
 }
