@@ -10,12 +10,14 @@ const METADATA_LABELS: &[u8] = include_bytes!("metadataLabels.yaml");
 const TEMPLATE_LABELS: &[u8] = include_bytes!("templateLabels.yaml");
 const OTHER_LABELS: &[u8] = include_bytes!("otherLabels.yaml");
 const REPLICAS: &[u8] = include_bytes!("replicas.yaml");
+const NAMESPACE: &[u8] = include_bytes!("namespace.yaml");
 const NAME: &[u8] = include_bytes!("name.yaml");
 
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize)]
 #[serde(deny_unknown_fields, rename_all = "camelCase")]
 pub struct Builtin {
     pub name: FieldSpecs,
+    pub namespace: FieldSpecs,
     pub metadata_labels: FieldSpecs,
     pub images: FieldSpecs,
     pub common_annotations: FieldSpecs,
@@ -28,11 +30,6 @@ impl Builtin {
     pub fn load() -> &'static Self {
         static INSTANCE: OnceLock<Builtin> = OnceLock::new();
         INSTANCE.get_or_init(|| {
-            let common_annotations = serde_yaml::from_slice::<FieldSpecs>(COMMON_ANNOTATIONS)
-                .expect("common annotations");
-
-            let images = serde_yaml::from_slice::<FieldSpecs>(IMAGES).expect("images");
-
             let template_labels =
                 serde_yaml::from_slice::<FieldSpecs>(TEMPLATE_LABELS).expect("template labels");
 
@@ -44,17 +41,15 @@ impl Builtin {
                 .merge(other_labels)
                 .expect("overlapping labels between template and other");
 
-            let replicas = serde_yaml::from_slice::<FieldSpecs>(REPLICAS).expect("replicas");
-
-            let name = serde_yaml::from_slice::<FieldSpecs>(NAME).expect("name");
-
             Builtin {
-                name,
-                common_annotations,
+                name: serde_yaml::from_slice::<FieldSpecs>(NAME).expect("name"),
+                namespace: serde_yaml::from_slice::<FieldSpecs>(NAMESPACE).expect("namespace"),
+                common_annotations: serde_yaml::from_slice::<FieldSpecs>(COMMON_ANNOTATIONS)
+                    .expect("common annotations"),
                 common_labels,
-                images,
+                images: serde_yaml::from_slice::<FieldSpecs>(IMAGES).expect("images"),
                 template_labels,
-                replicas,
+                replicas: serde_yaml::from_slice::<FieldSpecs>(REPLICAS).expect("replicas"),
                 metadata_labels: serde_yaml::from_slice::<FieldSpecs>(METADATA_LABELS)
                     .expect("metadata labels"),
             }

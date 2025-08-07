@@ -16,6 +16,7 @@ impl<F: FnMut(&str) -> String> NameTransformer<F> {
 impl<F: FnMut(&str) -> String + Send> Transformer for NameTransformer<F> {
     async fn transform(&mut self, resources: &mut ResourceMap) -> anyhow::Result<()> {
         let field_specs = &fieldspec::Builtin::load().name;
+        // FIXME need to re-insert into the resource map and rebuild the resource as a name change is an identity change.
         for resource in resources.iter_mut() {
             let id = resource.id().clone();
             field_specs.apply(resource, |name_ref| match name_ref.as_str() {
