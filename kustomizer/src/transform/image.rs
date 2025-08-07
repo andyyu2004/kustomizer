@@ -30,15 +30,9 @@ impl Transformer for ImageTagTransformer {
         let field_specs = &crate::fieldspec::Builtin::load().images;
 
         for resource in resources.iter_mut() {
-            field_specs.apply(resource, |image_value| {
-                let image = image_value.as_str().ok_or_else(|| {
-                    anyhow::anyhow!("expected a string for image field, got {image_value:?}",)
-                })?;
-
-                if image == self.image_tag.name {
-                    let new_image =
-                        format!("{}:{}", self.image_tag.new_name, self.image_tag.new_tag);
-                    *image_value = serde_json::Value::String(new_image);
+            field_specs.apply::<String>(resource, |image_ref| {
+                if *image_ref == self.image_tag.name {
+                    *image_ref = format!("{}:{}", self.image_tag.new_name, self.image_tag.new_tag);
                 }
 
                 Ok(())

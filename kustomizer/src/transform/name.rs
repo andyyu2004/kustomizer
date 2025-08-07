@@ -19,12 +19,9 @@ impl<F: FnMut(&str) -> String + Send> Transformer for NameTransformer<F> {
         // FIXME need to re-insert into the resource map and rebuild the resource as a name change is an identity change.
         for resource in resources.iter_mut() {
             let id = resource.id().clone();
-            field_specs.apply(resource, |name_ref| match name_ref.as_str() {
-                Some(name) => {
-                    *name_ref = serde_json::Value::String((self.f)(name));
-                    Ok(())
-                }
-                None => anyhow::bail!("expected name to be a string for resource `{id}`"),
+            field_specs.apply::<String>(resource, |name_ref| {
+                *name_ref = (self.f)(id.name.as_str());
+                Ok(())
             })?;
         }
         Ok(())

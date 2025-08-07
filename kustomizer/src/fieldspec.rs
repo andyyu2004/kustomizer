@@ -176,10 +176,10 @@ impl FieldSpecs {
         }
     }
 
-    pub fn apply(
+    pub fn apply<T: JsonValue>(
         &self,
         resource: &mut Resource,
-        mut f: impl FnMut(&mut serde_json::Value) -> anyhow::Result<()>,
+        mut f: impl FnMut(&mut T) -> anyhow::Result<()>,
     ) -> anyhow::Result<()> {
         for spec in &self.specs {
             spec.apply(resource, &mut f)?;
@@ -190,21 +190,27 @@ impl FieldSpecs {
 }
 
 impl FieldSpec {
-    fn apply(
+    fn apply<T>(
         &self,
         resource: &mut Resource,
-        f: &mut impl FnMut(&mut serde_json::Value) -> anyhow::Result<()>,
-    ) -> anyhow::Result<usize> {
+        f: &mut impl FnMut(&mut T) -> anyhow::Result<()>,
+    ) -> anyhow::Result<usize>
+    where
+        T: JsonValue,
+    {
         if !self.matcher.matches(resource.id()) {
             return Ok(0);
         }
 
-        fn go(
+        fn go<T>(
             mut curr: &mut AnyObject,
             mut path: PathRef<'_>,
-            f: &mut impl FnMut(&mut serde_json::Value) -> anyhow::Result<()>,
+            f: &mut impl FnMut(&mut T) -> anyhow::Result<()>,
             create: bool,
-        ) -> anyhow::Result<usize> {
+        ) -> anyhow::Result<usize>
+        where
+            T: JsonValue,
+        {
             while let Some(segment) = path.first() {
                 match segment {
                     FieldPathSegment::Field(field) => {
@@ -213,13 +219,12 @@ impl FieldSpec {
                                 return Ok(0);
                             }
 
-                            let new_value = serde_json::Value::Object(AnyObject::new());
-                            curr.insert(field.to_string(), new_value);
+                            curr.insert(field.to_string(), T::default().into_value());
                         }
 
                         let val = curr.get_mut(field.as_str()).unwrap();
                         if path.len() == 1 {
-                            f(val)?;
+                            f(T::try_as_mut(val)?)?;
                             return Ok(1);
                         }
 
@@ -258,5 +263,80 @@ impl FieldSpec {
         }
 
         go(resource.root_mut(), &self.path, f, self.create)
+    }
+}
+
+pub trait JsonValue: Default {
+    fn try_as_mut(value: &mut serde_json::Value) -> anyhow::Result<&mut Self>;
+
+    fn into_value(self) -> serde_json::Value
+    where
+        Self: Sized;
+}
+
+// Don't implement for `serde_json::Value` directly, as it is not a good use of the `apply` method I think.
+
+impl JsonValue for AnyObject {
+    fn try_as_mut(value: &mut serde_json::Value) -> anyhow::Result<&mut Self> {
+        match value {
+            serde_json::Value::Object(obj) => Ok(obj),
+            _ => bail!("expected an object but found a different type"),
+        }
+    }
+
+    fn into_value(self) -> serde_json::Value {
+        serde_json::Value::Object(self)
+    }
+}
+
+impl JsonValue for Vec<serde_json::Value> {
+    fn try_as_mut(value: &mut serde_json::Value) -> anyhow::Result<&mut Self> {
+        match value {
+            serde_json::Value::Array(arr) => Ok(arr),
+            _ => bail!("expected a sequence but found a different type"),
+        }
+    }
+
+    fn into_value(self) -> serde_json::Value {
+        serde_json::Value::Array(self)
+    }
+}
+
+impl JsonValue for String {
+    fn try_as_mut(value: &mut serde_json::Value) -> anyhow::Result<&mut Self> {
+        match value {
+            serde_json::Value::String(s) => Ok(s),
+            _ => bail!("expected a string but found a different type"),
+        }
+    }
+
+    fn into_value(self) -> serde_json::Value {
+        serde_json::Value::String(self)
+    }
+}
+
+impl JsonValue for bool {
+    fn try_as_mut(value: &mut serde_json::Value) -> anyhow::Result<&mut Self> {
+        match value {
+            serde_json::Value::Bool(b) => Ok(b),
+            _ => bail!("expected a boolean but found a different type"),
+        }
+    }
+
+    fn into_value(self) -> serde_json::Value {
+        serde_json::Value::Bool(self)
+    }
+}
+
+impl JsonValue for u64 {
+    fn try_as_mut(value: &mut serde_json::Value) -> anyhow::Result<&mut Self> {
+        match value {
+            serde_json::Value::Number(num) if num.is_u64() => Ok(num.as_u64_mut().unwrap()),
+            _ => bail!("expected a unsigned number but found a different type"),
+        }
+    }
+
+    fn into_value(self) -> serde_json::Value {
+        serde_json::Value::Number(serde_json::Number::from(self))
     }
 }

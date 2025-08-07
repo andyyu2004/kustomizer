@@ -1,6 +1,6 @@
 use indexmap::IndexMap;
 
-use crate::{fieldspec, manifest::Str};
+use crate::{fieldspec, manifest::Str, resource::AnyObject};
 
 use super::{ResourceMap, Transformer};
 
@@ -16,11 +16,7 @@ impl Transformer for AnnotationTransformer<'_> {
         let field_specs = &fieldspec::Builtin::load().common_annotations;
 
         for resource in resources.iter_mut() {
-            field_specs.apply(resource, |annotations| {
-                let annotations = annotations
-                    .as_object_mut()
-                    .ok_or_else(|| anyhow::anyhow!("expected a yaml mapping for annotations"))?;
-
+            field_specs.apply::<AnyObject>(resource, |annotations| {
                 for (key, value) in self.0 {
                     annotations.insert(
                         key.to_string(),

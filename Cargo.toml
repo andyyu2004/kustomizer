@@ -4,6 +4,10 @@ members = [
 	"kustomizer"
 ]
 
+[patch.crates-io]
+# for `as_u64_mut` and `as_f64_mut` methods
+serde_json = { git = "https://github.com/andyyu2004/serde-json" }
+
 [workspace.lints.rust]
 rust_2024_compatibility = "deny"
 unsafe_code = "deny"
@@ -11,3 +15,5 @@ rust_2018_idioms = "deny"
 
 [workspace.lints.clippy]
 dbg_macro = "warn"
+
+

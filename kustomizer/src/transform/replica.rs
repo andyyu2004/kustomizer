@@ -30,15 +30,9 @@ impl Transformer for ReplicaTransformer {
     ) -> anyhow::Result<()> {
         let field_specs = &fieldspec::Builtin::load().replicas;
         for resource in resources.iter_mut() {
-            if let Some(desired_replicas) = self.replicas.get(resource.name()) {
-                let id = resource.id().clone();
-                field_specs.apply(resource, |replicas| {
-                    if !replicas.is_number() {
-                        anyhow::bail!("expected replicas to be a number for resource `{id}`",);
-                    }
-                    *replicas =
-                        serde_json::Value::Number(serde_json::Number::from(*desired_replicas));
-
+            if let Some(desired_replicas) = self.replicas.get(resource.name()).copied() {
+                field_specs.apply::<u64>(resource, |replicas| {
+                    *replicas = desired_replicas as u64;
                     Ok(())
                 })?;
             }

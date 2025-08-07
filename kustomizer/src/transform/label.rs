@@ -1,4 +1,4 @@
-use crate::{fieldspec, manifest::Label, resmap::ResourceMap};
+use crate::{fieldspec, manifest::Label, resmap::ResourceMap, resource::AnyObject};
 
 use super::Transformer;
 
@@ -25,11 +25,7 @@ impl Transformer for LabelTransformer<'_> {
             };
 
             for resource in resources.iter_mut() {
-                field_specs.apply(resource, |l| {
-                    let l = l
-                        .as_object_mut()
-                        .ok_or_else(|| anyhow::anyhow!("expected a yaml mapping for labels"))?;
-
+                field_specs.apply::<AnyObject>(resource, |l| {
                     for (key, value) in &label.pairs {
                         l.insert(
                             key.to_string(),
