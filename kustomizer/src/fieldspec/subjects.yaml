@@ -1,5 +1,4 @@
-- path: subjects[]/namespace
-  kind: RoleBinding
-
-- path: subjects[]/namespace
-  kind: ClusterRoleBinding
+# - path: subjects[]/namespace
+#   kind: RoleBinding
+# - path: subjects[]/namespace
+#   kind: ClusterRoleBinding

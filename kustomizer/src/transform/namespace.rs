@@ -18,6 +18,9 @@ impl Transformer for NamespaceTransformer {
                 })?;
             }
 
+            // FIXME this is changing the resource identity, need to rebuild the resource_id and
+            // reinsert into the map
+
             // Quirk of kustomize is to apply namespaces to (cluster) rolebinding subjects too
 
             builtin.subjects.apply::<String>(resource, |ns_ref| {
