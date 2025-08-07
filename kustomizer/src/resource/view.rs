@@ -72,6 +72,13 @@ impl AnnotationsView<'_> {
 pub struct MetadataViewMut<'a>(&'a mut AnyObject);
 
 impl MetadataViewMut<'_> {
+    pub(crate) fn clear_internal_fields(&mut self) {
+        if let Some(mut annotations) = self.annotations_mut() {
+            annotations.remove("config.kubernetes.io/function");
+            annotations.remove("kustomize.config.k8s.io/behavior");
+        }
+    }
+
     pub fn annotations_mut(&mut self) -> Option<AnnotationsViewMut<'_>> {
         self.0
             .get_mut("annotations")

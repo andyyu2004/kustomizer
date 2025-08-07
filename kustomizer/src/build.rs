@@ -21,8 +21,8 @@ use crate::{
     resmap::ResourceMap,
     resource::{Gvk, ResId, Resource},
     transform::{
-        AnnotationTransformer, ImageTagTransformer, LabelTransformer, NameTransformer,
-        NamespaceTransformer, PatchTransformer, ReplicaTransformer, Transformer,
+        AnnotationTransformer, CleanupTransformer, ImageTagTransformer, LabelTransformer,
+        NameTransformer, NamespaceTransformer, PatchTransformer, ReplicaTransformer, Transformer,
     },
 };
 use anyhow::{Context, bail};
@@ -46,7 +46,10 @@ impl Builder {
         &self,
         kustomization: &Located<Kustomization>,
     ) -> anyhow::Result<ResourceMap> {
-        self.build(Default::default(), kustomization).await
+        let mut resmap = self.build(Default::default(), kustomization).await?;
+        CleanupTransformer::default().transform(&mut resmap).await?;
+
+        Ok(resmap)
     }
 
     #[tracing::instrument(skip_all, fields(path = %kustomization.path.pretty()))]
