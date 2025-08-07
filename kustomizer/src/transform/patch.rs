@@ -1,19 +1,30 @@
-use crate::{manifest::Patch, resmap::ResourceMap};
+use anyhow::Context as _;
+
+use crate::{
+    Located, PathExt,
+    manifest::{Manifest, Patch},
+    resmap::ResourceMap,
+    resource::Resource,
+};
 
 use super::Transformer;
 
-pub struct PatchTransformer<'a> {
+pub struct PatchTransformer<'a, A, K> {
+    manifest: &'a Located<Manifest<A, K>>,
     patches: &'a [Patch],
 }
 
-impl<'a> PatchTransformer<'a> {
-    pub fn new(patches: &'a [Patch]) -> Self {
-        Self { patches }
+impl<'a, A, K> PatchTransformer<'a, A, K> {
+    pub fn new(manifest: &'a Located<Manifest<A, K>>) -> Self {
+        Self {
+            patches: &manifest.patches,
+            manifest,
+        }
     }
 }
 
 #[async_trait::async_trait]
-impl Transformer for PatchTransformer<'_> {
+impl<A: Send + Sync, K: Send + Sync> Transformer for PatchTransformer<'_, A, K> {
     async fn transform(&mut self, resources: &mut ResourceMap) -> anyhow::Result<()> {
         for resource in resources.iter_mut() {
             for patch in self.patches {
@@ -32,10 +43,13 @@ impl Transformer for PatchTransformer<'_> {
                             continue;
                         }
 
-                        todo!(
-                            "apply strategic merge patch: {path:?} to resource: {}",
-                            resource.id()
-                        );
+                        let path = self.manifest.parent_path.join(path);
+                        let patch = Resource::load(&path).with_context(|| {
+                            format!(
+                                "loading strategic merge patch from path `{}`",
+                                path.pretty()
+                            )
+                        })?;
                     }
                 }
             }

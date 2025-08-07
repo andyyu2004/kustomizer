@@ -1,6 +1,6 @@
 use core::fmt;
 use json_patch::Patch as JsonPatch;
-use std::path::PathBuf;
+use std::{marker::PhantomData, path::PathBuf};
 
 use crate::{
     fieldspec,

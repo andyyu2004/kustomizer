@@ -127,7 +127,7 @@ impl Builder {
                 .await?;
         }
 
-        PatchTransformer::new(&kustomization.patches)
+        PatchTransformer::new(kustomization)
             .transform(&mut resmap)
             .await?;
 
