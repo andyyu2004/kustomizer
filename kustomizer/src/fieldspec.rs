@@ -19,7 +19,7 @@ pub struct FieldSpec {
     #[serde(flatten)]
     pub matcher: GvkMatcher,
     #[serde(with = "crate::serde_ex::string")]
-    pub path: Path,
+    pub path: FieldPath,
     #[serde(default, skip_serializing_if = "std::ops::Not::not")]
     /// The `create` field indicates whether the field should be created if it does not exist.
     pub create: bool,
@@ -34,55 +34,55 @@ impl FieldSpec {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct Path {
-    segments: Box<[PathSegment]>,
+pub struct FieldPath {
+    segments: Box<[FieldPathSegment]>,
 }
 
-impl AsRef<[PathSegment]> for Path {
-    fn as_ref(&self) -> &[PathSegment] {
+impl AsRef<[FieldPathSegment]> for FieldPath {
+    fn as_ref(&self) -> &[FieldPathSegment] {
         &self.segments
     }
 }
 
-impl Deref for Path {
-    type Target = [PathSegment];
+impl Deref for FieldPath {
+    type Target = [FieldPathSegment];
 
     fn deref(&self) -> &Self::Target {
         &self.segments
     }
 }
 
-pub type PathRef<'a> = &'a [PathSegment];
+pub type PathRef<'a> = &'a [FieldPathSegment];
 
-impl<'a> IntoIterator for &'a Path {
-    type Item = &'a PathSegment;
-    type IntoIter = std::slice::Iter<'a, PathSegment>;
+impl<'a> IntoIterator for &'a FieldPath {
+    type Item = &'a FieldPathSegment;
+    type IntoIter = std::slice::Iter<'a, FieldPathSegment>;
 
     fn into_iter(self) -> Self::IntoIter {
         self.segments.iter()
     }
 }
 
-impl FromStr for Path {
+impl FromStr for FieldPath {
     type Err = anyhow::Error;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let segments = s
             .split('/')
-            .map(|segment| segment.parse::<PathSegment>())
+            .map(|segment| segment.parse::<FieldPathSegment>())
             .collect::<Result<Box<_>, _>>()?;
 
         match segments.last() {
-            Some(PathSegment::Array(_)) => {
+            Some(FieldPathSegment::Array(_)) => {
                 Err(anyhow::anyhow!("path cannot end with an array segment"))?
             }
             None => Err(anyhow::anyhow!("path cannot be empty"))?,
-            _ => Ok(Path { segments }),
+            _ => Ok(FieldPath { segments }),
         }
     }
 }
 
-impl fmt::Display for Path {
+impl fmt::Display for FieldPath {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(
             f,
@@ -97,28 +97,28 @@ impl fmt::Display for Path {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub enum PathSegment {
+pub enum FieldPathSegment {
     Field(Str),
     Array(Str),
 }
 
-impl fmt::Display for PathSegment {
+impl fmt::Display for FieldPathSegment {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            PathSegment::Field(field) => write!(f, "{field}"),
-            PathSegment::Array(field) => write!(f, "{field}[]"),
+            FieldPathSegment::Field(field) => write!(f, "{field}"),
+            FieldPathSegment::Array(field) => write!(f, "{field}[]"),
         }
     }
 }
 
-impl FromStr for PathSegment {
+impl FromStr for FieldPathSegment {
     type Err = anyhow::Error;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         if let Some(s) = s.strip_suffix("[]") {
-            Ok(PathSegment::Array(s.into()))
+            Ok(FieldPathSegment::Array(s.into()))
         } else {
-            Ok(PathSegment::Field(s.into()))
+            Ok(FieldPathSegment::Field(s.into()))
         }
     }
 }
@@ -207,7 +207,7 @@ impl FieldSpec {
         ) -> anyhow::Result<usize> {
             while let Some(segment) = path.first() {
                 match segment {
-                    PathSegment::Field(field) => {
+                    FieldPathSegment::Field(field) => {
                         if !curr.contains_key(field.as_str()) {
                             if !create {
                                 return Ok(0);
@@ -229,7 +229,7 @@ impl FieldSpec {
                             )
                         })?;
                     }
-                    PathSegment::Array(field) => {
+                    FieldPathSegment::Array(field) => {
                         match curr.get_mut(field.as_str()) {
                             Some(v) => match v.as_array_mut() {
                                 Some(seq) => {

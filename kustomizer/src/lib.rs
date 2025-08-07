@@ -59,12 +59,12 @@ where
 {
     let path = path.as_ref();
     if !path.exists() {
-        return Err(anyhow::anyhow!("path does not exist: {}", path.display()));
+        return Err(anyhow::anyhow!("path does not exist: {}", path.pretty()));
     }
 
     let mut path = path
         .canonicalize()
-        .with_context(|| format!("canonicalizing path {}", path.display()))?;
+        .with_context(|| format!("canonicalizing path {}", path.pretty()))?;
     if path.is_dir() {
         path.push("kustomization.yaml");
     }
@@ -77,29 +77,13 @@ where
     }
 
     let file = std::fs::File::open(&path)
-        .with_context(|| format!("loading manifest from path {}", path.display()))?;
+        .with_context(|| format!("loading manifest from path {}", path.pretty()))?;
     let value = serde_yaml::from_reader(file)?;
     Ok(Located {
         value,
         parent_path: PathId::make(path.parent().unwrap())?,
         path: PathId::make(path)?,
     })
-}
-
-fn load_file(path: impl AsRef<Path>) -> anyhow::Result<String> {
-    std::fs::read_to_string(path.as_ref())
-        .with_context(|| format!("loading file from path {}", path.as_ref().display()))
-}
-
-fn load_yaml<T>(path: impl AsRef<Path>) -> anyhow::Result<T>
-where
-    T: serde::de::DeserializeOwned,
-{
-    let path = path.as_ref();
-    let id = PathId::make(path)
-        .with_context(|| format!("loading resource from path {}", path.display()))?;
-    let file = std::fs::File::open(id)?;
-    Ok(serde_yaml::from_reader(file)?)
 }
 
 pub trait PathExt {

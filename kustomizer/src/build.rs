@@ -11,7 +11,7 @@ use std::{
 use crate::{
     Located, PathExt as _, PathId,
     generator::{ConfigMapGenerator, Generator as _},
-    load_component, load_file, load_kustomization, load_yaml,
+    load_component, load_kustomization,
     manifest::{
         Component, FunctionSpec, Generator, KeyValuePairSources, Kustomization, Manifest, Patch,
         Symbol,
@@ -62,7 +62,7 @@ impl Builder {
         for path in &kustomization.generators {
             let path = PathId::make(kustomization.parent_path.join(path))?;
             let workdir = path.parent().unwrap();
-            let generator_spec = load_yaml::<Resource>(path)
+            let generator_spec = Resource::load(path)
                 .with_context(|| format!("loading generator spec from {}", path.pretty()))?;
 
             if let Some(annotations) = generator_spec.annotations()
@@ -149,7 +149,7 @@ impl Builder {
 
         for path in &kustomization.transformers {
             let path = PathId::make(kustomization.parent_path.join(path))?;
-            let transformer_spec = load_yaml::<Resource>(path)
+            let transformer_spec = Resource::load(path)
                 .with_context(|| format!("loading transformer spec from {}", path.pretty()))?;
 
             if let Some(annotations) = transformer_spec.annotations()
@@ -241,7 +241,7 @@ impl Builder {
             let res = match self.resources_cache.lock().await.entry(path) {
                 Entry::Occupied(entry) => entry.into_mut(),
                 Entry::Vacant(entry) => {
-                    let res = load_yaml::<Resource>(path)
+                    let res = Resource::load(path)
                         .with_context(|| format!("loading resource {}", path.pretty()))?;
                     entry.insert(res)
                 }

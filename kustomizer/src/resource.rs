@@ -5,12 +5,16 @@ use std::{
     ops::{Deref, DerefMut},
 };
 
-use anyhow::ensure;
+use anyhow::{Context, ensure};
 use compact_str::format_compact;
 use indexmap::IndexMap;
 use serde::{Deserialize, Serialize};
+use std::path::Path;
 
-use crate::manifest::{Behavior, FunctionSpec, Str};
+use crate::{
+    PathExt, PathId,
+    manifest::{Behavior, FunctionSpec, Str},
+};
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
@@ -116,6 +120,14 @@ pub struct Resource {
 pub type AnyObject = serde_json::Map<String, serde_json::Value>;
 
 impl Resource {
+    pub fn load(path: impl AsRef<Path>) -> anyhow::Result<Self> {
+        let path = path.as_ref();
+        let id = PathId::make(path)
+            .with_context(|| format!("loading resource from path {}", path.pretty()))?;
+        let file = std::fs::File::open(id)?;
+        Ok(serde_yaml::from_reader(file)?)
+    }
+
     pub fn new(id: ResId, metadata: Metadata, mut root: AnyObject) -> anyhow::Result<Self> {
         ensure!(
             root.insert("metadata".into(), serde_json::to_value(&metadata)?,)
