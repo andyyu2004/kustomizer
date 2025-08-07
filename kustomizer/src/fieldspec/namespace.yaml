@@ -1,0 +1,2 @@
+- path: metadata/namespace
+  create: true

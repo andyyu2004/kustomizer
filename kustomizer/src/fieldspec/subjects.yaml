@@ -1,0 +1,5 @@
+- path: subjects[]/namespace
+  kind: RoleBinding
+
+- path: subjects[]/namespace
+  kind: ClusterRoleBinding

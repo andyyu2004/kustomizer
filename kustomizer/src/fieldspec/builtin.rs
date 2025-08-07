@@ -12,6 +12,7 @@ const OTHER_LABELS: &[u8] = include_bytes!("otherLabels.yaml");
 const REPLICAS: &[u8] = include_bytes!("replicas.yaml");
 const NAMESPACE: &[u8] = include_bytes!("namespace.yaml");
 const NAME: &[u8] = include_bytes!("name.yaml");
+const SUBJECTS: &[u8] = include_bytes!("subjects.yaml");
 
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize)]
 #[serde(deny_unknown_fields, rename_all = "camelCase")]
@@ -24,6 +25,7 @@ pub struct Builtin {
     pub template_labels: FieldSpecs,
     pub common_labels: FieldSpecs,
     pub replicas: FieldSpecs,
+    pub subjects: FieldSpecs,
 }
 
 impl Builtin {
@@ -43,6 +45,8 @@ impl Builtin {
 
             Builtin {
                 name: serde_yaml::from_slice::<FieldSpecs>(NAME).expect("name"),
+                subjects: serde_yaml::from_slice::<FieldSpecs>(SUBJECTS)
+                    .expect("subjects (other labels)"),
                 namespace: serde_yaml::from_slice::<FieldSpecs>(NAMESPACE).expect("namespace"),
                 common_annotations: serde_yaml::from_slice::<FieldSpecs>(COMMON_ANNOTATIONS)
                     .expect("common annotations"),
