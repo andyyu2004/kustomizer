@@ -6,7 +6,7 @@ use indexmap::{IndexMap, map::Entry};
 
 use crate::{
     manifest::Behavior,
-    resource::{ResId, Resource, annotation},
+    resource::{ResId, Resource},
 };
 
 #[derive(Clone, Default)]
@@ -63,14 +63,11 @@ impl ResourceMap {
         self.resources.keys()
     }
 
-    pub fn insert(&mut self, mut resource: Resource) -> anyhow::Result<()> {
+    pub fn insert(&mut self, resource: Resource) -> anyhow::Result<()> {
         let behavior = resource
             .metadata()
             .annotations()
             .map_or(Ok(Behavior::Create), |annotations| annotations.behavior())?;
-        if let Some(mut annotations) = resource.metadata_mut().annotations_mut() {
-            annotations.remove(annotation::BEHAVIOR);
-        }
         match self.resources.entry(resource.id().clone()) {
             Entry::Occupied(mut entry) => match behavior {
                 Behavior::Create => bail!(

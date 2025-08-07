@@ -103,6 +103,13 @@ impl MetadataViewMut<'_> {
         self.annotations_mut().unwrap()
     }
 
+    pub(crate) fn clear_internal_fields(&mut self) {
+        if let Some(mut annotations) = self.annotations_mut() {
+            annotations.remove(annotation::BEHAVIOR);
+            annotations.remove(annotation::NEEDS_HASH);
+        }
+    }
+
     pub fn annotations_mut(&mut self) -> Option<AnnotationsViewMut<'_>> {
         self.0
             .get_mut("annotations")

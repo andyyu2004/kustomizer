@@ -8,11 +8,11 @@ use crate::{
     plugin::FunctionPlugin,
     reslist::ResourceList,
     resmap::ResourceMap,
-    resource::{RefSpecs, Resource, annotation},
+    resource::{RefSpecs, Resource},
     transform::{
-        AnnotationTransformer, ImageTagTransformer, LabelTransformer, NameTransformer,
-        NamespaceTransformer, PatchTransformer, Rename, RenameTransformer, ReplicaTransformer,
-        Transformer,
+        AnnotationTransformer, CleanupTransformer, ImageTagTransformer, LabelTransformer,
+        NameTransformer, NamespaceTransformer, PatchTransformer, Rename, RenameTransformer,
+        ReplicaTransformer, Transformer,
     },
 };
 use anyhow::{Context, bail};
@@ -37,14 +37,10 @@ impl Builder {
         let resources = self.build(Default::default(), kustomization).await?;
         let mut resmap = ResourceMap::with_capacity(resources.len());
 
-        for mut res in resources {
+        for res in resources {
             if let Some(annotations) = res.annotations()
                 && annotations.needs_hash()
             {
-                res.metadata_mut()
-                    .make_annotations_mut()
-                    .remove(annotation::NEEDS_HASH);
-
                 let new_name = format_compact!("{}-{}", res.name(), res.shorthash()?);
                 self.renames
                     .lock()
@@ -62,6 +58,8 @@ impl Builder {
         RenameTransformer::new(refspecs, &self.renames.lock().await)
             .transform(&mut resmap)
             .await?;
+
+        CleanupTransformer::default().transform(&mut resmap).await?;
 
         Ok(resmap)
     }
