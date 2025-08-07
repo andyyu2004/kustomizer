@@ -1,4 +1,4 @@
-use std::{fmt, str::FromStr, sync::OnceLock};
+use std::{collections::HashSet, fmt, str::FromStr, sync::OnceLock};
 
 use indexmap::IndexMap;
 use serde::{Deserialize, Serialize};
@@ -9,16 +9,30 @@ const SPEC_V2_GZ: &[u8] = include_bytes!("./openapi-v2-kubernetes-1.32-minimized
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Spec {
-    definitions: IndexMap<DefinitionId, Schema>,
+    definitions: IndexMap<TypeMeta, Schema>,
+    paths: IndexMap<String, Path>,
+    #[serde(skip)]
+    namespaced: OnceLock<HashSet<TypeMeta>>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+struct Path {
+    get: Option<Operation>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+struct Operation {
+    #[serde(rename = "x-kubernetes-group-version-kind")]
+    kubernetes_gvk: Option<Gvk>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub struct DefinitionId {
+struct TypeMeta {
     api_version: Str,
     kind: Str,
 }
 
-impl Serialize for DefinitionId {
+impl Serialize for TypeMeta {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: serde::Serializer,
@@ -27,7 +41,7 @@ impl Serialize for DefinitionId {
     }
 }
 
-impl<'de> Deserialize<'de> for DefinitionId {
+impl<'de> Deserialize<'de> for TypeMeta {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
         D: serde::Deserializer<'de>,
@@ -38,7 +52,7 @@ impl<'de> Deserialize<'de> for DefinitionId {
     }
 }
 
-impl FromStr for DefinitionId {
+impl FromStr for TypeMeta {
     type Err = anyhow::Error;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
@@ -60,7 +74,7 @@ impl FromStr for DefinitionId {
     }
 }
 
-impl fmt::Display for DefinitionId {
+impl fmt::Display for TypeMeta {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}.{}", self.api_version, self.kind)
     }
@@ -75,8 +89,37 @@ impl Spec {
         })
     }
 
-    pub(crate) fn schema_for(&self, gvk: &Gvk) -> Option<&ObjectSchema> {
-        let definition_id = DefinitionId {
+    pub fn is_namespaced(&self, gvk: &Gvk) -> bool {
+        let namespaced = self.namespaced.get_or_init(|| {
+            let mut set = HashSet::new();
+            for (route, path) in &self.paths {
+                let Some(gvk) = path.get.as_ref().and_then(|op| op.kubernetes_gvk.as_ref()) else {
+                    continue;
+                };
+
+                if route.contains("/namespaces/{namespace}/") {
+                    set.insert(TypeMeta {
+                        api_version: gvk.version.clone(),
+                        kind: gvk.kind.clone(),
+                    });
+                }
+            }
+
+            set
+        });
+
+        let type_meta = TypeMeta {
+            api_version: gvk.version.clone(),
+            kind: gvk.kind.clone(),
+        };
+
+        namespaced.contains(&type_meta)
+        // assume if we have no definition for the type, it is namespaced.
+        || !self.definitions.contains_key(&type_meta)
+    }
+
+    pub fn schema_for(&self, gvk: &Gvk) -> Option<&ObjectSchema> {
+        let definition_id = TypeMeta {
             api_version: gvk.version.clone(),
             kind: gvk.kind.clone(),
         };

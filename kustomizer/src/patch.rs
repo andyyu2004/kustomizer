@@ -4,7 +4,7 @@ use crate::resource::{AnyObject, Resource};
 
 use self::openapi::v2::ObjectSchema;
 
-mod openapi;
+pub mod openapi;
 
 pub fn patch(base: &mut Resource, patch: Resource) -> anyhow::Result<()> {
     let spec = openapi::v2::Spec::load();
