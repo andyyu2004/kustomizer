@@ -9,12 +9,12 @@ pub mod openapi;
 pub fn patch(base: &mut Resource, patch: Resource) -> anyhow::Result<()> {
     let spec = openapi::v2::Spec::load();
     let schema = spec.schema_for(base.gvk());
-    let (_, mut patch_root) = patch.into_parts();
-    // HACK: don't want to patch the name field.
-    patch_root["metadata"]
-        .as_object_mut()
-        .unwrap()
-        .remove("name");
+    let (_patch_id, mut patch_root) = patch.into_parts();
+
+    let metadata = patch_root["metadata"].as_object_mut().unwrap();
+    // Don't want to overwrite the name and namespace of the base resource using the patch.
+    metadata.remove("name");
+    metadata.remove("namespace");
     merge_obj(base.root_mut(), patch_root, schema)?;
     Ok(())
 }

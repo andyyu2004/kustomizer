@@ -1,4 +1,4 @@
-failure merging resources from `service.yaml` into `tests/kustomizer/testdata/overlay-replace/kustomization.yaml`
+failure merging resources from `service.yaml` into `tests/kustomizer/testdata/overlay-replace-fail/kustomization.yaml`
 
 Caused by:
     may not add resource with an already registered id `v1.Service/test-service`, consider specifying `merge` or `replace` behavior

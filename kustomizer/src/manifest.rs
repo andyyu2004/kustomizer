@@ -215,13 +215,18 @@ pub struct Replica {
 // Assuming inline patch is a JSON Patch or a file path for strategic merge patch, not sure if this
 // matches kustomize's exact semantics.
 pub enum Patch {
+    OutOfLine {
+        path: PathBuf,
+        target: Option<Target>,
+    },
     Json {
         #[serde(with = "crate::serde_ex::nested_yaml")]
         patch: JsonPatch,
         target: Target,
     },
     StrategicMerge {
-        path: PathBuf,
+        #[serde(with = "crate::serde_ex::nested_yaml")]
+        patch: Resource,
         target: Option<Target>,
     },
 }
