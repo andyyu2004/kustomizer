@@ -144,7 +144,12 @@ impl Resource {
     }
 
     pub fn new(id: ResId, metadata: Metadata, mut root: AnyObject) -> anyhow::Result<Self> {
-        assert_eq!(id.name, metadata.name);
+        assert_eq!(id.name, metadata.name, "id.name must match metadata.name");
+        assert_eq!(
+            id.namespace, metadata.namespace,
+            "id.namespace must match metadata.namespace"
+        );
+
         ensure!(
             root.insert("metadata".into(), serde_json::to_value(&metadata)?)
                 .is_none(),
@@ -154,9 +159,33 @@ impl Resource {
         Ok(Resource { id, root })
     }
 
+    pub fn from_parts(id: ResId, mut root: AnyObject) -> anyhow::Result<Self> {
+        let metadata = match root.remove("metadata") {
+            Some(value) => serde_json::from_value(value.clone())
+                .map_err(|e| anyhow::anyhow!("invalid metadata: {}", e))?,
+            None => Metadata::default(),
+        };
+
+        Resource::new(id, metadata, root)
+    }
+
     pub fn into_parts(self) -> (ResId, AnyObject) {
         let Resource { id, root } = self;
         (id, root)
+    }
+
+    pub fn with_name(mut self, name: Str) -> Self {
+        self.metadata_mut().set_name(name.clone());
+        let (mut id, root) = self.into_parts();
+        id.name = name;
+        Self::from_parts(id, root).expect("invariants should be maintained by this function")
+    }
+
+    pub fn with_namespace(mut self, ns: Str) -> Self {
+        self.metadata_mut().set_namespace(ns.clone());
+        let (mut id, root) = self.into_parts();
+        id.namespace = Some(ns);
+        Self::from_parts(id, root).expect("invariants should be maintained by this function")
     }
 
     pub fn id(&self) -> &ResId {

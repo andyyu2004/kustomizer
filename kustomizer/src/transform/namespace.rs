@@ -10,24 +10,24 @@ impl Transformer for NamespaceTransformer {
         let spec = openapi::v2::Spec::load();
         let builtin = &fieldspec::Builtin::load();
         let ns = self.0.to_string();
-        for resource in resources.iter_mut() {
-            if spec.is_namespaced(resource.gvk()) {
-                builtin.namespace.apply::<String>(resource, |ns_ref| {
-                    *ns_ref = ns.clone();
-                    Ok(())
-                })?;
-            }
-
-            // FIXME this is changing the resource identity, need to rebuild the resource_id and
-            // reinsert into the map
-
+        // A fresh map is allocated because a namespace change is modifying the identity of the
+        // resources, which can't be done in-place.
+        let mut out = ResourceMap::with_capacity(resources.len());
+        for mut resource in std::mem::take(resources) {
             // Quirk of kustomize is to apply namespaces to (cluster) rolebinding subjects too
-
-            builtin.subjects.apply::<String>(resource, |ns_ref| {
+            builtin.subjects.apply::<String>(&mut resource, |ns_ref| {
                 *ns_ref = ns.clone();
                 Ok(())
             })?;
+
+            if spec.is_namespaced(resource.gvk()) {
+                out.insert(resource.with_namespace(self.0.clone()))?;
+            } else {
+                out.insert(resource)?;
+            }
         }
+
+        *resources = out;
 
         Ok(())
     }

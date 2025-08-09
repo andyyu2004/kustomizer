@@ -34,6 +34,22 @@ impl fmt::Display for ResourceMap {
 }
 
 impl ResourceMap {
+    pub fn new() -> Self {
+        Self {
+            resources: IndexMap::new(),
+        }
+    }
+
+    pub fn with_capacity(capacity: usize) -> Self {
+        Self {
+            resources: IndexMap::with_capacity(capacity),
+        }
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.resources.is_empty()
+    }
+
     pub fn len(&self) -> usize {
         self.resources.len()
     }

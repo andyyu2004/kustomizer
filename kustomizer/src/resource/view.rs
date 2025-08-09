@@ -82,6 +82,20 @@ impl MetadataViewMut<'_> {
         }
     }
 
+    // This is private because it is unsafe to be used alone since the id must also be modified alongside.
+    pub(super) fn set_name(&mut self, name: impl Into<String>) {
+        self.0
+            .insert("name".to_string(), serde_json::Value::String(name.into()));
+    }
+
+    // This is private because it is unsafe to be used alone since the id must also be modified alongside.
+    pub(super) fn set_namespace(&mut self, namespace: impl Into<String>) {
+        self.0.insert(
+            "namespace".to_string(),
+            serde_json::Value::String(namespace.into()),
+        );
+    }
+
     pub fn annotations_mut(&mut self) -> Option<AnnotationsViewMut<'_>> {
         self.0
             .get_mut("annotations")

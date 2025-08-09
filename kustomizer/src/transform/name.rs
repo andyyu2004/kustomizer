@@ -1,4 +1,4 @@
-use crate::{fieldspec, resmap::ResourceMap};
+use crate::{manifest::Str, resmap::ResourceMap};
 
 use super::Transformer;
 
@@ -6,24 +6,25 @@ pub struct NameTransformer<F> {
     f: F,
 }
 
-impl<F: FnMut(&str) -> String> NameTransformer<F> {
+impl<F: FnMut(&str) -> Str> NameTransformer<F> {
     pub fn new(f: F) -> Self {
         Self { f }
     }
 }
 
 #[async_trait::async_trait]
-impl<F: FnMut(&str) -> String + Send> Transformer for NameTransformer<F> {
+impl<F: FnMut(&str) -> Str + Send> Transformer for NameTransformer<F> {
     async fn transform(&mut self, resources: &mut ResourceMap) -> anyhow::Result<()> {
-        let field_specs = &fieldspec::Builtin::load().name;
-        // FIXME need to re-insert into the resource map and rebuild the resource as a name change is an identity change.
-        for resource in resources.iter_mut() {
-            let id = resource.id().clone();
-            field_specs.apply::<String>(resource, |name_ref| {
-                *name_ref = (self.f)(id.name.as_str());
-                Ok(())
-            })?;
+        // A fresh map is allocated because changing names of resources modifies their identity,
+        // which can't be done in-place.
+        let mut out = ResourceMap::with_capacity(resources.len());
+
+        for resource in std::mem::take(resources) {
+            let new_name = (self.f)(resource.name());
+            out.insert(resource.with_name(new_name))?;
         }
+
+        *resources = out;
         Ok(())
     }
 }

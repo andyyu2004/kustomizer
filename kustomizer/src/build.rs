@@ -26,6 +26,7 @@ use crate::{
     },
 };
 use anyhow::{Context, bail};
+use compact_str::format_compact;
 use futures_util::future;
 use indexmap::{IndexMap, map::Entry};
 use tokio::sync::Mutex;
@@ -135,17 +136,24 @@ impl Builder {
             .transform(&mut resmap)
             .await?;
 
-        if let Some(prefix) = &kustomization.name_prefix {
-            NameTransformer::new(|name| format!("{prefix}{name}"))
-                .transform(&mut resmap)
-                .await?;
-        }
-
-        if let Some(suffix) = &kustomization.name_suffix {
-            NameTransformer::new(|name| format!("{name}{suffix}"))
-                .transform(&mut resmap)
-                .await?;
-        }
+        match (&kustomization.name_prefix, &kustomization.name_suffix) {
+            (None, None) => {}
+            (Some(prefix), None) => {
+                NameTransformer::new(|name| format_compact!("{prefix}{name}"))
+                    .transform(&mut resmap)
+                    .await?;
+            }
+            (None, Some(suffix)) => {
+                NameTransformer::new(|name| format_compact!("{name}{suffix}"))
+                    .transform(&mut resmap)
+                    .await?
+            }
+            (Some(prefix), Some(suffix)) => {
+                NameTransformer::new(|name| format_compact!("{prefix}{name}{suffix}"))
+                    .transform(&mut resmap)
+                    .await?;
+            }
+        };
 
         for path in &kustomization.transformers {
             let path = PathId::make(kustomization.parent_path.join(path))?;
