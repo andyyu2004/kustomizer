@@ -186,7 +186,7 @@ impl<'de> Deserialize<'de> for KeyValuePair {
 }
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Deserialize, Serialize, Default)]
-#[serde(rename_all = "camelCase", deny_unknown_fields)]
+#[serde(rename_all = "camelCase")]
 pub enum Behavior {
     #[default]
     Create,

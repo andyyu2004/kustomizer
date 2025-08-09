@@ -46,10 +46,7 @@ impl Builder {
         &self,
         kustomization: &Located<Kustomization>,
     ) -> anyhow::Result<ResourceMap> {
-        let mut resmap = self.build(Default::default(), kustomization).await?;
-        CleanupTransformer::default().transform(&mut resmap).await?;
-
-        Ok(resmap)
+        self.build(Default::default(), kustomization).await
     }
 
     #[tracing::instrument(skip_all, fields(path = %kustomization.path.pretty()))]
@@ -201,6 +198,8 @@ impl Builder {
             resmap = self.build(resmap, &component).await?;
         }
 
+        CleanupTransformer::default().transform(&mut resmap).await?;
+
         Ok(resmap)
     }
 
@@ -219,7 +218,7 @@ impl Builder {
         for (path, resource) in resources {
             match resource {
                 either::Either::Left(res) => resmap.insert(res),
-                either::Either::Right(base) => resmap.merge(base),
+                either::Either::Right(rs) => resmap.merge(rs),
             }
             .with_context(|| {
                 format!(
@@ -263,7 +262,7 @@ impl Builder {
                 .with_context(|| format!("loading kustomization resource {}", path.pretty()))?;
 
             let base = self
-                .build(Default::default(), &kustomization)
+                .build_kust(&kustomization)
                 .await
                 .with_context(|| format!("building kustomization resource {}", path.pretty()))?;
 

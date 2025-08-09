@@ -22,6 +22,7 @@ impl Resource {
     }
 }
 
+#[derive(Debug)]
 pub struct MetadataView<'a>(&'a AnyObject);
 
 impl<'a> MetadataView<'a> {
@@ -37,6 +38,7 @@ impl<'a> MetadataView<'a> {
     }
 }
 
+#[derive(Debug)]
 pub struct AnnotationsView<'a>(&'a AnyObject);
 
 impl AnnotationsView<'_> {
@@ -69,6 +71,7 @@ impl AnnotationsView<'_> {
     }
 }
 
+#[derive(Debug)]
 pub struct MetadataViewMut<'a>(&'a mut AnyObject);
 
 impl MetadataViewMut<'_> {
@@ -103,6 +106,7 @@ impl MetadataViewMut<'_> {
     }
 }
 
+#[derive(Debug)]
 pub struct LabelsViewMut<'a>(&'a mut AnyObject);
 
 impl LabelsViewMut<'_> {
@@ -120,6 +124,7 @@ impl LabelsViewMut<'_> {
     }
 }
 
+#[derive(Debug)]
 pub struct AnnotationsViewMut<'a>(&'a mut AnyObject);
 
 impl AnnotationsViewMut<'_> {
