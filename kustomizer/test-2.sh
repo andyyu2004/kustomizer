@@ -1,3 +1,3 @@
 set -euo pipefail
 
-cargo run -- build ../../../partly-argocd/clusters/staging-au/resources/partly/
+cargo run -r -- build ../../../partly-argocd/clusters/staging-au/resources/partly/

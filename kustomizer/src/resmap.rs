@@ -80,7 +80,6 @@ impl ResourceMap {
                         .get("data")
                         .and_then(|data| data.as_object());
 
-                    // TODO same for string data
                     // TODO merging metadata and annotations, not sure what is correct behavior for this
                     match (left, right) {
                         (Some(left), Some(right)) => {

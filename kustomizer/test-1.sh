@@ -1,3 +1,3 @@
 set -euo pipefail
 
-cargo run -- build ../../../partly-argocd/clusters/prod-eu/resources/partly/
+cargo run -r -- build ../../../partly-argocd/clusters/prod-eu/resources/partly/
