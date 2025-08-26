@@ -1,0 +1,2 @@
+This is a plain text file.
+It will use the filename as the key.

@@ -1,0 +1,23 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-settings
+  labels:
+    app: test-app
+    environment: dev
+    component: backend
+  annotations:
+    team: platform
+data:
+  settings.json: |-
+    {
+      "api": {
+        "endpoint": "https://api.example.com",
+        "timeout": 30
+      },
+      "features": {
+        "enable_logging": true,
+        "cache_ttl": 3600
+      }
+    }
+immutable: true

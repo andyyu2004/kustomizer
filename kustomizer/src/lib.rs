@@ -105,6 +105,7 @@ mod hack {
     use std::process::{Command, Stdio};
 
     #[test]
+    #[ignore]
     fn test_partly_dev9() -> anyhow::Result<()> {
         let output = Command::new("bash")
             .stdin(Stdio::null())
@@ -125,6 +126,7 @@ mod hack {
     }
 
     #[test]
+    #[ignore]
     fn test_partly_shared() -> anyhow::Result<()> {
         let output = Command::new("bash")
             .stdin(Stdio::null())

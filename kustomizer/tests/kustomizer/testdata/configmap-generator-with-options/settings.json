@@ -1,0 +1,10 @@
+{
+  "api": {
+    "endpoint": "https://api.example.com",
+    "timeout": 30
+  },
+  "features": {
+    "enable_logging": true,
+    "cache_ttl": 3600
+  }
+}

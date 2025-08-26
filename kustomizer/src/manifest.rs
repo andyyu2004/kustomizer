@@ -94,6 +94,7 @@ pub struct ContainerSpec {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize, Default)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct GeneratorOptions {
     #[serde(default, skip_serializing_if = "IndexMap::is_empty")]
     pub labels: IndexMap<Str, Str>,

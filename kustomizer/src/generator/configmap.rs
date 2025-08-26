@@ -35,7 +35,9 @@ impl Generator for ConfigMapGenerator<'_> {
             resources.push(
                 self.generate_one(workdir, generator)
                     .await
-                    .with_context(|| format!("failed to generate ConfigMap {}", generator.name))?,
+                    .with_context(|| {
+                        format!("failed to generate ConfigMap `{}`", generator.name)
+                    })?,
             );
         }
 
@@ -71,7 +73,7 @@ impl ConfigMapGenerator<'_> {
         generator: &manifest::Generator,
     ) -> anyhow::Result<Resource> {
         if !generator.sources.literals.is_empty() {
-            bail!("ConfigMapGenerator does not support literal sources");
+            bail!("ConfigMapGenerator does not support literal sources yet");
         }
 
         let GeneratorOptions {
@@ -81,7 +83,8 @@ impl ConfigMapGenerator<'_> {
             immutable,
         } = merge_options(self.options, &generator.options);
 
-        if disable_name_suffix_hash.unwrap_or(false) {
+        let suffix_hash = disable_name_suffix_hash.map(|v| !v).unwrap_or(true);
+        if suffix_hash {
             bail!("ConfigMapGenerator does not support enabling name suffix hash yet");
         }
 

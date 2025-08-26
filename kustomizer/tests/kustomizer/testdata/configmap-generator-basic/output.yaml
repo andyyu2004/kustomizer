@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: test-config
+data:
+  config.properties: |-
+    database.host=localhost
+    database.port=5432
+    database.name=myapp
+    app.debug=true
+  app.conf: |-
+    server {
+        listen 8080;
+        root /app/public;
+    }

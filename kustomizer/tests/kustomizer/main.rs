@@ -39,7 +39,7 @@ async fn test(path: &Path) -> datatest_stable::Result<()> {
         }
         Err(err) => {
             show_reference_impl_error(base_path)
-                .with_context(|| format!("kustomizer error {err} at {}", path.pretty()))?;
+                .with_context(|| format!("kustomizer error {err:?} at {}", path.pretty()))?;
 
             let res = snapshot(&error_snapshot_path, &format!("{err:?}"));
             if success_snapshot_path.exists() {
