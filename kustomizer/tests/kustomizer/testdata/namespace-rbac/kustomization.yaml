@@ -6,4 +6,3 @@ namespace: prod-namespace
 resources:
   - role.yaml
   - rolebinding.yaml
-
