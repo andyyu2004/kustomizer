@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mixed-sources-config-794tdk5d47
+  labels:
+    app: test-app
+    type: mixed-sources
+data:
+  api_key: secret123
+  config.txt: |-
+    database_url=postgres://localhost:5432/mydb
+    debug_mode=true
+    max_connections=100

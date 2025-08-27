@@ -72,10 +72,6 @@ impl ConfigMapGenerator<'_> {
         workdir: &Path,
         generator: &manifest::Generator,
     ) -> anyhow::Result<Resource> {
-        if !generator.sources.literals.is_empty() {
-            bail!("ConfigMapGenerator does not support literal sources yet");
-        }
-
         let GeneratorOptions {
             labels,
             annotations,
@@ -84,6 +80,18 @@ impl ConfigMapGenerator<'_> {
         } = merge_options(self.options, &generator.options);
 
         let mut object = AnyObject::new();
+
+        for kv in &generator.sources.literals {
+            if object
+                .insert(
+                    kv.key.to_string(),
+                    serde_json::Value::String(kv.value.to_string()),
+                )
+                .is_some()
+            {
+                bail!("duplicate key `{}` in ConfigMapGenerator sources", kv.key);
+            }
+        }
 
         for kv in &generator.sources.files {
             let path = workdir.join(&kv.value);

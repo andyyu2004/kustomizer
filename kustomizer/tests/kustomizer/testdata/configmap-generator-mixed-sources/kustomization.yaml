@@ -1,0 +1,13 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+configMapGenerator:
+  - name: mixed-sources-config
+    files:
+      - config.txt
+    literals:
+      - api_key=secret123
+    options:
+      labels:
+        app: test-app
+        type: mixed-sources

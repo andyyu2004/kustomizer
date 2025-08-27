@@ -1,0 +1,3 @@
+database_url=postgres://localhost:5432/mydb
+debug_mode=true
+max_connections=100
