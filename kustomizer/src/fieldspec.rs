@@ -7,7 +7,7 @@ pub use self::builtin::Builtin;
 
 use crate::{
     manifest::Str,
-    resource::{AnyObject, GvkMatcher, Resource},
+    resource::{GvkMatcher, Object, Resource},
 };
 use anyhow::bail;
 use serde::{Deserialize, Serialize};
@@ -203,7 +203,7 @@ impl FieldSpec {
         }
 
         fn go<T>(
-            mut curr: &mut AnyObject,
+            mut curr: &mut Object,
             mut path: PathRef<'_>,
             f: &mut impl FnMut(&mut T) -> anyhow::Result<()>,
             create: bool,
@@ -276,7 +276,7 @@ pub trait JsonValue: Default {
 
 // Don't implement for `serde_json::Value` directly, as it is not a good use of the `apply` method I think.
 
-impl JsonValue for AnyObject {
+impl JsonValue for Object {
     fn try_as_mut(value: &mut serde_json::Value) -> anyhow::Result<&mut Self> {
         match value {
             serde_json::Value::Object(obj) => Ok(obj),

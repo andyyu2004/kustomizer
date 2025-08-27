@@ -1,4 +1,4 @@
-use crate::{fieldspec, manifest::Label, resmap::ResourceMap, resource::AnyObject};
+use crate::{fieldspec, manifest::Label, resmap::ResourceMap, resource::Object};
 
 use super::Transformer;
 
@@ -25,7 +25,7 @@ impl Transformer for LabelTransformer<'_> {
             };
 
             for resource in resources.iter_mut() {
-                field_specs.apply::<AnyObject>(resource, |l| {
+                field_specs.apply::<Object>(resource, |l| {
                     for (key, value) in &label.pairs {
                         l.insert(
                             key.to_string(),

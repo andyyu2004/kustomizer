@@ -3,7 +3,7 @@ use anyhow::{Context, bail};
 use crate::{
     PathExt,
     manifest::{self, GeneratorOptions},
-    resource::{Annotations, AnyObject, Gvk, Metadata, ResId, Resource},
+    resource::{Annotations, Gvk, Metadata, Object, ResId, Resource},
 };
 
 use super::*;
@@ -79,7 +79,7 @@ impl ConfigMapGenerator<'_> {
             immutable,
         } = merge_options(self.options, &generator.options);
 
-        let mut object = AnyObject::new();
+        let mut object = Object::new();
 
         for kv in &generator.sources.literals {
             if object
@@ -113,7 +113,7 @@ impl ConfigMapGenerator<'_> {
             }
         }
 
-        let mut root = AnyObject::from_iter([("data".into(), serde_json::Value::Object(object))]);
+        let mut root = Object::from_iter([("data".into(), serde_json::Value::Object(object))]);
 
         if immutable {
             root.insert("immutable".into(), serde_json::Value::Bool(true));

@@ -115,10 +115,10 @@ impl fmt::Display for ResId {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Resource {
     id: ResId,
-    root: AnyObject,
+    root: Object,
 }
 
-pub type AnyObject = serde_json::Map<String, serde_json::Value>;
+pub type Object = serde_json::Map<String, serde_json::Value>;
 
 impl Resource {
     pub fn load(path: impl AsRef<Path>) -> anyhow::Result<Self> {
@@ -144,7 +144,7 @@ impl Resource {
         }
     }
 
-    pub fn new(id: ResId, metadata: Metadata, mut root: AnyObject) -> anyhow::Result<Self> {
+    pub fn new(id: ResId, metadata: Metadata, mut root: Object) -> anyhow::Result<Self> {
         assert_eq!(id.name, metadata.name, "id.name must match metadata.name");
         assert_eq!(
             id.namespace, metadata.namespace,
@@ -160,7 +160,7 @@ impl Resource {
         Ok(Resource { id, root })
     }
 
-    pub fn from_parts(id: ResId, mut root: AnyObject) -> anyhow::Result<Self> {
+    pub fn from_parts(id: ResId, mut root: Object) -> anyhow::Result<Self> {
         let metadata = match root.remove("metadata") {
             Some(value) => serde_json::from_value(value.clone())
                 .map_err(|e| anyhow::anyhow!("invalid metadata: {}", e))?,
@@ -170,7 +170,7 @@ impl Resource {
         Resource::new(id, metadata, root)
     }
 
-    pub fn into_parts(self) -> (ResId, AnyObject) {
+    pub fn into_parts(self) -> (ResId, Object) {
         let Resource { id, root } = self;
         (id, root)
     }
@@ -220,11 +220,11 @@ impl Resource {
         &self.id.kind
     }
 
-    pub fn root(&self) -> &AnyObject {
+    pub fn root(&self) -> &Object {
         &self.root
     }
 
-    pub fn root_mut(&mut self) -> &mut AnyObject {
+    pub fn root_mut(&mut self) -> &mut Object {
         &mut self.root
     }
 
@@ -307,7 +307,7 @@ struct Res {
     kind: Str,
     metadata: Metadata,
     #[serde(flatten)]
-    root: AnyObject,
+    root: Object,
 }
 
 impl Serialize for Resource {

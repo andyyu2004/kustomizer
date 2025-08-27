@@ -1,6 +1,6 @@
 use serde_json::{Value, map::Entry};
 
-use crate::resource::{AnyObject, Resource};
+use crate::resource::{Object, Resource};
 
 use self::openapi::v2::ObjectSchema;
 
@@ -20,8 +20,8 @@ pub fn patch(base: &mut Resource, patch: Resource) -> anyhow::Result<()> {
 }
 
 fn merge_obj(
-    base: &mut AnyObject,
-    patch: AnyObject,
+    base: &mut Object,
+    patch: Object,
     _schema: Option<&ObjectSchema>,
 ) -> anyhow::Result<()> {
     for (key, value) in patch {

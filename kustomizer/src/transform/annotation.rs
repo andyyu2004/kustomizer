@@ -1,6 +1,6 @@
 use indexmap::IndexMap;
 
-use crate::{fieldspec, manifest::Str, resource::AnyObject};
+use crate::{fieldspec, manifest::Str, resource::Object};
 
 use super::{ResourceMap, Transformer};
 
@@ -16,7 +16,7 @@ impl Transformer for AnnotationTransformer<'_> {
         let field_specs = &fieldspec::Builtin::load().common_annotations;
 
         for resource in resources.iter_mut() {
-            field_specs.apply::<AnyObject>(resource, |annotations| {
+            field_specs.apply::<Object>(resource, |annotations| {
                 for (key, value) in self.0 {
                     annotations.insert(
                         key.to_string(),

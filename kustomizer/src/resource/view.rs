@@ -2,14 +2,14 @@ use serde::Deserialize as _;
 
 use crate::manifest::{Behavior, FunctionSpec};
 
-use super::{AnyObject, Resource};
+use super::{Object, Resource};
 
 impl Resource {
     pub fn metadata(&self) -> MetadataView<'_> {
         MetadataView(self.root["metadata"].as_object().unwrap())
     }
 
-    pub fn labels(&self) -> Option<&AnyObject> {
+    pub fn labels(&self) -> Option<&Object> {
         self.metadata().labels()
     }
 
@@ -23,7 +23,7 @@ impl Resource {
 }
 
 #[derive(Debug)]
-pub struct MetadataView<'a>(&'a AnyObject);
+pub struct MetadataView<'a>(&'a Object);
 
 impl<'a> MetadataView<'a> {
     pub fn annotations(&self) -> Option<AnnotationsView<'a>> {
@@ -33,13 +33,13 @@ impl<'a> MetadataView<'a> {
             .map(AnnotationsView)
     }
 
-    pub fn labels(&self) -> Option<&'a AnyObject> {
+    pub fn labels(&self) -> Option<&'a Object> {
         self.0.get("labels").and_then(|v| v.as_object())
     }
 }
 
 #[derive(Debug)]
-pub struct AnnotationsView<'a>(&'a AnyObject);
+pub struct AnnotationsView<'a>(&'a Object);
 
 impl AnnotationsView<'_> {
     pub fn get(&self, key: &str) -> Option<&str> {
@@ -72,7 +72,7 @@ impl AnnotationsView<'_> {
 }
 
 #[derive(Debug)]
-pub struct MetadataViewMut<'a>(&'a mut AnyObject);
+pub struct MetadataViewMut<'a>(&'a mut Object);
 
 impl MetadataViewMut<'_> {
     pub(crate) fn clear_internal_fields(&mut self) {
@@ -121,7 +121,7 @@ impl MetadataViewMut<'_> {
 }
 
 #[derive(Debug)]
-pub struct LabelsViewMut<'a>(&'a mut AnyObject);
+pub struct LabelsViewMut<'a>(&'a mut Object);
 
 impl LabelsViewMut<'_> {
     pub fn insert(
@@ -139,7 +139,7 @@ impl LabelsViewMut<'_> {
 }
 
 #[derive(Debug)]
-pub struct AnnotationsViewMut<'a>(&'a mut AnyObject);
+pub struct AnnotationsViewMut<'a>(&'a mut Object);
 
 impl AnnotationsViewMut<'_> {
     pub fn insert(&mut self, key: &str, value: &str) {
