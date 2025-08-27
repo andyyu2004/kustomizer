@@ -83,11 +83,6 @@ impl ConfigMapGenerator<'_> {
             immutable,
         } = merge_options(self.options, &generator.options);
 
-        let suffix_hash = disable_name_suffix_hash.map(|v| !v).unwrap_or(true);
-        if suffix_hash {
-            bail!("ConfigMapGenerator does not support enabling name suffix hash yet");
-        }
-
         let mut object = AnyObject::new();
 
         for kv in &generator.sources.files {
@@ -116,7 +111,7 @@ impl ConfigMapGenerator<'_> {
             root.insert("immutable".into(), serde_json::Value::Bool(true));
         }
 
-        Resource::new(
+        let config_map = Resource::new(
             ResId {
                 gvk: Gvk {
                     group: "".into(),
@@ -138,6 +133,15 @@ impl ConfigMapGenerator<'_> {
                 ..Default::default()
             },
             root,
-        )
+        )?;
+
+        let suffix_hash = disable_name_suffix_hash.map(|v| !v).unwrap_or(true);
+
+        if suffix_hash {
+            // TODO need to make sure all references to this ConfigMap are updated too
+            Ok(config_map.with_name_suffix_hash()?)
+        } else {
+            Ok(config_map)
+        }
     }
 }

@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: app-settings
+  name: app-settings-44gk9k4hk2
   labels:
     app: test-app
     environment: dev
