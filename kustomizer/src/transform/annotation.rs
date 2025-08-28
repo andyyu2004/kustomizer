@@ -6,7 +6,6 @@ use super::{ResourceMap, Transformer};
 
 pub struct AnnotationTransformer<'a>(pub &'a IndexMap<Str, Str>);
 
-#[async_trait::async_trait]
 impl Transformer for AnnotationTransformer<'_> {
     async fn transform(&mut self, resources: &mut ResourceMap) -> anyhow::Result<()> {
         if self.0.is_empty() {

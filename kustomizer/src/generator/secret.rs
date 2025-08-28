@@ -24,7 +24,6 @@ impl<'a> SecretGenerator<'a> {
     }
 }
 
-#[async_trait::async_trait]
 impl Generator for SecretGenerator<'_> {
     async fn generate(
         &mut self,

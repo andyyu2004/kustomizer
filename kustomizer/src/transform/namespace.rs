@@ -4,7 +4,6 @@ use super::Transformer;
 
 pub struct NamespaceTransformer(pub Str);
 
-#[async_trait::async_trait]
 impl Transformer for NamespaceTransformer {
     async fn transform(&mut self, resources: &mut ResourceMap) -> anyhow::Result<()> {
         let spec = openapi::v2::Spec::load();

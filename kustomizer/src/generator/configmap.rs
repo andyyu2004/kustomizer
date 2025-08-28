@@ -24,7 +24,6 @@ impl<'a> ConfigMapGenerator<'a> {
     }
 }
 
-#[async_trait::async_trait]
 impl Generator for ConfigMapGenerator<'_> {
     async fn generate(
         &mut self,

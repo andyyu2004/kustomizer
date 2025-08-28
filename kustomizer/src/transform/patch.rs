@@ -24,7 +24,6 @@ impl<'a, A, K> PatchTransformer<'a, A, K> {
     }
 }
 
-#[async_trait::async_trait]
 impl<A: Send + Sync, K: Send + Sync> Transformer for PatchTransformer<'_, A, K> {
     async fn transform(&mut self, resources: &mut ResourceMap) -> anyhow::Result<()> {
         // We don't know what the patches will do, it may patch identity fields.

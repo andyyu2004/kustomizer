@@ -9,7 +9,6 @@ pub use self::secret::SecretGenerator;
 use crate::reslist::ResourceList;
 use std::path::Path;
 
-#[async_trait::async_trait]
 pub trait Generator {
     async fn generate(
         &mut self,

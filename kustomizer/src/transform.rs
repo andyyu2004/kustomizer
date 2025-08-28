@@ -19,7 +19,6 @@ pub use self::replica::ReplicaTransformer;
 
 use crate::resmap::ResourceMap;
 
-#[async_trait::async_trait]
 pub trait Transformer {
     async fn transform(&mut self, resources: &mut ResourceMap) -> anyhow::Result<()>;
 }

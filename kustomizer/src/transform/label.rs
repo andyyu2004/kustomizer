@@ -4,7 +4,6 @@ use super::Transformer;
 
 pub struct LabelTransformer<'a>(pub &'a [Label]);
 
-#[async_trait::async_trait]
 impl Transformer for LabelTransformer<'_> {
     async fn transform(&mut self, resources: &mut ResourceMap) -> anyhow::Result<()> {
         if self.0.is_empty() {

@@ -12,7 +12,6 @@ impl<F: FnMut(&str) -> Str> NameTransformer<F> {
     }
 }
 
-#[async_trait::async_trait]
 impl<F: FnMut(&str) -> Str + Send> Transformer for NameTransformer<F> {
     async fn transform(&mut self, resources: &mut ResourceMap) -> anyhow::Result<()> {
         // A fresh map is allocated because changing names of resources modifies their identity,

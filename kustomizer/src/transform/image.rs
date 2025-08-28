@@ -24,7 +24,6 @@ pub struct ImageTag {
     pub new_tag: Str,
 }
 
-#[async_trait::async_trait]
 impl Transformer for ImageTagTransformer {
     async fn transform(&mut self, resources: &mut ResourceMap) -> anyhow::Result<()> {
         let field_specs = &crate::fieldspec::Builtin::load().images;

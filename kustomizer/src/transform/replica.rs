@@ -22,7 +22,6 @@ impl ReplicaTransformer {
     }
 }
 
-#[async_trait::async_trait]
 impl Transformer for ReplicaTransformer {
     async fn transform(
         &mut self,
