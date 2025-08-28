@@ -12,7 +12,7 @@ pub struct RefSpecs {
 }
 
 impl RefSpecs {
-    pub fn load() -> &'static Self {
+    pub fn load_builtin() -> &'static Self {
         static INSTANCE: OnceLock<RefSpecs> = OnceLock::new();
         INSTANCE.get_or_init(|| {
             let specs =
@@ -40,5 +40,5 @@ pub struct RefSpec {
 #[cfg(test)]
 #[test]
 fn ensure_refspecs_valid() {
-    RefSpecs::load();
+    RefSpecs::load_builtin();
 }

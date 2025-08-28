@@ -19,7 +19,7 @@ use crate::{
     plugin::FunctionPlugin,
     reslist::ResourceList,
     resmap::ResourceMap,
-    resource::{Gvk, ResId, Resource},
+    resource::{Gvk, RefSpecs, ResId, Resource},
     transform::{
         AnnotationTransformer, CleanupTransformer, ImageTagTransformer, LabelTransformer,
         NameTransformer, NamespaceTransformer, PatchTransformer, RefsTransformer, Rename,
@@ -262,6 +262,11 @@ impl Builder {
         }
 
         CleanupTransformer::default().transform(&mut resmap).await?;
+
+        let refspecs = RefSpecs::load_builtin();
+        RefsTransformer::new(refspecs, &renames)
+            .transform(&mut resmap)
+            .await?;
 
         Ok(resmap)
     }
