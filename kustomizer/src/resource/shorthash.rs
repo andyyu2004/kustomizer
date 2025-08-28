@@ -9,52 +9,8 @@ use super::Resource;
 impl Resource {
     pub fn shorthash(&self) -> anyhow::Result<Str> {
         let encoded = match self.kind().as_str() {
-            "ConfigMap" => {
-                #[derive(serde::Serialize)]
-                struct ConfigMap {
-                    #[serde(skip_serializing_if = "Option::is_none")]
-                    #[serde(rename = "binaryData")]
-                    binary_data: Option<serde_json::Value>,
-                    data: serde_json::Value,
-                    kind: &'static str,
-                    name: Str,
-                }
-
-                let data = match self.root().get("data") {
-                    Some(d) if d.as_object().is_some() => {
-                        let map: BTreeMap<String, serde_json::Value> = d
-                            .as_object()
-                            .unwrap()
-                            .iter()
-                            .map(|(k, v)| (k.clone(), v.clone()))
-                            .collect();
-                        serde_json::to_value(map)?
-                    }
-                    _ => serde_json::Value::String("".to_string()),
-                };
-
-                let binary_data = self
-                    .root()
-                    .get("binaryData")
-                    .and_then(|d| d.as_object())
-                    .map(|obj| {
-                        let map: BTreeMap<String, serde_json::Value> =
-                            obj.iter().map(|(k, v)| (k.clone(), v.clone())).collect();
-                        serde_json::to_value(map).unwrap()
-                    });
-
-                let config_map = ConfigMap {
-                    binary_data,
-                    data,
-                    kind: "ConfigMap",
-                    name: "".into(),
-                };
-
-                serde_json::to_string(&config_map)?
-            }
-            "Secret" => {
-                bail!("Implement hash for Secret");
-            }
+            "ConfigMap" => encode_config_map(self)?,
+            "Secret" => encode_secret(self)?,
             _ => {
                 bail!("Implement hash for other resource types");
             }
@@ -63,6 +19,103 @@ impl Resource {
         let hex = sha256::digest(encoded);
         Ok(encode_hex(&hex))
     }
+}
+
+fn encode_config_map(resource: &Resource) -> anyhow::Result<String> {
+    #[derive(serde::Serialize)]
+    struct ConfigMap {
+        #[serde(skip_serializing_if = "Option::is_none")]
+        #[serde(rename = "binaryData")]
+        binary_data: Option<serde_json::Value>,
+        data: serde_json::Value,
+        kind: &'static str,
+        name: Str,
+    }
+
+    let data = match resource.root().get("data") {
+        Some(d) if d.as_object().is_some() => {
+            let map: BTreeMap<String, serde_json::Value> = d
+                .as_object()
+                .unwrap()
+                .iter()
+                .map(|(k, v)| (k.clone(), v.clone()))
+                .collect();
+            serde_json::to_value(map)?
+        }
+        _ => serde_json::Value::String("".to_string()),
+    };
+
+    let binary_data = resource
+        .root()
+        .get("binaryData")
+        .and_then(|d| d.as_object())
+        .map(|obj| {
+            let map: BTreeMap<String, serde_json::Value> =
+                obj.iter().map(|(k, v)| (k.clone(), v.clone())).collect();
+            serde_json::to_value(map).unwrap()
+        });
+
+    let config_map = ConfigMap {
+        binary_data,
+        data,
+        kind: "ConfigMap",
+        name: "".into(),
+    };
+
+    Ok(serde_json::to_string(&config_map)?)
+}
+
+fn encode_secret(resource: &Resource) -> anyhow::Result<String> {
+    #[derive(serde::Serialize)]
+    struct Secret {
+        data: serde_json::Value,
+        kind: &'static str,
+        name: Str,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        #[serde(rename = "stringData")]
+        string_data: Option<serde_json::Value>,
+        #[serde(rename = "type")]
+        secret_type: serde_json::Value,
+    }
+
+    let data = match resource.root().get("data") {
+        Some(d) if d.as_object().is_some() => {
+            let map: BTreeMap<String, serde_json::Value> = d
+                .as_object()
+                .unwrap()
+                .iter()
+                .map(|(k, v)| (k.clone(), v.clone()))
+                .collect();
+            serde_json::to_value(map)?
+        }
+        _ => serde_json::Value::String("".to_string()),
+    };
+
+    let string_data = resource
+        .root()
+        .get("stringData")
+        .and_then(|d| d.as_object())
+        .map(|obj| {
+            let map: BTreeMap<String, serde_json::Value> =
+                obj.iter().map(|(k, v)| (k.clone(), v.clone())).collect();
+            serde_json::to_value(map).unwrap()
+        });
+
+    let secret_type = resource
+        .root()
+        .get("type")
+        .cloned()
+        .unwrap_or_else(|| serde_json::Value::String("".to_string()));
+
+    let secret = Secret {
+        data,
+        kind: "Secret",
+        name: "".into(),
+        string_data,
+        secret_type,
+    };
+
+    Ok(serde_json::to_string(&secret)?)
 }
 
 // Copied from https://github.com/kubernetes/kubernetes
@@ -219,6 +272,101 @@ binaryData:
 
         for (desc, cm_yaml, expected_hash, err_msg) in cases {
             let resource = create_resource_from_yaml(cm_yaml)?;
+            let result = resource.shorthash().map(|s| s.to_string());
+
+            if skip_rest(desc, &result, err_msg) {
+                continue;
+            }
+
+            let hashed = result?;
+            assert_eq!(
+                expected_hash, hashed,
+                "case '{}', expect hash '{}' but got '{}'",
+                desc, expected_hash, hashed
+            );
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn test_secret_hash() -> anyhow::Result<()> {
+        let cases = vec![
+            // empty map
+            (
+                "empty data",
+                r#"
+apiVersion: v1
+kind: Secret
+metadata:
+  name: ""
+type: my-type"#,
+                "5gmgkf8578",
+                "",
+            ),
+            // one key
+            (
+                "one key",
+                r#"
+apiVersion: v1
+kind: Secret
+metadata:
+  name: ""
+type: my-type
+data:
+  one: """#,
+                "74bd68bm66",
+                "",
+            ),
+            // three keys (tests sorting order)
+            (
+                "three keys",
+                r#"
+apiVersion: v1
+kind: Secret
+metadata:
+  name: ""
+type: my-type
+data:
+  two: 2
+  one: ""
+  three: 3"#,
+                "4gf75c7476",
+                "",
+            ),
+            // with stringdata
+            (
+                "stringdata",
+                r#"
+apiVersion: v1
+kind: Secret
+metadata:
+  name: ""
+type: my-type
+data:
+  one: ""
+stringData:
+  two: 2"#,
+                "c4h4264gdb",
+                "",
+            ),
+            // empty stringdata
+            (
+                "empty stringdata",
+                r#"
+apiVersion: v1
+kind: Secret
+metadata:
+  name: ""
+type: my-type
+data:
+  one: """#,
+                "74bd68bm66",
+                "",
+            ),
+        ];
+
+        for (desc, secret_yaml, expected_hash, err_msg) in cases {
+            let resource = create_resource_from_yaml(secret_yaml)?;
             let result = resource.shorthash().map(|s| s.to_string());
 
             if skip_rest(desc, &result, err_msg) {
