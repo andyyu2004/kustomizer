@@ -195,4 +195,9 @@ mod tests {
 
         Ok(())
     }
+
+    #[test]
+    fn check_openapi_spec() {
+        super::Spec::load();
+    }
 }
