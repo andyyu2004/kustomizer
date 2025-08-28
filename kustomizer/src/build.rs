@@ -10,7 +10,7 @@ use std::{
 
 use crate::{
     Located, PathExt as _, PathId,
-    generator::{ConfigMapGenerator, Generator as _},
+    generator::{ConfigMapGenerator, SecretGenerator, Generator as _},
     load_component, load_kustomization,
     manifest::{
         Component, FunctionSpec, Generator, KeyValuePairSources, Kustomization, Manifest, Patch,
@@ -112,6 +112,19 @@ impl Builder {
         resmap.extend(configmaps).with_context(|| {
             format!(
                 "failure merging resources from configmap generators in `{}`",
+                kustomization.path.pretty()
+            )
+        })?;
+
+        let secrets = SecretGenerator::new(
+            &kustomization.secret_generators,
+            &kustomization.generator_options,
+        )
+        .generate(&kustomization.parent_path, &ResourceList::new([]))
+        .await?;
+        resmap.extend(secrets).with_context(|| {
+            format!(
+                "failure merging resources from secret generators in `{}`",
                 kustomization.path.pretty()
             )
         })?;

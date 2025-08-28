@@ -46,6 +46,12 @@ pub struct Manifest<A, K> {
         rename = "configMapGenerator"
     )]
     pub config_map_generators: Box<[Generator]>,
+    #[serde(
+        default,
+        skip_serializing_if = "<[_]>::is_empty",
+        rename = "secretGenerator"
+    )]
+    pub secret_generators: Box<[SecretGenerator]>,
     #[serde(default, skip_serializing_if = "<[_]>::is_empty")]
     pub generators: Box<[PathBuf]>,
     #[serde(default, skip_serializing_if = "<[_]>::is_empty")]
@@ -65,6 +71,31 @@ pub struct Generator {
     pub sources: KeyValuePairSources,
     #[serde(default)]
     pub options: GeneratorOptions,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize)]
+pub struct SecretGenerator {
+    #[serde(default, rename = "type")]
+    pub ty: SecretType,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub namespace: Option<Str>,
+    pub name: Str,
+    #[serde(default)]
+    pub behavior: Behavior,
+    #[serde(flatten)]
+    pub sources: KeyValuePairSources,
+    #[serde(default)]
+    pub options: GeneratorOptions,
+}
+
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+#[derive(Default)]
+pub enum SecretType {
+    #[default]
+    Opaque,
+    // #[serde(rename = "kubernetes.io/tls")]
+    // Tls,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize)]

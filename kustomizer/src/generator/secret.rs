@@ -5,15 +5,18 @@ use crate::{
     resource::{Annotations, Gvk, Metadata, Object, ResId, Resource},
 };
 
-use super::{common::{merge_options, process_key_value_sources, apply_hash_suffix_if_needed, DataEncoding}, *};
+use super::{
+    common::{DataEncoding, apply_hash_suffix_if_needed, merge_options, process_key_value_sources},
+    *,
+};
 
-pub struct ConfigMapGenerator<'a> {
-    generators: &'a [manifest::Generator],
+pub struct SecretGenerator<'a> {
+    generators: &'a [manifest::SecretGenerator],
     options: &'a GeneratorOptions,
 }
 
-impl<'a> ConfigMapGenerator<'a> {
-    pub fn new(generators: &'a [manifest::Generator], options: &'a GeneratorOptions) -> Self {
+impl<'a> SecretGenerator<'a> {
+    pub fn new(generators: &'a [manifest::SecretGenerator], options: &'a GeneratorOptions) -> Self {
         Self {
             generators,
             options,
@@ -22,7 +25,7 @@ impl<'a> ConfigMapGenerator<'a> {
 }
 
 #[async_trait::async_trait]
-impl Generator for ConfigMapGenerator<'_> {
+impl Generator for SecretGenerator<'_> {
     async fn generate(
         &mut self,
         workdir: &Path,
@@ -34,9 +37,7 @@ impl Generator for ConfigMapGenerator<'_> {
             resources.push(
                 self.generate_one(workdir, generator)
                     .await
-                    .with_context(|| {
-                        format!("failed to generate ConfigMap `{}`", generator.name)
-                    })?,
+                    .with_context(|| format!("failed to generate Secret `{}`", generator.name))?,
             );
         }
 
@@ -44,12 +45,11 @@ impl Generator for ConfigMapGenerator<'_> {
     }
 }
 
-
-impl ConfigMapGenerator<'_> {
+impl SecretGenerator<'_> {
     async fn generate_one(
         &self,
         workdir: &Path,
-        generator: &manifest::Generator,
+        generator: &manifest::SecretGenerator,
     ) -> anyhow::Result<Resource> {
         let GeneratorOptions {
             labels,
@@ -61,8 +61,8 @@ impl ConfigMapGenerator<'_> {
         let object = process_key_value_sources(
             workdir,
             &generator.sources,
-            DataEncoding::Raw,
-            "ConfigMapGenerator",
+            DataEncoding::Base64,
+            "SecretGenerator",
         ).await?;
 
         let mut root = Object::from_iter([("data".into(), serde_json::Value::Object(object))]);
@@ -71,12 +71,20 @@ impl ConfigMapGenerator<'_> {
             root.insert("immutable".into(), serde_json::Value::Bool(true));
         }
 
-        let config_map = Resource::new(
+        let secret_type = match generator.ty {
+            manifest::SecretType::Opaque => "Opaque",
+        };
+        root.insert(
+            "type".into(),
+            serde_json::Value::String(secret_type.to_string()),
+        );
+
+        let secret = Resource::new(
             ResId {
                 gvk: Gvk {
                     group: "".into(),
                     version: "v1".into(),
-                    kind: "ConfigMap".into(),
+                    kind: "Secret".into(),
                 },
                 name: generator.name.clone(),
                 namespace: generator.namespace.clone(),
@@ -95,7 +103,7 @@ impl ConfigMapGenerator<'_> {
             root,
         )?;
 
-        // TODO need to make sure all references to this ConfigMap are updated too
-        apply_hash_suffix_if_needed(config_map, disable_name_suffix_hash)
+        apply_hash_suffix_if_needed(secret, disable_name_suffix_hash)
     }
 }
+
