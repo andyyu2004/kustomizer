@@ -10,7 +10,7 @@ use std::{
 
 use crate::{
     Located, PathExt as _, PathId,
-    generator::{ConfigMapGenerator, SecretGenerator, Generator as _},
+    generator::{ConfigMapGenerator, Generator as _, SecretGenerator},
     load_component, load_kustomization,
     manifest::{
         Component, FunctionSpec, Generator, KeyValuePairSources, Kustomization, Manifest, Patch,
