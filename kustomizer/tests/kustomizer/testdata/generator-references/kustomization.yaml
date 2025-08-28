@@ -1,0 +1,23 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+- deployment.yaml
+- statefulset.yaml
+- pod.yaml
+- job.yaml
+- daemonset.yaml
+
+configMapGenerator:
+- name: app-config
+  literals:
+  - database_url=postgres://localhost:5432/app
+  - debug=true
+  files:
+  - config.properties
+
+secretGenerator:
+- name: app-secrets
+  literals:
+  - api_key=secret123
+  - db_password=supersecret

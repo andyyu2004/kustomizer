@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: database
+spec:
+  serviceName: database
+  replicas: 1
+  selector:
+    matchLabels:
+      app: database
+  template:
+    metadata:
+      labels:
+        app: database
+    spec:
+      containers:
+      - name: postgres
+        image: postgres:13
+        env:
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: app-secrets
+              key: db_password
+        - name: DEBUG_MODE
+          valueFrom:
+            configMapKeyRef:
+              name: app-config
+              key: debug
+        volumeMounts:
+        - name: config-props
+          mountPath: /etc/postgresql/postgresql.conf
+          subPath: config.properties
+      volumes:
+      - name: config-props
+        configMap:
+          name: app-config

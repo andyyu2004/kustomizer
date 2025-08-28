@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: log-collector
+spec:
+  selector:
+    matchLabels:
+      app: log-collector
+  template:
+    metadata:
+      labels:
+        app: log-collector
+    spec:
+      containers:
+      - name: collector
+        image: fluentd:latest
+        env:
+        - name: DEBUG_LEVEL
+          valueFrom:
+            configMapKeyRef:
+              name: app-config
+              key: debug
+        - name: API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: app-secrets
+              key: api_key
+        volumeMounts:
+        - name: app-config
+          mountPath: /fluentd/etc/config
+      volumes:
+      - name: app-config
+        configMap:
+          name: app-config
+          items:
+          - key: config.properties
+            path: app.conf

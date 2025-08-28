@@ -1,0 +1,3 @@
+# Integration test for generator references
+# This test verifies that ConfigMap and Secret generators work correctly
+# and that all references are properly updated with generated hashes

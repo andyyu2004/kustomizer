@@ -1,0 +1,195 @@
+apiVersion: v1
+data:
+  config.properties: |-
+    app.name=MyApp
+    app.version=1.0.0
+    logging.level=INFO
+  database_url: postgres://localhost:5432/app
+  debug: "true"
+kind: ConfigMap
+metadata:
+  name: app-config-8h82mm6h4h
+---
+apiVersion: v1
+data:
+  api_key: c2VjcmV0MTIz
+  db_password: c3VwZXJzZWNyZXQ=
+kind: Secret
+metadata:
+  name: app-secrets-fh282b5md4
+type: Opaque
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web-app
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: web-app
+  template:
+    metadata:
+      labels:
+        app: web-app
+    spec:
+      containers:
+      - env:
+        - name: DATABASE_URL
+          valueFrom:
+            configMapKeyRef:
+              key: database_url
+              name: app-config-8h82mm6h4h
+        - name: API_KEY
+          valueFrom:
+            secretKeyRef:
+              key: api_key
+              name: app-secrets-fh282b5md4
+        envFrom:
+        - configMapRef:
+            name: app-config-8h82mm6h4h
+        - secretRef:
+            name: app-secrets-fh282b5md4
+        image: nginx:1.20
+        name: web
+        volumeMounts:
+        - mountPath: /etc/config
+          name: config-volume
+        - mountPath: /etc/secrets
+          name: secret-volume
+      volumes:
+      - configMap:
+          name: app-config-8h82mm6h4h
+        name: config-volume
+      - name: secret-volume
+        secret:
+          secretName: app-secrets-fh282b5md4
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: database
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: database
+  serviceName: database
+  template:
+    metadata:
+      labels:
+        app: database
+    spec:
+      containers:
+      - env:
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: db_password
+              name: app-secrets-fh282b5md4
+        - name: DEBUG_MODE
+          valueFrom:
+            configMapKeyRef:
+              key: debug
+              name: app-config-8h82mm6h4h
+        image: postgres:13
+        name: postgres
+        volumeMounts:
+        - mountPath: /etc/postgresql/postgresql.conf
+          name: config-props
+          subPath: config.properties
+      volumes:
+      - configMap:
+          name: app-config-8h82mm6h4h
+        name: config-props
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: log-collector
+spec:
+  selector:
+    matchLabels:
+      app: log-collector
+  template:
+    metadata:
+      labels:
+        app: log-collector
+    spec:
+      containers:
+      - env:
+        - name: DEBUG_LEVEL
+          valueFrom:
+            configMapKeyRef:
+              key: debug
+              name: app-config-8h82mm6h4h
+        - name: API_KEY
+          valueFrom:
+            secretKeyRef:
+              key: api_key
+              name: app-secrets-fh282b5md4
+        image: fluentd:latest
+        name: collector
+        volumeMounts:
+        - mountPath: /fluentd/etc/config
+          name: app-config
+      volumes:
+      - configMap:
+          items:
+          - key: config.properties
+            path: app.conf
+          name: app-config-8h82mm6h4h
+        name: app-config
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: migration-job
+spec:
+  template:
+    spec:
+      containers:
+      - env:
+        - name: DATABASE_URL
+          valueFrom:
+            configMapKeyRef:
+              key: database_url
+              name: app-config-8h82mm6h4h
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: db_password
+              name: app-secrets-fh282b5md4
+        image: migrate/migrate
+        name: migrator
+      restartPolicy: Never
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: standalone-pod
+spec:
+  containers:
+  - command:
+    - sleep
+    - "3600"
+    envFrom:
+    - configMapRef:
+        name: app-config-8h82mm6h4h
+    - secretRef:
+        name: app-secrets-fh282b5md4
+    image: alpine:latest
+    name: app
+  initContainers:
+  - command:
+    - sh
+    - -c
+    - echo $DATABASE_URL
+    env:
+    - name: DATABASE_URL
+      valueFrom:
+        configMapKeyRef:
+          key: database_url
+          name: app-config-8h82mm6h4h
+    image: busybox
+    name: init-config
