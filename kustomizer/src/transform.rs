@@ -6,6 +6,7 @@ mod label;
 mod name;
 mod namespace;
 mod patch;
+mod refs;
 mod replica;
 
 pub use self::annotation::AnnotationTransformer;
@@ -15,6 +16,7 @@ pub use self::label::LabelTransformer;
 pub use self::name::NameTransformer;
 pub use self::namespace::NamespaceTransformer;
 pub use self::patch::PatchTransformer;
+pub use self::refs::{RefsTransformer, Rename};
 pub use self::replica::ReplicaTransformer;
 
 use crate::resmap::ResourceMap;

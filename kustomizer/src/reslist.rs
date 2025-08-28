@@ -24,6 +24,18 @@ impl ResourceList {
             items: resources.into_iter().collect(),
         }
     }
+
+    pub fn iter(&self) -> std::slice::Iter<'_, Resource> {
+        self.items.iter()
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.items.is_empty()
+    }
+
+    pub fn len(&self) -> usize {
+        self.items.len()
+    }
 }
 
 impl IntoIterator for ResourceList {
@@ -32,5 +44,14 @@ impl IntoIterator for ResourceList {
 
     fn into_iter(self) -> Self::IntoIter {
         self.items.into_vec().into_iter()
+    }
+}
+
+impl<'a> IntoIterator for &'a ResourceList {
+    type Item = &'a Resource;
+    type IntoIter = std::slice::Iter<'a, Resource>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.items.iter()
     }
 }

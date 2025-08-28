@@ -22,7 +22,8 @@ use crate::{
     resource::{Gvk, ResId, Resource},
     transform::{
         AnnotationTransformer, CleanupTransformer, ImageTagTransformer, LabelTransformer,
-        NameTransformer, NamespaceTransformer, PatchTransformer, ReplicaTransformer, Transformer,
+        NameTransformer, NamespaceTransformer, PatchTransformer, RefsTransformer, Rename,
+        ReplicaTransformer, Transformer,
     },
 };
 use anyhow::{Context, bail};
@@ -59,6 +60,8 @@ impl Builder {
         kustomization: &Located<Manifest<A, K>>,
     ) -> anyhow::Result<ResourceMap> {
         let mut resmap = self.build_kustomization_base(resmap, kustomization).await?;
+
+        let mut renames = vec![];
 
         for path in &kustomization.generators {
             let path = PathId::make(kustomization.parent_path.join(path))?;
@@ -109,6 +112,18 @@ impl Builder {
         )
         .generate(&kustomization.parent_path, &ResourceList::new([]))
         .await?;
+
+        assert_eq!(configmaps.len(), kustomization.config_map_generators.len());
+        for (cm, g) in configmaps.iter().zip(&kustomization.config_map_generators) {
+            if cm.name() != g.name {
+                renames.push(Rename {
+                    kind: cm.kind().clone(),
+                    from: g.name.clone(),
+                    to: cm.name().clone(),
+                });
+            }
+        }
+
         resmap.extend(configmaps).with_context(|| {
             format!(
                 "failure merging resources from configmap generators in `{}`",
@@ -122,6 +137,18 @@ impl Builder {
         )
         .generate(&kustomization.parent_path, &ResourceList::new([]))
         .await?;
+
+        assert_eq!(secrets.len(), kustomization.secret_generators.len());
+        for (sec, g) in secrets.iter().zip(&kustomization.secret_generators) {
+            if sec.name() != g.name {
+                renames.push(Rename {
+                    kind: sec.kind().clone(),
+                    from: g.name.clone(),
+                    to: sec.name().clone(),
+                });
+            }
+        }
+
         resmap.extend(secrets).with_context(|| {
             format!(
                 "failure merging resources from secret generators in `{}`",
@@ -155,16 +182,31 @@ impl Builder {
                 NameTransformer::new(|name| format_compact!("{prefix}{name}"))
                     .transform(&mut resmap)
                     .await?;
+                renames.extend(resmap.iter().map(|res| Rename {
+                    kind: res.kind().clone(),
+                    from: res.name().clone(),
+                    to: format_compact!("{prefix}{}", res.name()),
+                }));
             }
             (None, Some(suffix)) => {
                 NameTransformer::new(|name| format_compact!("{name}{suffix}"))
                     .transform(&mut resmap)
-                    .await?
+                    .await?;
+                renames.extend(resmap.iter().map(|res| Rename {
+                    kind: res.kind().clone(),
+                    from: res.name().clone(),
+                    to: format_compact!("{}{suffix}", res.name()),
+                }));
             }
             (Some(prefix), Some(suffix)) => {
                 NameTransformer::new(|name| format_compact!("{prefix}{name}{suffix}"))
                     .transform(&mut resmap)
                     .await?;
+                renames.extend(resmap.iter().map(|res| Rename {
+                    kind: res.kind().clone(),
+                    from: res.name().clone(),
+                    to: format_compact!("{prefix}{}{suffix}", res.name()),
+                }));
             }
         };
 
