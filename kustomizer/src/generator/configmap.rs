@@ -5,7 +5,10 @@ use crate::{
     resource::{Annotations, Gvk, Metadata, Object, ResId, Resource},
 };
 
-use super::{common::{merge_options, process_key_value_sources, apply_hash_suffix_if_needed, DataEncoding}, *};
+use super::{
+    common::{DataEncoding, merge_options, name_generated_resource, process_key_value_sources},
+    *,
+};
 
 pub struct ConfigMapGenerator<'a> {
     generators: &'a [manifest::Generator],
@@ -44,7 +47,6 @@ impl Generator for ConfigMapGenerator<'_> {
     }
 }
 
-
 impl ConfigMapGenerator<'_> {
     async fn generate_one(
         &self,
@@ -63,7 +65,8 @@ impl ConfigMapGenerator<'_> {
             &generator.sources,
             DataEncoding::Raw,
             "ConfigMapGenerator",
-        ).await?;
+        )
+        .await?;
 
         let mut root = Object::from_iter([("data".into(), serde_json::Value::Object(object))]);
 
@@ -78,11 +81,11 @@ impl ConfigMapGenerator<'_> {
                     version: "v1".into(),
                     kind: "ConfigMap".into(),
                 },
-                name: generator.name.clone(),
+                name: Default::default(),
                 namespace: generator.namespace.clone(),
             },
             Metadata {
-                name: generator.name.clone(),
+                name: Default::default(),
                 namespace: generator.namespace.clone(),
                 annotations: Annotations {
                     behavior: Some(generator.behavior),
@@ -95,7 +98,6 @@ impl ConfigMapGenerator<'_> {
             root,
         )?;
 
-        // TODO need to make sure all references to this ConfigMap are updated too
-        apply_hash_suffix_if_needed(config_map, disable_name_suffix_hash)
+        name_generated_resource(config_map, &generator.name, disable_name_suffix_hash)
     }
 }

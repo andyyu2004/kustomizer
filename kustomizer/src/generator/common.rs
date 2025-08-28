@@ -1,9 +1,10 @@
 use anyhow::{Context, bail};
+use compact_str::format_compact;
 
 use crate::{
     PathExt,
-    manifest::{GeneratorOptions, KeyValuePairSources},
-    resource::Object,
+    manifest::{GeneratorOptions, KeyValuePairSources, Str},
+    resource::{Object, Resource},
 };
 
 use std::path::Path;
@@ -45,16 +46,14 @@ pub async fn process_key_value_sources(
     for kv in &sources.literals {
         let value = match encoding {
             DataEncoding::Raw => kv.value.to_string(),
-            DataEncoding::Base64 => {
-                base64::Engine::encode(&base64::engine::general_purpose::STANDARD, kv.value.as_bytes())
-            }
+            DataEncoding::Base64 => base64::Engine::encode(
+                &base64::engine::general_purpose::STANDARD,
+                kv.value.as_bytes(),
+            ),
         };
 
         if object
-            .insert(
-                kv.key.to_string(),
-                serde_json::Value::String(value),
-            )
+            .insert(kv.key.to_string(), serde_json::Value::String(value))
             .is_some()
         {
             bail!("duplicate key `{}` in {} sources", kv.key, resource_type);
@@ -91,15 +90,20 @@ pub async fn process_key_value_sources(
     Ok(object)
 }
 
-pub fn apply_hash_suffix_if_needed(
-    resource: crate::resource::Resource,
+pub fn name_generated_resource(
+    resource: Resource,
+    name: &Str,
     disable_name_suffix_hash: Option<bool>,
-) -> anyhow::Result<crate::resource::Resource> {
+) -> anyhow::Result<Resource> {
     let suffix_hash = disable_name_suffix_hash.map(|v| !v).unwrap_or(true);
 
-    if suffix_hash {
-        resource.with_name_suffix_hash()
+    let name = if suffix_hash {
+        let hash = resource.shorthash()?;
+        format_compact!("{name}-{hash}")
     } else {
-        Ok(resource)
-    }
+        name.clone()
+    };
+
+    Ok(resource.with_name(name))
 }
+

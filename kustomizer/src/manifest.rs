@@ -88,14 +88,21 @@ pub struct SecretGenerator {
     pub options: GeneratorOptions,
 }
 
-#[derive(Debug, Copy, Clone, PartialEq, Eq, Deserialize, Serialize)]
-#[serde(rename_all = "camelCase")]
-#[derive(Default)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Deserialize, Serialize, Default)]
 pub enum SecretType {
     #[default]
     Opaque,
     // #[serde(rename = "kubernetes.io/tls")]
     // Tls,
+}
+
+impl fmt::Display for SecretType {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Opaque => write!(f, "Opaque"),
+            // Self::Tls => write!(f, "kubernetes.io/tls"),
+        }
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize)]

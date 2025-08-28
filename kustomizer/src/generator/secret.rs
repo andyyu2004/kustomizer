@@ -6,7 +6,7 @@ use crate::{
 };
 
 use super::{
-    common::{DataEncoding, apply_hash_suffix_if_needed, merge_options, process_key_value_sources},
+    common::{DataEncoding, merge_options, name_generated_resource, process_key_value_sources},
     *,
 };
 
@@ -63,7 +63,8 @@ impl SecretGenerator<'_> {
             &generator.sources,
             DataEncoding::Base64,
             "SecretGenerator",
-        ).await?;
+        )
+        .await?;
 
         let mut root = Object::from_iter([("data".into(), serde_json::Value::Object(object))]);
 
@@ -71,12 +72,9 @@ impl SecretGenerator<'_> {
             root.insert("immutable".into(), serde_json::Value::Bool(true));
         }
 
-        let secret_type = match generator.ty {
-            manifest::SecretType::Opaque => "Opaque",
-        };
         root.insert(
             "type".into(),
-            serde_json::Value::String(secret_type.to_string()),
+            serde_json::Value::String(generator.ty.to_string()),
         );
 
         let secret = Resource::new(
@@ -86,11 +84,11 @@ impl SecretGenerator<'_> {
                     version: "v1".into(),
                     kind: "Secret".into(),
                 },
-                name: generator.name.clone(),
+                name: Default::default(),
                 namespace: generator.namespace.clone(),
             },
             Metadata {
-                name: generator.name.clone(),
+                name: Default::default(),
                 namespace: generator.namespace.clone(),
                 annotations: Annotations {
                     behavior: Some(generator.behavior),
@@ -103,7 +101,6 @@ impl SecretGenerator<'_> {
             root,
         )?;
 
-        apply_hash_suffix_if_needed(secret, disable_name_suffix_hash)
+        name_generated_resource(secret, &generator.name, disable_name_suffix_hash)
     }
 }
-

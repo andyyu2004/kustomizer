@@ -59,7 +59,7 @@ fn encode_config_map(resource: &Resource) -> anyhow::Result<String> {
         binary_data,
         data,
         kind: "ConfigMap",
-        name: "".into(),
+        name: resource.name().clone(),
     };
 
     Ok(serde_json::to_string(&config_map)?)
@@ -139,4 +139,3 @@ fn encode_hex(hex: &str) -> Str {
 
 #[cfg(test)]
 mod tests;
-

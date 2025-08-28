@@ -182,13 +182,6 @@ impl Resource {
         Self::from_parts(id, root).expect("invariants should be maintained by this function")
     }
 
-    pub fn with_name_suffix_hash(self) -> anyhow::Result<Self> {
-        let name = self.name();
-        let hash = self.shorthash()?;
-        let new_name = format_compact!("{name}-{hash}");
-        Ok(self.with_name(new_name))
-    }
-
     pub fn with_namespace(mut self, ns: Str) -> Self {
         self.metadata_mut().set_namespace(ns.clone());
         let (mut id, root) = self.into_parts();
