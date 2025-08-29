@@ -172,6 +172,21 @@ impl Builder {
             _ => {}
         };
 
+        if !kustomization.images.is_empty() {
+            for image in &kustomization.images {
+                ImageTagTransformer::from(image.clone())
+                    .transform(&mut resmap)
+                    .await
+                    .with_context(|| {
+                        format!(
+                            "transforming resources with image tag spec {:?} in `{}`",
+                            image,
+                            kustomization.path.pretty()
+                        )
+                    })?;
+            }
+        }
+
         for path in &kustomization.transformers {
             let path = PathId::make(kustomization.parent_path.join(path))?;
             let transformer_spec = Resource::load(path)

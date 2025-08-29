@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    manifest::{Str, TypeMeta, apiversion, kind},
+    manifest::{ImageTag, TypeMeta, apiversion, kind},
     resource::Metadata,
 };
 
@@ -16,12 +16,17 @@ pub struct ImageTagTransformer {
     image_tag: ImageTag,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields, rename_all = "camelCase")]
-pub struct ImageTag {
-    pub name: Str,
-    pub new_name: Str,
-    pub new_tag: Str,
+impl From<ImageTag> for ImageTagTransformer {
+    fn from(image_tag: ImageTag) -> Self {
+        Self {
+            type_meta: TypeMeta {
+                api_version: Some(apiversion::Builtin),
+                kind: Some(kind::ImageTagTransformer),
+            },
+            metadata: Metadata::default(),
+            image_tag,
+        }
+    }
 }
 
 impl Transformer for ImageTagTransformer {
@@ -31,7 +36,12 @@ impl Transformer for ImageTagTransformer {
         for resource in resources.iter_mut() {
             field_specs.apply::<String>(resource, |image_ref| {
                 if *image_ref == self.image_tag.name {
-                    *image_ref = format!("{}:{}", self.image_tag.new_name, self.image_tag.new_tag);
+                    let new_name = if self.image_tag.new_name.is_empty() {
+                        self.image_tag.name.clone()
+                    } else {
+                        self.image_tag.new_name.clone()
+                    };
+                    *image_ref = format!("{new_name}:{}", self.image_tag.new_tag);
                 }
 
                 Ok(())

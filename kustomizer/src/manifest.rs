@@ -39,6 +39,8 @@ pub struct Manifest<A, K> {
     #[serde(default, skip_serializing_if = "<[_]>::is_empty")]
     pub patches: Box<[Patch]>,
     #[serde(default, skip_serializing_if = "<[_]>::is_empty")]
+    pub images: Box<[ImageTag]>,
+    #[serde(default, skip_serializing_if = "<[_]>::is_empty")]
     pub replicas: Box<[Replica]>,
     #[serde(
         default,
@@ -58,6 +60,15 @@ pub struct Manifest<A, K> {
     pub transformers: Box<[PathBuf]>,
     #[serde(default)]
     pub generator_options: GeneratorOptions,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields, rename_all = "camelCase")]
+pub struct ImageTag {
+    pub name: Str,
+    #[serde(default, skip_serializing_if = "Str::is_empty")]
+    pub new_name: Str,
+    pub new_tag: Str,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize)]
