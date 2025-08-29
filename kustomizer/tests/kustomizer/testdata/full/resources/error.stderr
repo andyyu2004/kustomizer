@@ -1,6 +1,5 @@
 building kustomization resource tests/kustomizer/testdata/full/resources/base-secrets
 
 Caused by:
-    0: failed generating resources from function spec at tests/kustomizer/testdata/full/resources/base-secrets/secret-generator-ksops.yaml
-    1: function command failed with status exit status: 1: failed to evaluate function: error decrypting file "./base-secrets-secret.enc.yaml" from manifest.Files: trouble decrypting file: Error getting data key: 0 successful groups required, got 0unable to generate manifests: error decrypting file "./base-secrets-secret.enc.yaml" from manifest.Files: trouble decrypting file: Error getting data key: 0 successful groups required, got 0
-       
+    0: failed generatig resources from function spec at tests/kustomizer/testdata/full/resources/base-secrets/secret-generator-ksops.yaml
+    1: items: parsing resource: items[0]: missing field `apiVersion` at line 4 column 3 at line 4 column 1

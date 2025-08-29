@@ -39,6 +39,7 @@ impl FunctionPlugin {
         };
 
         let stdin = serde_yaml::to_string(input)?;
+        dbg!(&stdin);
         proc.stdin
             .as_mut()
             .unwrap()
