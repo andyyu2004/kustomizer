@@ -1,0 +1,55 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: example-hca-notion-sync
+spec:
+  progressDeadlineSeconds: 600
+  replicas: 1
+  revisionHistoryLimit: 10
+  template:
+    spec:
+      containers:
+        - env:
+            - name: PORT
+              value: "9394"
+            - name: OTEL_SERVICE_NAME
+              value: hca-notion-sync
+            - name: NODE_OPTIONS
+              value: --max-old-space-size=1500
+          envFrom:
+            - secretRef:
+                name: base-secrets
+            - configMapRef:
+                name: base-configs
+          image: hca-notion-sync-image
+          imagePullPolicy: IfNotPresent
+          livenessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /internal/system.readiness.get
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 30
+            periodSeconds: 30
+            successThreshold: 1
+            timeoutSeconds: 360
+          name: hca-notion-sync
+          ports:
+            - containerPort: 9394
+              name: http
+              protocol: TCP
+          readinessProbe:
+            failureThreshold: 5
+            httpGet:
+              path: /internal/system.readiness.get
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 30
+            periodSeconds: 30
+            successThreshold: 1
+            timeoutSeconds: 360
+          resources:
+            limits:
+              memory: 256Mi
+            requests:
+              memory: 128Mi

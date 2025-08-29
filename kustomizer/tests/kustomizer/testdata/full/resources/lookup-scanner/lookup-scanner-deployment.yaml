@@ -1,0 +1,61 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: example-lookup-scanner
+spec:
+  progressDeadlineSeconds: 600
+  replicas: 1
+  revisionHistoryLimit: 10
+  template:
+    spec:
+      containers:
+        - env:
+            - name: OTEL_SERVICE_NAME
+              value: lookup-scanner
+            - name: LOOKUP_SCANNER__SYSTEM__MINIO_OPTIONS__ENABLE_MINIO
+              value: "false"
+            - name: LOOKUP_SCANNER__SYSTEM__AWS_OPTIONS__S3_REGION
+              value: ap-southeast-2
+            - name: LOOKUP_SCANNER__SYSTEM__AWS_OPTIONS__S3_BUCKET_PUBLIC
+              value: example-staging-cdn
+            - name: LOOKUP_SCANNER__SYSTEM__AWS_OPTIONS__CDN_BASE_URL
+              value: https://cdn.partly.pro/
+          envFrom:
+            - secretRef:
+                name: base-secrets
+            - configMapRef:
+                name: base-configs
+            - secretRef:
+                name: lookup-scanner-secret
+          image: lookup-scanner-image
+          imagePullPolicy: IfNotPresent
+          livenessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /api/internal/system.liveness.get
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 6
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 5
+          name: lookup-scanner
+          ports:
+            - containerPort: 4030
+              name: http
+              protocol: TCP
+          readinessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /api/internal/system.readiness.get
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            successThreshold: 1
+            timeoutSeconds: 3
+          resources:
+            limits:
+              memory: 512Mi
+            requests:
+              memory: 128Mi

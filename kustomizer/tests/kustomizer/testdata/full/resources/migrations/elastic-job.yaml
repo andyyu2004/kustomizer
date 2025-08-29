@@ -1,0 +1,43 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: elastic
+  labels:
+    app.kubernetes.io/name: migrations-elastic
+spec:
+  activeDeadlineSeconds: 10800 # 3 hours max duration
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: migrations-elastic
+    spec:
+      containers:
+        - name: migrations-elastic
+          image: migrations-image
+          imagePullPolicy:
+          envFrom:
+            - secretRef:
+                name: base-secrets
+            - configMapRef:
+                name: base-configs
+          env:
+            - name: NODE_OPTIONS
+              value: "--max-old-space-size=2048"
+            - name: MIGRATE_DB
+              value: ES
+            - name: MIGRATE_ENV
+              value: development
+          resources:
+            limits:
+              cpu: 500m
+              memory: 3072Mi
+            requests:
+              cpu: 200m
+              memory: 1024Mi
+      dnsPolicy: ClusterFirst
+      imagePullSecrets:
+        - name: dockerhub-example-pull
+      restartPolicy: Never
+      schedulerName: default-scheduler
+      securityContext: {}
+      terminationGracePeriodSeconds: 30

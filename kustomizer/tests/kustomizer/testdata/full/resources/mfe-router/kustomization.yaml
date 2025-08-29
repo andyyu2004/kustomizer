@@ -1,0 +1,11 @@
+resources:
+  - mfe-router-secrets.yaml
+  - cloudflare-worker.yaml
+
+configMapGenerator:
+  - name: mfe-router-worker
+    files:
+      - worker.js
+
+generatorOptions:
+  disableNameSuffixHash: true

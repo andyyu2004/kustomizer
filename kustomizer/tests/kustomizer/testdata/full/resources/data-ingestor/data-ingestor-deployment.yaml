@@ -1,0 +1,51 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: example-data-ingestor
+spec:
+  progressDeadlineSeconds: 600
+  replicas: 3
+  revisionHistoryLimit: 10
+  template:
+    spec:
+      containers:
+        - env:
+            - name: OTEL_SERVICE_NAME
+              value: data-ingestor
+          envFrom:
+            - secretRef:
+                name: base-secrets
+            - configMapRef:
+                name: base-configs
+          image: data-ingestor-image
+          imagePullPolicy: IfNotPresent
+          livenessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /api/internal/system.readiness.get
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 60
+            periodSeconds: 5
+            successThreshold: 1
+            timeoutSeconds: 3
+          name: data-ingestor
+          ports:
+            - containerPort: 7060
+              name: http
+              protocol: TCP
+          readinessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /api/internal/system.readiness.get
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            successThreshold: 1
+            timeoutSeconds: 3
+          resources:
+            limits:
+              memory: 512Mi
+            requests:
+              memory: 256Mi

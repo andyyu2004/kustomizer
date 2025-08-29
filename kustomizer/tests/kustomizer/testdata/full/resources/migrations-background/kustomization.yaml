@@ -1,0 +1,12 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namePrefix: example-migrations-
+
+commonAnnotations:
+  argocd.argoproj.io/hook: PostSync
+  argocd.argoproj.io/sync-wave: "1"
+  argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+
+resources:
+  - background-job.yaml

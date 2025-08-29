@@ -1,0 +1,23 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: example-shopify-integration2
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: shopify-integration2.{{ .SUBDOMAIN }}partly.{{ .TLD }}
+      http:
+        paths:
+          - backend:
+              service:
+                name: example-shopify-integration2
+                port:
+                  number: 80
+            path: /
+            pathType: ImplementationSpecific
+  tls:
+    - hosts:
+        - shopify-integration2.{{ .SUBDOMAIN }}partly.{{ .TLD }}
+      secretName: shopify-integration2-ingress-tls

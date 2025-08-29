@@ -1,0 +1,23 @@
+apiVersion: cloudflare.partly.com/v1
+kind: CloudflareWorker
+metadata:
+  name: mfe-router
+spec:
+  name: app-placeholder-example-pro # Will be patched per environment
+  compatibilityDate: "2025-06-11"
+  scriptFrom:
+    configMapKeyRef:
+      name: mfe-router-worker
+      key: worker.js
+  route:
+    pattern: app.placeholder.partly.pro # Will be patched per environment
+  vars:
+    APP_VERSIONS: # Will be patched by release script
+      placeholder: "placeholder"
+  secretsFrom:
+    - secretRef:
+        name: mfe-router-secrets
+  d1Databases:
+    - binding: DB
+      databaseName: mfe
+      databaseId: 400c566e-0f1d-4cfb-9fe5-4d57bb6af75c

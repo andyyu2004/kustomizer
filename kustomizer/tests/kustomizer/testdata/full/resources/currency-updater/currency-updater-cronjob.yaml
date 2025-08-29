@@ -1,0 +1,25 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: example-currency-updater-cron
+spec:
+  concurrencyPolicy: Replace
+  failedJobsHistoryLimit: 1
+  schedule: 0 0 * * *
+  successfulJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: OnFailure
+          containers:
+            - env:
+                - name: OTEL_SERVICE_NAME
+                  value: currency-updater-cron
+              envFrom:
+                - secretRef:
+                    name: base-secrets
+                - configMapRef:
+                    name: base-configs
+              image: currency-updater-image
+              name: example-currency-updater-cron

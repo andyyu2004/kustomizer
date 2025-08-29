@@ -1,0 +1,29 @@
+apiVersion: scylla.scylladb.com/v1
+kind: ScyllaCluster
+metadata:
+  name: scylla
+  annotations:
+    argocd.argoproj.io/sync-wave: "-4"
+spec:
+  repository: docker.io/scylladb/scylla
+  version: 6.2.3
+  agentVersion: 3.4.2
+  developerMode: false
+  automaticOrphanedNodeCleanup: true
+  sysctls:
+    - fs.aio-max-nr=30000000
+  datacenter:
+    name: dc1
+    racks:
+      - name: rack1
+        members: 1
+        storage:
+          capacity: 50Gi
+          storageClassName: premium-rwo
+        resources:
+          requests:
+            cpu: 1
+            memory: 4Gi
+          limits:
+            cpu: 1
+            memory: 4Gi

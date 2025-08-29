@@ -1,0 +1,9 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+labels:
+- includeSelectors: true
+  pairs:
+    app.kubernetes.io/name: webhooks-notifier
+resources:
+- webhooks-notifier-deployment.yaml
+- webhooks-notifier-service.yaml

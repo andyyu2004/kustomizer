@@ -1,0 +1,28 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: dataqa-web-nginx-conf
+data:
+  default.conf: |
+    server {
+            listen 80 default_server;
+            listen [::]:80 default_server;
+
+            root /tmp/www/dataqa-web;
+
+            location ~* \.(png|jpeg|jpg|gif|svg|ttf|woff|js|json|ico|css|mp3|mp4)$ {
+                add_header Cache-Control public;
+                expires 14d;
+                etag on;
+                try_files $uri $uri =404;
+            }
+
+            location ~ ^/(index.html) {
+                add_header Cache-Control must-revalidate;
+                etag on;
+            }
+
+            location / {
+                rewrite /?$ /index.html last;
+            }
+    }

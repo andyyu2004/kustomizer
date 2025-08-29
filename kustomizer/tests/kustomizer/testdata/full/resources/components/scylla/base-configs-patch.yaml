@@ -1,0 +1,9 @@
+apiVersion: v1
+data:
+  SCYLLA_ADDRESSES: scylla-client:9042
+  SCYLLA_LOCAL_DATA_CENTER: dc1
+  SCYLLA_REPLICATION_FACTOR: "1"
+  SCYLLA_SERVERS: scylla-client
+kind: ConfigMap
+metadata:
+  name: base-configs

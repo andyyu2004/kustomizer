@@ -1,0 +1,57 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: partly
+labels:
+  - includeSelectors: true
+resources:
+  - block-rollout
+  - base-configs
+  - base-secrets
+  - core-server
+  - currency-updater
+  - data-ingestor
+  - dataqa-api-rs
+  - dataqa-web
+  - driftdb-server
+  - elasticsearch-ingestor-high
+  - elasticsearch-ingestor-low
+  - elasticsearch-ingestor-rs
+  - email-integration
+  - file-ingestor
+  - garbage-collector
+  - hca-notion-sync
+  - lookup-scanner
+  - lookup-server
+  - lookup-server-cdc
+  - migrations
+  - migrations-background
+  - mfe-router
+  - ml-server
+  - node
+  - pim-web
+  - pgbouncer
+  - redis
+  - repair-jobs-feed-integration
+  - repairer-server
+  - sample-integration
+  - shopify-integration2
+  - subscription-updater
+  - vrm-search
+  - webhooks-notifier
+  - external-job-integration
+components:
+  - components/dockerhub-pull-secret
+
+patches:
+  - target:
+      kind: Deployment
+      name: example-.*
+    patch: |-
+      - op: add
+        path: /spec/template/spec/containers/-1/env/-
+        value:
+          name: SOURCE_VERSION
+          valueFrom:
+            configMapKeyRef:
+              name: example-monorepo-revision-sync
+              key: monorepo-revision

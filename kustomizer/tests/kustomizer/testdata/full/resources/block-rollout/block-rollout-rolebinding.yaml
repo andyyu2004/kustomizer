@@ -1,0 +1,11 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: block-rollout-rolebinding
+subjects:
+- kind: ServiceAccount
+  name: block-rollout
+roleRef:
+  kind: Role
+  name: configmap-getter
+  apiGroup: rbac.authorization.k8s.io

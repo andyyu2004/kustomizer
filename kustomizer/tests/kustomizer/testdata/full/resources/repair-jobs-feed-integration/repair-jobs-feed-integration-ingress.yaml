@@ -1,0 +1,23 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: example-repair-jobs-feed-integration
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: repair-jobs-feed-integration.{{ .SUBDOMAIN }}partly.{{ .TLD }}
+      http:
+        paths:
+          - backend:
+              service:
+                name: example-repair-jobs-feed-integration
+                port:
+                  number: 80
+            path: /
+            pathType: ImplementationSpecific
+  tls:
+    - hosts:
+        - repair-jobs-feed-integration.{{ .SUBDOMAIN }}partly.{{ .TLD }}
+      secretName: repair-jobs-feed-integration-ingress-tls

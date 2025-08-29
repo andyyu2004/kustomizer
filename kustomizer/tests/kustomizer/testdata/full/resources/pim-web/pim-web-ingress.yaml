@@ -1,0 +1,23 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: example-pim-web
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: pim.{{ .SUBDOMAIN }}partly.{{ .TLD }}
+      http:
+        paths:
+          - backend:
+              service:
+                name: example-pim-web
+                port:
+                  number: 80
+            path: /
+            pathType: ImplementationSpecific
+  tls:
+    - hosts:
+        - pim.{{ .SUBDOMAIN }}partly.{{ .TLD }}
+      secretName: pim-web-ingress-tls

@@ -1,0 +1,23 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: example-dataqa-api-rs
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: dataqa-api-rs.{{ .SUBDOMAIN }}partly.{{ .TLD }}
+      http:
+        paths:
+          - backend:
+              service:
+                name: example-dataqa-api-rs
+                port:
+                  number: 80
+            path: /
+            pathType: ImplementationSpecific
+  tls:
+    - hosts:
+        - dataqa-api-rs.{{ .SUBDOMAIN }}partly.{{ .TLD }}
+      secretName: dataqa-api-rs-ingress-tls

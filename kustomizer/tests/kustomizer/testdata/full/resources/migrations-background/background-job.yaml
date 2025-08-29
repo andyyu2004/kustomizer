@@ -1,0 +1,39 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: background
+  labels:
+    app.kubernetes.io/name: migrations-background
+spec:
+  activeDeadlineSeconds: 864000 # 10 days max
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: migrations-background
+    spec:
+      imagePullSecrets:
+        - name: dockerhub-example-pull
+      restartPolicy: Never
+      containers:
+        - name: migrations-background
+          image: migrations-background-image
+          # command: ["/bin/sh"]
+          # args: ["-c", "cd postgres && knex migrate:latest --env production"]
+          imagePullPolicy: Always
+          envFrom:
+            - secretRef:
+                name: base-secrets
+            - configMapRef:
+                name: base-configs
+          env:
+            - name: NODE_OPTIONS
+              value: "--max-old-space-size=2048"
+            - name: MIGRATIONS_SCOPE
+              value: "sql_async"
+          resources:
+            limits:
+              cpu: 2000m
+              memory: 3072Mi
+            requests:
+              cpu: 200m
+              memory: 3072Mi

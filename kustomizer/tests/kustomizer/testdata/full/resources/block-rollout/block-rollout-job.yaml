@@ -1,0 +1,23 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: block-rollout
+spec:
+  backoffLimit: 4
+  ttlSecondsAfterFinished: 100
+  template:
+    spec:
+      serviceAccountName: block-rollout
+      containers:
+        - name: kubectl-wait
+          image: bitnami/kubectl:1.31
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              echo "Starting check for ConfigMap 'example-block-rollout'..."
+              while kubectl get configmap example-block-rollout > /dev/null 2>&1; do
+                echo "ConfigMap 'example-block-rollout' is still present. Waiting 10 seconds..."
+                sleep 10
+              done
+              echo "ConfigMap 'example-block-rollout' not found. Job completed successfully."
+      restartPolicy: OnFailure

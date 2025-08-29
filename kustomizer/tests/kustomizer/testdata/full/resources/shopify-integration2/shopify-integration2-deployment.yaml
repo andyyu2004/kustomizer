@@ -1,0 +1,57 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: example-shopify-integration2
+spec:
+  progressDeadlineSeconds: 600
+  replicas: 1
+  revisionHistoryLimit: 10
+  template:
+    spec:
+      containers:
+        - env:
+            - name: OTEL_SERVICE_NAME
+              value: shopify-integration2
+            - name: shopify_integration2__LOGGING__LEVEL
+              value: info
+            - name: SHOPIFY_INTEGRATION2_BASE_URL
+              value: https://shopify-integration.integrations.partly.com
+            - name: SHOPIFY_INTEGRATION_SCEHMA_ID
+              value: SHOPIFY_2
+            - name: SHOPIFY_INTEGRATION_ENABLE_WEBHOOKS
+              value: "true"
+            - name: SHOPIFY_INTEGRATION__KAFKA__SELLABLE_PARTITIONS
+              value: "10"
+            - name: SHOPIFY_INTEGRATION__KAFKA__RETRY_PARTITIONS
+              value: "1"
+            - name: SHOPIFY_INTEGRATION__KAFKA__NOTIFICATION_BATCH_SIZE
+              value: "50"
+          envFrom:
+            - secretRef:
+                name: base-secrets
+            - configMapRef:
+                name: base-configs
+          image: shopify-integration2-image
+          imagePullPolicy: IfNotPresent
+          name: shopify-integration2
+          ports:
+            - containerPort: 4011
+              name: http
+              protocol: TCP
+          readinessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /api/internal/system.readiness.get
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            successThreshold: 1
+            timeoutSeconds: 3
+          resources:
+            limits:
+              cpu: 1500m
+              memory: 1Gi
+            requests:
+              cpu: 250m
+              memory: 128Mi

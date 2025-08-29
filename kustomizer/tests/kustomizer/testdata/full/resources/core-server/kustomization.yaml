@@ -1,0 +1,10 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+labels:
+  - includeSelectors: true
+    pairs:
+      app.kubernetes.io/name: core-server
+resources:
+  - core-server-deployment.yaml
+  - core-server-service.yaml
+  - core-server-ingress.yaml

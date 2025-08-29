@@ -1,0 +1,139 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: example-ml-server-workers
+spec:
+  replicas: 1
+  template:
+    spec:
+      containers:
+        - args:
+            - ml_server.workers.main:app
+            - --port
+            - "5003"
+            - --host
+            - 0.0.0.0
+          command:
+            - uvicorn
+          env:
+            - name: OTEL_SERVICE_NAME
+              value: ml-server-workers
+            - name: CDN_BASE_URL
+              value: http://cdn.partly.com
+            - name: ML_SERVER_LOG_LEVEL
+              valueFrom:
+                configMapKeyRef:
+                  key: ML_SERVER_LOG_LEVEL
+                  name: base-configs
+            - name: PARTLY_ENVIRONMENT
+              valueFrom:
+                configMapKeyRef:
+                  key: PARTLY_ENVIRONMENT
+                  name: base-configs
+            - name: GOOGLE_APPLICATION_CREDENTIALS
+              value: /var/gcp-credentials/credentials.json
+            - name: PG_DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  key: PG_DB_PASSWORD_MLSERVER
+                  name: base-secrets
+            - name: OPENAI_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  key: OPENAI_API_KEY
+                  name: base-secrets
+            - name: PG_DB_HOST
+              valueFrom:
+                configMapKeyRef:
+                  key: PG_DB_HOST
+                  name: base-configs
+            - name: PG_DB_PORT
+              valueFrom:
+                configMapKeyRef:
+                  key: PG_DB_PORT
+                  name: base-configs
+            - name: PG_DB_USERNAME
+              valueFrom:
+                configMapKeyRef:
+                  key: PG_DB_USERNAME_MLSERVER
+                  name: base-configs
+            - name: PG_DB_DATABASE
+              valueFrom:
+                configMapKeyRef:
+                  key: PG_DB_DATABASE
+                  name: base-configs
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              valueFrom:
+                configMapKeyRef:
+                  key: OTEL_EXPORTER_OTLP_ENDPOINT
+                  name: base-configs
+            - name: KAFKA_BROKER_HOST_LIST
+              valueFrom:
+                configMapKeyRef:
+                  key: KAFKA_BROKER_HOST_LIST
+                  name: base-configs
+            - name: S3_BUCKET_PUBLIC
+              valueFrom:
+                configMapKeyRef:
+                  key: S3_BUCKET_PUBLIC
+                  name: base-configs
+            - name: S3_REGION
+              valueFrom:
+                configMapKeyRef:
+                  key: S3_REGION
+                  name: base-configs
+            - name: S3_KEY
+              valueFrom:
+                secretKeyRef:
+                  key: S3_KEY
+                  name: base-secrets
+            - name: S3_SECRET
+              valueFrom:
+                secretKeyRef:
+                  key: S3_SECRET
+                  name: base-secrets
+            - name: SENTRY_DSN
+              value: https://ebdb64e290de0a72169b60e82d725c31@o4507103828049920.ingest.de.sentry.io/4507103831392336
+          image: ml-server-image
+          livenessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /api/v1/liveness
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 180
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 20
+          name: ml-server-workers
+          ports:
+            - containerPort: 5003
+              name: http
+              protocol: TCP
+            - containerPort: 9102
+              name: metrics
+              protocol: TCP
+          readinessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /api/v1/liveness
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 180
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 6
+          resources:
+            limits:
+              memory: 1Gi
+            requests:
+              memory: 256Mi
+          volumeMounts:
+            - mountPath: /var/gcp-credentials
+              name: google-credentials
+              readOnly: true
+      volumes:
+        - name: google-credentials
+          secret:
+            defaultMode: 420
+            secretName: ml-server-secret

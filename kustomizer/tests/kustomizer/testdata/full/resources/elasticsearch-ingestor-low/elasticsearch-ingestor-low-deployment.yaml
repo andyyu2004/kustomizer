@@ -1,0 +1,55 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: example-elasticsearch-ingestor-low
+spec:
+  progressDeadlineSeconds: 600
+  replicas: 1
+  revisionHistoryLimit: 10
+  template:
+    spec:
+      containers:
+        - env:
+            - name: OTEL_SERVICE_NAME
+              value: elasticsearch-ingestor
+            - name: NODE_OPTIONS
+              value: --max-old-space-size=1024
+            - name: ELASTICSEARCH_INGESTOR_LOW_PRIORITY
+              value: "1"
+          envFrom:
+            - secretRef:
+                name: base-secrets
+            - configMapRef:
+                name: base-configs
+          image: elasticsearch-ingestor-image
+          imagePullPolicy: IfNotPresent
+          livenessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /healthy-check
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 120
+            periodSeconds: 60
+            successThreshold: 1
+            timeoutSeconds: 60
+          name: elasticsearch-ingestor-low
+          ports:
+            - containerPort: 3333
+              name: http
+              protocol: TCP
+          readinessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /healthy-check
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 120
+            periodSeconds: 60
+            successThreshold: 1
+            timeoutSeconds: 60
+          resources:
+            limits:
+              memory: 1Gi
+            requests:
+              memory: 512Mi

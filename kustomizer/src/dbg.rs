@@ -84,6 +84,7 @@ pub fn diff_reference_impl(path: &Path, actual: &str) -> anyhow::Result<()> {
 
     let output = Command::new("dyff")
         .arg("between")
+        .arg("--color=on")
         .arg("--ignore-order-changes")
         .arg("--ignore-whitespace-changes")
         .arg("--set-exit-code")

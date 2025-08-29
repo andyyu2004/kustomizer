@@ -1,0 +1,27 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    nginx.ingress.kubernetes.io/proxy-body-size: 128m
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "90"
+  labels:
+    app.kubernetes.io/name: core-server
+  name: example-core-server
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: api.{{ .SUBDOMAIN }}partly.{{ .TLD }}
+      http:
+        paths:
+          - backend:
+              service:
+                name: example-core-server
+                port:
+                  number: 80
+            path: /api/v1
+            pathType: ImplementationSpecific
+  tls:
+    - secretName: core-server-ingress-tls
+      hosts:
+        - api.{{ .SUBDOMAIN }}partly.{{ .TLD }}

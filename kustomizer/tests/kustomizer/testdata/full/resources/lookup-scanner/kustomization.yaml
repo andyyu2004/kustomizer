@@ -1,0 +1,9 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+labels:
+  - includeSelectors: true
+    pairs:
+      app.kubernetes.io/name: lookup-scanner
+resources:
+  - lookup-scanner-deployment.yaml
+  - lookup-scanner-service.yaml

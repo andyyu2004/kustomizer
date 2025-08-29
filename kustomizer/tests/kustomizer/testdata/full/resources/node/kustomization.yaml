@@ -1,0 +1,11 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+labels:
+  - includeSelectors: true
+    pairs:
+      app.kubernetes.io/name: node
+resources:
+  - node-deployment.yaml
+  - node-service.yaml
+  - node-ingress.yaml
+  - node-internal-ingress.yaml

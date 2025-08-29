@@ -1,0 +1,23 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: storefront-repairer-server
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: api.repairer.{{ .SUBDOMAIN }}partly.{{ .TLD }}
+      http:
+        paths:
+          - backend:
+              service:
+                name: storefront-repairer-server
+                port:
+                  number: 80
+            path: /api
+            pathType: ImplementationSpecific
+  tls:
+    - hosts:
+        - api.repairer.{{ .SUBDOMAIN }}partly.{{ .TLD }}
+      secretName: repairer-server-ingress-tls

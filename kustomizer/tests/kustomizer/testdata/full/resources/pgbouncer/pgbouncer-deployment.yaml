@@ -1,0 +1,77 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pgbouncer
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: pgbouncer
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: pgbouncer
+    spec:
+      securityContext:
+        fsGroup: 1001
+      volumes:
+        - name: pgbouncer-certs
+          emptyDir: {}
+      initContainers:
+        - name: cert-generator
+          image: alpine/openssl:3.5.1
+          command:
+            - sh
+            - -c
+            - |
+              openssl req -x509 -newkey rsa:4096 -keyout /certs/server.key -out /certs/server.crt -days 365 -nodes -subj '/CN=pgbouncer'
+              chmod 640 /certs/server.key
+              chmod 644 /certs/server.crt
+          volumeMounts:
+          - name: pgbouncer-certs
+            mountPath: /certs
+      containers:
+        - name: pgbouncer
+          image: bitnami/pgbouncer:1.24.1
+          securityContext:
+            runAsUser: 1001
+            runAsNonRoot: true
+          ports:
+            - containerPort: 6432
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+          env:
+            - name: PGBOUNCER_PORT
+              value: "6432"
+            - name: POSTGRESQL_DATABASE
+              value: partly
+            - name: PGBOUNCER_DATABASE
+              value: partly
+            - name: POSTGRESQL_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: base-configs
+                  key: PG_DB_HOST
+            - name: POSTGRESQL_USERNAME
+              valueFrom:
+                configMapKeyRef:
+                  name: base-configs
+                  key: PG_DB_USERNAME
+            - name: POSTGRESQL_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: base-secrets
+                  key: PG_DB_PASSWORD
+            - name: PGBOUNCER_SERVER_TLS_SSLMODE
+              value: prefer
+            - name: PGBOUNCER_CLIENT_TLS_SSLMODE
+              value: prefer
+            - name: PGBOUNCER_CLIENT_TLS_KEY_FILE
+              value: /certs/server.key
+            - name: PGBOUNCER_CLIENT_TLS_CERT_FILE
+              value: /certs/server.crt
+          volumeMounts:
+            - name: pgbouncer-certs
+              mountPath: /certs
+

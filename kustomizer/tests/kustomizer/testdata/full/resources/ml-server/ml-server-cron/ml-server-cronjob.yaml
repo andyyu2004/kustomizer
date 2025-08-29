@@ -1,0 +1,78 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: example-ml-server-cron
+spec:
+  concurrencyPolicy: Allow
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    metadata:
+      annotations:
+        argocd.argoproj.io/ignore-resource-updates: "true"
+    spec:
+      template:
+        metadata:
+          annotations:
+            argocd.argoproj.io/ignore-resource-updates: "true"
+        spec:
+          restartPolicy: OnFailure
+          containers:
+            - args:
+                - -m
+                - load_overrides
+                - --update
+              command:
+                - python
+              env:
+                - name: OTEL_SERVICE_NAME
+                  value: ml-server-cron
+                - name: OTEL_EXPORTER_OTLP_ENDPOINT
+                  valueFrom:
+                    configMapKeyRef:
+                      key: OTEL_EXPORTER_OTLP_ENDPOINT
+                      name: base-configs
+                - name: PARTLY_ENVIRONMENT
+                  valueFrom:
+                    configMapKeyRef:
+                      key: PARTLY_ENVIRONMENT
+                      name: base-configs
+                - name: PG_DB_HOST
+                  valueFrom:
+                    configMapKeyRef:
+                      key: PG_DB_HOST
+                      name: base-configs
+                - name: PG_DB_PORT
+                  valueFrom:
+                    configMapKeyRef:
+                      key: PG_DB_PORT
+                      name: base-configs
+                - name: PG_DB_USERNAME
+                  valueFrom:
+                    configMapKeyRef:
+                      key: PG_DB_USERNAME_MLSERVER
+                      name: base-configs
+                - name: PG_DB_DATABASE
+                  valueFrom:
+                    configMapKeyRef:
+                      key: PG_DB_DATABASE
+                      name: base-configs
+                - name: PG_DB_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      key: PG_DB_PASSWORD_MLSERVER
+                      name: base-secrets
+                - name: GOOGLE_APPLICATION_CREDENTIALS
+                  value: /var/gcp-credentials/credentials.json
+              image: ml-server-image
+              name: example-ml-server-cron
+              volumeMounts:
+                - mountPath: /var/gcp-credentials
+                  name: google-credentials
+                  readOnly: true
+          volumes:
+            - name: google-credentials
+              secret:
+                defaultMode: 420
+                secretName: ml-server-secret
+  schedule: "*/5 * * * *"
+  successfulJobsHistoryLimit: 3

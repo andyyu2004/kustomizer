@@ -1,0 +1,71 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: example-dataqa-web
+spec:
+  progressDeadlineSeconds: 600
+  replicas: 1
+  revisionHistoryLimit: 10
+  template:
+    spec:
+      containers:
+        - image: nginx:1.21.1-alpine
+          imagePullPolicy: IfNotPresent
+          env: []
+          livenessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /index.html
+              port: http
+              scheme: HTTP
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 1
+          name: dataqa-web
+          ports:
+            - containerPort: 80
+              name: http
+              protocol: TCP
+          readinessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /index.html
+              port: http
+              scheme: HTTP
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 1
+          volumeMounts:
+            - mountPath: /tmp/www
+              name: dataqa-web-www
+            - mountPath: /etc/nginx/conf.d
+              name: dataqa-web-nginx-conf
+      initContainers:
+        - env:
+            - name: API_URL
+              value: https://api.{{ .SUBDOMAIN }}partly.{{ .TLD }}
+            - name: APP_URL
+              value: https://dataqa.{{ .SUBDOMAIN }}partly.{{ .TLD }}
+            - name: DATAQA_API_RS_URL
+              value: https://dataqa-api-rs.{{ .SUBDOMAIN }}partly.{{ .TLD }}
+            - name: SOURCE_PATH
+              value: /app/dist/
+            - name: ASSET_URL
+              value: https://cdn.partly.com/assets/dataqa/
+            - name: DEST_PATH
+              value: /tmp/www/dataqa-web
+            - name: DATAQA_API_URL
+          image: dataqa-web-image
+          imagePullPolicy: IfNotPresent
+          name: dataqa-web-init
+          volumeMounts:
+            - mountPath: /tmp/www
+              name: dataqa-web-www
+            - mountPath: /etc/nginx/conf.d
+              name: dataqa-web-nginx-conf
+      volumes:
+        - name: dataqa-web-www
+        - configMap:
+            defaultMode: 420
+            name: dataqa-web-nginx-conf
+          name: dataqa-web-nginx-conf
