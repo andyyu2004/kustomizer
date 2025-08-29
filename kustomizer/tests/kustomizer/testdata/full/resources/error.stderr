@@ -1,5 +1,5 @@
 building kustomization resource tests/kustomizer/testdata/full/resources/base-secrets
 
 Caused by:
-    0: failed generatig resources from function spec at tests/kustomizer/testdata/full/resources/base-secrets/secret-generator-ksops.yaml
-    1: items: parsing resource: items[0]: missing field `apiVersion` at line 4 column 3 at line 4 column 1
+    0: failed generating resources from function spec at tests/kustomizer/testdata/full/resources/base-secrets/secret-generator-ksops.yaml
+    1: expected `v1`, found `config.kubernetes.io/v1`

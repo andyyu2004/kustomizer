@@ -1,26 +1,29 @@
 use serde::{Deserialize, Serialize};
 
-use crate::{manifest::kind, resmap::ResourceMap, resource::Resource};
+use crate::{
+    manifest::{Str, TypeMeta, apiversion, kind},
+    resmap::ResourceMap,
+    resource::Resource,
+};
 
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct ResourceList {
-    kind: kind::ResourceList,
+    #[serde(flatten)]
+    type_meta: TypeMeta<apiversion::ConfigV1, kind::ResourceList>,
     items: Box<[Resource]>,
 }
 
 impl From<ResourceMap> for ResourceList {
     fn from(map: ResourceMap) -> Self {
-        Self {
-            kind: kind::ResourceList,
-            items: map.into_iter().collect(),
-        }
+        Self::new(map)
     }
 }
 
 impl ResourceList {
     pub fn new(resources: impl IntoIterator<Item = Resource>) -> Self {
         Self {
-            kind: kind::ResourceList,
+            type_meta: TypeMeta::default(),
             items: resources.into_iter().collect(),
         }
     }

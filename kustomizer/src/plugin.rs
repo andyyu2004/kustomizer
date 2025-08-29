@@ -39,14 +39,18 @@ impl FunctionPlugin {
         };
 
         let stdin = serde_yaml::to_string(input)?;
-        dbg!(&stdin);
+        eprintln!("{}", &stdin);
         proc.stdin
             .as_mut()
             .unwrap()
             .write_all(stdin.as_bytes())
-            .await?;
+            .await
+            .context("write to function stdin")?;
 
-        let output = proc.wait_with_output().await?;
+        let output = proc
+            .wait_with_output()
+            .await
+            .context("wait for function process")?;
         if !output.status.success() {
             bail!(
                 "function command failed with status {}: {}",

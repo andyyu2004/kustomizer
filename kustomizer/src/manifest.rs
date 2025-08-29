@@ -344,11 +344,24 @@ impl<'de> Deserialize<'de> for Selector {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize, Default)]
+#[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct TypeMeta<V, K> {
     pub api_version: Option<V>,
     pub kind: Option<K>,
+}
+
+impl<V, K> Default for TypeMeta<V, K>
+where
+    V: Default,
+    K: Default,
+{
+    fn default() -> Self {
+        Self {
+            api_version: Some(V::default()),
+            kind: Some(K::default()),
+        }
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize)]
@@ -378,6 +391,7 @@ pub mod apiversion {
     define_symbol!(Alpha = "kustomize.config.k8s.io/v1alpha1");
     define_symbol!(Beta = "kustomize.config.k8s.io/v1beta1");
     define_symbol!(Builtin = "builtin");
+    define_symbol!(ConfigV1 = "config.kubernetes.io/v1");
 }
 
 macro_rules! define_symbol {
