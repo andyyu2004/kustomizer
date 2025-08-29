@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::{manifest::Str, resource::Gvk};
 
-const SPEC_V2_GZ: &[u8] = include_bytes!("./openapi-v2-kubernetes-1.32-minimized.json.gz");
+const SPEC_V2_GZ: &[u8] = include_bytes!("./openapi-v2-kubernetes-1.32-minimized.json");
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Spec {
@@ -84,8 +84,7 @@ impl Spec {
     pub fn load() -> &'static Self {
         static CACHE: OnceLock<Spec> = OnceLock::new();
         CACHE.get_or_init(|| {
-            serde_json::from_reader(flate2::read::GzDecoder::new(SPEC_V2_GZ))
-                .expect("test should guarantee this is valid")
+            serde_json::from_reader(SPEC_V2_GZ).expect("test should guarantee this is valid")
         })
     }
 
@@ -183,11 +182,13 @@ mod tests {
         let spec: Spec = serde_json::from_reader(reader)?;
 
         let file = std::fs::File::create(
-            "src/patch/openapi/openapi-v2-kubernetes-1.32-minimized.json.gz",
+            "src/patch/openapi/openapi-v2-kubernetes-1.32-minimized.json.tmp",
         )?;
-        serde_json::to_writer(
-            flate2::write::GzEncoder::new(file, flate2::Compression::default()),
-            &spec,
+        serde_json::to_writer(file, &spec)?;
+
+        std::fs::rename(
+            "src/patch/openapi/openapi-v2-kubernetes-1.32-minimized.json.tmp",
+            "src/patch/openapi/openapi-v2-kubernetes-1.32-minimized.json",
         )?;
 
         // Ensure the spec can be loaded
