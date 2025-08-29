@@ -1,29 +1,30 @@
-use std::{collections::HashMap, sync::OnceLock};
+use std::sync::OnceLock;
 
 use crate::fieldspec::FieldSpec;
 use serde::Deserialize;
 
-use super::GvkMatcher;
+use super::{Gvk, GvkMatcher};
 
 const REFSPECS: &str = include_str!("./refspecs.yaml");
 
 pub struct RefSpecs {
-    specs: HashMap<GvkMatcher, Box<[FieldSpec]>>,
+    // naive implementation, since the list is probably small
+    specs: Box<[RefSpec]>,
 }
 
 impl RefSpecs {
     pub fn load_builtin() -> &'static Self {
         static INSTANCE: OnceLock<RefSpecs> = OnceLock::new();
-        INSTANCE.get_or_init(|| {
-            let specs =
-                serde_yaml::from_str::<Vec<RefSpec>>(REFSPECS).expect("valid refspecs.yaml");
-            RefSpecs {
-                specs: specs
-                    .into_iter()
-                    .map(|s| (s.referee, s.referrers))
-                    .collect(),
-            }
+        INSTANCE.get_or_init(|| RefSpecs {
+            specs: serde_yaml::from_str(REFSPECS).expect("valid refspecs.yaml"),
         })
+    }
+
+    pub fn referrers(&self, gvk: &Gvk) -> impl Iterator<Item = &FieldSpec> {
+        self.specs
+            .iter()
+            .filter(move |spec| spec.referee.matches(gvk))
+            .flat_map(|spec| &spec.referrers)
     }
 }
 

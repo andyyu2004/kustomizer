@@ -1,28 +1,17 @@
-// tmp lint relaxation
-#![allow(dead_code, unused_imports)]
-
-use std::{
-    cell::RefCell,
-    collections::HashMap,
-    io::Write,
-    path::{Path, PathBuf},
-};
+use std::path::Path;
 
 use crate::{
     Located, PathExt as _, PathId,
     generator::{ConfigMapGenerator, Generator as _, SecretGenerator},
     load_component, load_kustomization,
-    manifest::{
-        Component, FunctionSpec, Generator, KeyValuePairSources, Kustomization, Manifest, Patch,
-        Symbol,
-    },
+    manifest::{Kustomization, Manifest, Symbol},
     plugin::FunctionPlugin,
     reslist::ResourceList,
     resmap::ResourceMap,
-    resource::{Gvk, RefSpecs, ResId, Resource},
+    resource::{RefSpecs, Resource},
     transform::{
         AnnotationTransformer, CleanupTransformer, ImageTagTransformer, LabelTransformer,
-        NameTransformer, NamespaceTransformer, PatchTransformer, RefsTransformer, Rename,
+        NameTransformer, NamespaceTransformer, PatchTransformer, Rename, RenameTransformer,
         ReplicaTransformer, Transformer,
     },
 };
@@ -36,11 +25,7 @@ const KUSTOMIZE_FUNCTION_ANNOTATION: &str = "config.kubernetes.io/function";
 
 #[derive(Debug, Default)]
 pub struct Builder {
-    // Filesystem caches to avoid re-reading files.
-    components_cache: Mutex<IndexMap<PathId, Component>>,
     resources_cache: Mutex<IndexMap<PathId, Resource>>,
-    strategic_merge_patches_cache: IndexMap<PathId, serde_yaml::Value>,
-    key_value_files_cache: IndexMap<PathId, Box<str>>,
 }
 
 impl Builder {
@@ -116,11 +101,9 @@ impl Builder {
         assert_eq!(configmaps.len(), kustomization.config_map_generators.len());
         for (cm, g) in configmaps.iter().zip(&kustomization.config_map_generators) {
             if cm.name() != g.name {
-                renames.push(Rename {
-                    kind: cm.kind().clone(),
-                    from: g.name.clone(),
-                    to: cm.name().clone(),
-                });
+                let mut res_id = cm.id().clone();
+                res_id.name = g.name.clone();
+                renames.push(Rename::new(res_id, cm.name().clone()));
             }
         }
 
@@ -141,11 +124,9 @@ impl Builder {
         assert_eq!(secrets.len(), kustomization.secret_generators.len());
         for (sec, g) in secrets.iter().zip(&kustomization.secret_generators) {
             if sec.name() != g.name {
-                renames.push(Rename {
-                    kind: sec.kind().clone(),
-                    from: g.name.clone(),
-                    to: sec.name().clone(),
-                });
+                let mut res_id = sec.id().clone();
+                res_id.name = g.name.clone();
+                renames.push(Rename::new(res_id, sec.name().clone()));
             }
         }
 
@@ -177,37 +158,18 @@ impl Builder {
             .await?;
 
         match (&kustomization.name_prefix, &kustomization.name_suffix) {
-            (None, None) => {}
-            (Some(prefix), None) => {
-                NameTransformer::new(|name| format_compact!("{prefix}{name}"))
-                    .transform(&mut resmap)
-                    .await?;
-                renames.extend(resmap.iter().map(|res| Rename {
-                    kind: res.kind().clone(),
-                    from: res.name().clone(),
-                    to: format_compact!("{prefix}{}", res.name()),
+            (prefix, suffix) if !prefix.is_empty() || !suffix.is_empty() => {
+                renames.extend(resmap.iter().map(|res| {
+                    Rename::new(
+                        res.id().clone(),
+                        format_compact!("{prefix}{}{suffix}", res.name()),
+                    )
                 }));
-            }
-            (None, Some(suffix)) => {
-                NameTransformer::new(|name| format_compact!("{name}{suffix}"))
-                    .transform(&mut resmap)
-                    .await?;
-                renames.extend(resmap.iter().map(|res| Rename {
-                    kind: res.kind().clone(),
-                    from: res.name().clone(),
-                    to: format_compact!("{}{suffix}", res.name()),
-                }));
-            }
-            (Some(prefix), Some(suffix)) => {
                 NameTransformer::new(|name| format_compact!("{prefix}{name}{suffix}"))
                     .transform(&mut resmap)
                     .await?;
-                renames.extend(resmap.iter().map(|res| Rename {
-                    kind: res.kind().clone(),
-                    from: res.name().clone(),
-                    to: format_compact!("{prefix}{}{suffix}", res.name()),
-                }));
             }
+            _ => {}
         };
 
         for path in &kustomization.transformers {
@@ -264,7 +226,7 @@ impl Builder {
         CleanupTransformer::default().transform(&mut resmap).await?;
 
         let refspecs = RefSpecs::load_builtin();
-        RefsTransformer::new(refspecs, &renames)
+        RenameTransformer::new(refspecs, &renames)
             .transform(&mut resmap)
             .await?;
 

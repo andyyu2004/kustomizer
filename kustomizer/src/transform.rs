@@ -16,7 +16,7 @@ pub use self::label::LabelTransformer;
 pub use self::name::NameTransformer;
 pub use self::namespace::NamespaceTransformer;
 pub use self::patch::PatchTransformer;
-pub use self::refs::{RefsTransformer, Rename};
+pub use self::refs::{Rename, RenameTransformer};
 pub use self::replica::ReplicaTransformer;
 
 use crate::resmap::ResourceMap;

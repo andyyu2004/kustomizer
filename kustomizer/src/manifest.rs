@@ -28,10 +28,10 @@ pub struct Manifest<A, K> {
     pub components: Box<[PathBuf]>,
     #[serde(default, skip_serializing_if = "<[_]>::is_empty")]
     pub resources: Box<[PathBuf]>,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub name_prefix: Option<Str>,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub name_suffix: Option<Str>,
+    #[serde(default, skip_serializing_if = "Str::is_empty")]
+    pub name_prefix: Str,
+    #[serde(default, skip_serializing_if = "Str::is_empty")]
+    pub name_suffix: Str,
     #[serde(default, skip_serializing_if = "<[_]>::is_empty")]
     pub labels: Box<[Label]>,
     #[serde(default, skip_serializing_if = "IndexMap::is_empty")]

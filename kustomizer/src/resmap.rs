@@ -54,6 +54,10 @@ impl ResourceMap {
         self.resources.len()
     }
 
+    pub fn get(&self, id: &ResId) -> Option<&Resource> {
+        self.resources.get(id)
+    }
+
     pub fn keys(&self) -> impl ExactSizeIterator<Item = &ResId> + DoubleEndedIterator + fmt::Debug {
         self.resources.keys()
     }

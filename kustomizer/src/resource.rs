@@ -18,7 +18,7 @@ use crate::{
     manifest::{Behavior, FunctionSpec, Str},
 };
 
-pub use self::refs::{RefSpec, RefSpecs};
+pub use self::refs::RefSpecs;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
