@@ -73,7 +73,7 @@
       kind: ReplicaSet
     - path: spec/template/spec/initContainers[]/envFrom[]/configMapRef/name
       kind: ReplicaSet
-    - path: spec/template/spec/volumes[]/projected/sources/configMap/name
+    - path: spec/template/spec/volumes[]/projected/sources[]/configMap/name
       kind: ReplicaSet
     - path: spec/template/spec/volumes[]/configMap/name
       kind: DaemonSet
@@ -85,7 +85,7 @@
       kind: DaemonSet
     - path: spec/template/spec/initContainers[]/envFrom[]/configMapRef/name
       kind: DaemonSet
-    - path: spec/template/spec/volumes[]/projected/sources/configMap/name
+    - path: spec/template/spec/volumes[]/projected/sources[]/configMap/name
       kind: DaemonSet
     - path: spec/template/spec/volumes[]/configMap/name
       kind: StatefulSet
@@ -97,7 +97,7 @@
       kind: StatefulSet
     - path: spec/template/spec/initContainers[]/envFrom[]/configMapRef/name
       kind: StatefulSet
-    - path: spec/template/spec/volumes[]/projected/sources/configMap/name
+    - path: spec/template/spec/volumes[]/projected/sources[]/configMap/name
       kind: StatefulSet
     - path: spec/template/spec/volumes[]/configMap/name
       kind: Job
@@ -109,7 +109,7 @@
       kind: Job
     - path: spec/template/spec/initContainers[]/envFrom[]/configMapRef/name
       kind: Job
-    - path: spec/template/spec/volumes[]/projected/sources/configMap/name
+    - path: spec/template/spec/volumes[]/projected/sources[]/configMap/name
       kind: Job
     - path: spec/jobTemplate/spec/template/spec/volumes[]/configMap/name
       kind: CronJob
@@ -125,9 +125,9 @@
       kind: CronJob
     - path: spec/configSource/configMap
       kind: Node
-    - path: rules/resourceNames
+    - path: rules[]/resourceNames
       kind: Role
-    - path: rules/resourceNames
+    - path: rules[]/resourceNames
       kind: ClusterRole
     - path: metadata/annotations/nginx.ingress.kubernetes.io\/fastcgi-params-configmap
       kind: Ingress
@@ -150,10 +150,10 @@
     - path: spec/initContainers[]/envFrom[]/secretRef/name
       version: v1
       kind: Pod
-    - path: spec/imagePullSecrets/name
+    - path: spec/imagePullSecrets[]/name
       version: v1
       kind: Pod
-    - path: spec/volumes[]/projected/sources/secret/name
+    - path: spec/volumes[]/projected/sources[]/secret/name
       version: v1
       kind: Pod
     - path: template/spec/volumes[]/secret/secretName
@@ -166,9 +166,9 @@
       kind: PodTemplate
     - path: template/spec/initContainers[]/envFrom[]/secretRef/name
       kind: PodTemplate
-    - path: template/spec/imagePullSecrets/name
+    - path: template/spec/imagePullSecrets[]/name
       kind: PodTemplate
-    - path: template/spec/volumes[]/projected/sources/secret/name
+    - path: template/spec/volumes[]/projected/sources[]/secret/name
       kind: PodTemplate
     - path: spec/template/spec/volumes[]/secret/secretName
       kind: Deployment
@@ -180,9 +180,9 @@
       kind: Deployment
     - path: spec/template/spec/initContainers[]/envFrom[]/secretRef/name
       kind: Deployment
-    - path: spec/template/spec/imagePullSecrets/name
+    - path: spec/template/spec/imagePullSecrets[]/name
       kind: Deployment
-    - path: spec/template/spec/volumes[]/projected/sources/secret/name
+    - path: spec/template/spec/volumes[]/projected/sources[]/secret/name
       kind: Deployment
     - path: spec/template/spec/volumes[]/secret/secretName
       kind: ReplicaSet
@@ -194,9 +194,9 @@
       kind: ReplicaSet
     - path: spec/template/spec/initContainers[]/envFrom[]/secretRef/name
       kind: ReplicaSet
-    - path: spec/template/spec/imagePullSecrets/name
+    - path: spec/template/spec/imagePullSecrets[]/name
       kind: ReplicaSet
-    - path: spec/template/spec/volumes[]/projected/sources/secret/name
+    - path: spec/template/spec/volumes[]/projected/sources[]/secret/name
       kind: ReplicaSet
     - path: spec/template/spec/volumes[]/secret/secretName
       kind: DaemonSet
@@ -208,9 +208,9 @@
       kind: DaemonSet
     - path: spec/template/spec/initContainers[]/envFrom[]/secretRef/name
       kind: DaemonSet
-    - path: spec/template/spec/imagePullSecrets/name
+    - path: spec/template/spec/imagePullSecrets[]/name
       kind: DaemonSet
-    - path: spec/template/spec/volumes[]/projected/sources/secret/name
+    - path: spec/template/spec/volumes[]/projected/sources[]/secret/name
       kind: DaemonSet
     - path: spec/template/spec/volumes[]/secret/secretName
       kind: StatefulSet
@@ -222,9 +222,9 @@
       kind: StatefulSet
     - path: spec/template/spec/initContainers[]/envFrom[]/secretRef/name
       kind: StatefulSet
-    - path: spec/template/spec/imagePullSecrets/name
+    - path: spec/template/spec/imagePullSecrets[]/name
       kind: StatefulSet
-    - path: spec/template/spec/volumes[]/projected/sources/secret/name
+    - path: spec/template/spec/volumes[]/projected/sources[]/secret/name
       kind: StatefulSet
     - path: spec/template/spec/volumes[]/secret/secretName
       kind: Job
@@ -236,13 +236,13 @@
       kind: Job
     - path: spec/template/spec/initContainers[]/envFrom[]/secretRef/name
       kind: Job
-    - path: spec/template/spec/imagePullSecrets/name
+    - path: spec/template/spec/imagePullSecrets[]/name
       kind: Job
-    - path: spec/template/spec/volumes[]/projected/sources/secret/name
+    - path: spec/template/spec/volumes[]/projected/sources[]/secret/name
       kind: Job
     - path: spec/jobTemplate/spec/template/spec/volumes[]/secret/secretName
       kind: CronJob
-    - path: spec/jobTemplate/spec/template/spec/volumes[]/projected/sources/secret/name
+    - path: spec/jobTemplate/spec/template/spec/volumes[]/projected/sources[]/secret/name
       kind: CronJob
     - path: spec/jobTemplate/spec/template/spec/containers[]/env[]/valueFrom/secretKeyRef/name
       kind: CronJob
@@ -252,9 +252,9 @@
       kind: CronJob
     - path: spec/jobTemplate/spec/template/spec/initContainers[]/envFrom[]/secretRef/name
       kind: CronJob
-    - path: spec/jobTemplate/spec/template/spec/imagePullSecrets/name
+    - path: spec/jobTemplate/spec/template/spec/imagePullSecrets[]/name
       kind: CronJob
-    - path: spec/tls/secretName
+    - path: spec/tls[]/secretName
       kind: Ingress
     - path: metadata/annotations/ingress.kubernetes.io\/auth-secret
       kind: Ingress
@@ -262,9 +262,9 @@
       kind: Ingress
     - path: metadata/annotations/nginx.ingress.kubernetes.io\/auth-tls-secret
       kind: Ingress
-    - path: spec/tls/secretName
+    - path: spec/tls[]/secretName
       kind: Ingress
-    - path: imagePullSecrets/name
+    - path: imagePullSecrets[]/name
       kind: ServiceAccount
     - path: parameters/secretName
       kind: StorageClass
@@ -274,9 +274,9 @@
       kind: StorageClass
     - path: parameters/secretRef
       kind: StorageClass
-    - path: rules/resourceNames
+    - path: rules[]/resourceNames
       kind: Role
-    - path: rules/resourceNames
+    - path: rules[]/resourceNames
       kind: ClusterRole
     - path: spec/template/spec/containers[]/env[]/valueFrom/secretKeyRef/name
       kind: Service
@@ -291,21 +291,21 @@
     - path: spec/serviceName
       kind: StatefulSet
       group: apps
-    - path: spec/rules/http/paths/backend/serviceName
+    - path: spec/rules[]/http/paths[]/backend/serviceName
       kind: Ingress
     - path: spec/backend/serviceName
       kind: Ingress
-    - path: spec/rules/http/paths/backend/service/name
+    - path: spec/rules[]/http/paths[]/backend/service/name
       kind: Ingress
     - path: spec/defaultBackend/service/name
       kind: Ingress
     - path: spec/service/name
       kind: APIService
       group: apiregistration.k8s.io
-    - path: webhooks/clientConfig/service
+    - path: webhooks[]/clientConfig/service
       kind: ValidatingWebhookConfiguration
       group: admissionregistration.k8s.io
-    - path: webhooks/clientConfig/service
+    - path: webhooks[]/clientConfig/service
       kind: MutatingWebhookConfiguration
       group: admissionregistration.k8s.io
 
@@ -329,10 +329,10 @@
 - kind: ServiceAccount
   version: v1
   referrers:
-    - path: subjects
+    - path: subjects[]
       kind: RoleBinding
       group: rbac.authorization.k8s.io
-    - path: subjects
+    - path: subjects[]
       kind: ClusterRoleBinding
       group: rbac.authorization.k8s.io
     - path: spec/serviceAccountName
@@ -373,7 +373,7 @@
   referrers:
     - path: spec/volumeName
       kind: PersistentVolumeClaim
-    - path: rules/resourceNames
+    - path: rules[]/resourceNames
       kind: ClusterRole
 
 - kind: StorageClass
@@ -384,7 +384,7 @@
       kind: PersistentVolume
     - path: spec/storageClassName
       kind: PersistentVolumeClaim
-    - path: spec/volumeClaimTemplates/spec/storageClassName
+    - path: spec/volumeClaimTemplates[]/spec/storageClassName
       kind: StatefulSet
 
 - kind: PriorityClass

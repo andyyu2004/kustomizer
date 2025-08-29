@@ -73,9 +73,6 @@ impl FromStr for FieldPath {
             .collect::<Result<Box<_>, _>>()?;
 
         match segments.last() {
-            Some(FieldPathSegment::Array(field)) => Err(anyhow::anyhow!(
-                "path cannot end with an array segment `/{field}[]`"
-            ))?,
             None => Err(anyhow::anyhow!("path cannot be empty"))?,
             _ => Ok(FieldPath { segments }),
         }
