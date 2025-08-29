@@ -190,16 +190,16 @@ impl FieldSpecs {
 }
 
 impl FieldSpec {
-    fn apply<T>(
+    pub fn apply<T>(
         &self,
         resource: &mut Resource,
         f: &mut impl FnMut(&mut T) -> anyhow::Result<()>,
-    ) -> anyhow::Result<usize>
+    ) -> anyhow::Result<()>
     where
         T: JsonValue,
     {
         if !self.matcher.matches(resource.id()) {
-            return Ok(0);
+            return Ok(());
         }
 
         fn go<T>(
@@ -207,7 +207,7 @@ impl FieldSpec {
             mut path: PathRef<'_>,
             f: &mut impl FnMut(&mut T) -> anyhow::Result<()>,
             create: bool,
-        ) -> anyhow::Result<usize>
+        ) -> anyhow::Result<()>
         where
             T: JsonValue,
         {
@@ -216,7 +216,7 @@ impl FieldSpec {
                     FieldPathSegment::Field(field) => {
                         if !curr.contains_key(field.as_str()) {
                             if !create {
-                                return Ok(0);
+                                return Ok(());
                             }
 
                             curr.insert(field.to_string(), T::default().into_value());
@@ -225,7 +225,7 @@ impl FieldSpec {
                         let val = curr.get_mut(field.as_str()).unwrap();
                         if path.len() == 1 {
                             f(T::try_as_mut(val)?)?;
-                            return Ok(1);
+                            return Ok(());
                         }
 
                         curr = val.as_object_mut().ok_or_else(|| {
@@ -238,28 +238,27 @@ impl FieldSpec {
                         match curr.get_mut(field.as_str()) {
                             Some(v) => match v.as_array_mut() {
                                 Some(seq) => {
-                                    let mut count = 0;
                                     for item in seq {
                                         if let Some(map) = item.as_object_mut() {
-                                            count += go(map, &path[1..], f, create)?;
+                                            go(map, &path[1..], f, create)?;
                                         }
                                     }
 
-                                    return Ok(count);
+                                    return Ok(());
                                 }
                                 None => bail!(
                                     "expected a sequence at `{field}` but found a different type",
                                 ),
                             },
                             // No point creating an empty array, so `create` has no effect here.
-                            None => return Ok(0),
+                            None => return Ok(()),
                         }
                     }
                 }
                 path = &path[1..];
             }
 
-            Ok(0)
+            Ok(())
         }
 
         go(resource.root_mut(), &self.path, f, self.create)
