@@ -20,18 +20,18 @@ spec:
         - name: DATABASE_URL
           valueFrom:
             configMapKeyRef:
-              name: app-config
+              name: app-config-8h82mm6h4h
               key: database_url
         - name: API_KEY
           valueFrom:
             secretKeyRef:
-              name: app-secrets
+              name: app-secrets-fh282b5md4
               key: api_key
         envFrom:
         - configMapRef:
-            name: app-config
+            name: app-config-8h82mm6h4h
         - secretRef:
-            name: app-secrets
+            name: app-secrets-fh282b5md4
         volumeMounts:
         - name: config-volume
           mountPath: /etc/config
@@ -40,10 +40,10 @@ spec:
       volumes:
       - name: config-volume
         configMap:
-          name: app-config
+          name: app-config-8h82mm6h4h
       - name: secret-volume
         secret:
-          secretName: app-secrets
+          secretName: app-secrets-fh282b5md4
 ---
 apiVersion: apps/v1
 kind: StatefulSet
@@ -67,12 +67,12 @@ spec:
         - name: POSTGRES_PASSWORD
           valueFrom:
             secretKeyRef:
-              name: app-secrets
+              name: app-secrets-fh282b5md4
               key: db_password
         - name: DEBUG_MODE
           valueFrom:
             configMapKeyRef:
-              name: app-config
+              name: app-config-8h82mm6h4h
               key: debug
         volumeMounts:
         - name: config-props
@@ -81,7 +81,7 @@ spec:
       volumes:
       - name: config-props
         configMap:
-          name: app-config
+          name: app-config-8h82mm6h4h
 ---
 apiVersion: v1
 kind: Pod
@@ -96,9 +96,9 @@ spec:
     - '3600'
     envFrom:
     - configMapRef:
-        name: app-config
+        name: app-config-8h82mm6h4h
     - secretRef:
-        name: app-secrets
+        name: app-secrets-fh282b5md4
   initContainers:
   - name: init-config
     image: busybox
@@ -110,7 +110,7 @@ spec:
     - name: DATABASE_URL
       valueFrom:
         configMapKeyRef:
-          name: app-config
+          name: app-config-8h82mm6h4h
           key: database_url
 ---
 apiVersion: batch/v1
@@ -127,12 +127,12 @@ spec:
         - name: DATABASE_URL
           valueFrom:
             configMapKeyRef:
-              name: app-config
+              name: app-config-8h82mm6h4h
               key: database_url
         - name: DB_PASSWORD
           valueFrom:
             secretKeyRef:
-              name: app-secrets
+              name: app-secrets-fh282b5md4
               key: db_password
       restartPolicy: Never
 ---
@@ -156,12 +156,12 @@ spec:
         - name: DEBUG_LEVEL
           valueFrom:
             configMapKeyRef:
-              name: app-config
+              name: app-config-8h82mm6h4h
               key: debug
         - name: API_KEY
           valueFrom:
             secretKeyRef:
-              name: app-secrets
+              name: app-secrets-fh282b5md4
               key: api_key
         volumeMounts:
         - name: app-config
@@ -169,7 +169,7 @@ spec:
       volumes:
       - name: app-config
         configMap:
-          name: app-config
+          name: app-config-8h82mm6h4h
           items:
           - key: config.properties
             path: app.conf

@@ -40,7 +40,16 @@ impl Transformer for RenameTransformer<'_> {
         for rename in self.renames {
             // For every referrer that can refer to this resource
             for referrer in self.ref_specs.referrers(&rename.res_id.gvk) {
-                todo!("{:?} {:?}", rename, referrer);
+                // Search for references in every resource
+                for resource in resources.iter_mut() {
+                    referrer.apply::<String>(resource, &mut |s| {
+                        if s == &rename.res_id.name {
+                            *s = rename.new_name.to_string();
+                        }
+
+                        Ok(())
+                    })?;
+                }
             }
         }
 

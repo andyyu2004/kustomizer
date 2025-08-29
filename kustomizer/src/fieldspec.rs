@@ -9,7 +9,7 @@ use crate::{
     manifest::Str,
     resource::{GvkMatcher, Object, Resource},
 };
-use anyhow::bail;
+use anyhow::{Context as _, bail};
 use serde::{Deserialize, Serialize};
 
 // See kustomize/internal/konfig/builtinpluginconsts
@@ -73,9 +73,9 @@ impl FromStr for FieldPath {
             .collect::<Result<Box<_>, _>>()?;
 
         match segments.last() {
-            Some(FieldPathSegment::Array(_)) => {
-                Err(anyhow::anyhow!("path cannot end with an array segment"))?
-            }
+            Some(FieldPathSegment::Array(field)) => Err(anyhow::anyhow!(
+                "path cannot end with an array segment `/{field}[]`"
+            ))?,
             None => Err(anyhow::anyhow!("path cannot be empty"))?,
             _ => Ok(FieldPath { segments }),
         }
@@ -230,7 +230,7 @@ impl FieldSpec {
 
                         curr = val.as_object_mut().ok_or_else(|| {
                             anyhow::anyhow!(
-                                "expected a mapping at `{field}` but found a different type",
+                                "expected a mapping at `{field}` but found a value of different type",
                             )
                         })?;
                     }
@@ -247,7 +247,7 @@ impl FieldSpec {
                                     return Ok(());
                                 }
                                 None => bail!(
-                                    "expected a sequence at `{field}` but found a different type",
+                                    "expected a sequence at `{field}[]` but found a different type",
                                 ),
                             },
                             // No point creating an empty array, so `create` has no effect here.
@@ -261,7 +261,14 @@ impl FieldSpec {
             Ok(())
         }
 
-        go(resource.root_mut(), &self.path, f, self.create)
+        go(resource.root_mut(), &self.path, f, self.create).with_context(|| {
+            format!(
+                "applying field spec `{}` `{}` to resource {}",
+                self.matcher,
+                self.path,
+                resource.id()
+            )
+        })
     }
 }
 
