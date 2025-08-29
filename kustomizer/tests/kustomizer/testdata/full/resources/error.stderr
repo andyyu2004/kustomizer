@@ -1,5 +1,0 @@
-building kustomization resource tests/kustomizer/testdata/full/resources/base-secrets
-
-Caused by:
-    0: failed generating resources from function spec at tests/kustomizer/testdata/full/resources/base-secrets/secret-generator-ksops.yaml
-    1: expected `v1`, found `config.kubernetes.io/v1`

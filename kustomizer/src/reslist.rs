@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    manifest::{Str, TypeMeta, apiversion, kind},
+    manifest::{TypeMeta, apiversion, kind},
     resmap::ResourceMap,
     resource::Resource,
 };

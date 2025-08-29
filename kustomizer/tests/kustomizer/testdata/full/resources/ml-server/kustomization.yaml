@@ -5,5 +5,3 @@ resources:
   - ml-server-workers
   - ml-server-cron
   - ml-server-ingress.yaml
-generators:
-  - secret-generator-ksops.yaml

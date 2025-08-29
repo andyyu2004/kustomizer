@@ -33,9 +33,15 @@ impl FieldSpec {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Clone, PartialEq, Eq)]
 pub struct FieldPath {
     segments: Box<[FieldPathSegment]>,
+}
+
+impl fmt::Debug for FieldPath {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, r#""{self}""#)
+    }
 }
 
 impl AsRef<[FieldPathSegment]> for FieldPath {
@@ -66,6 +72,7 @@ impl<'a> IntoIterator for &'a FieldPath {
 impl FromStr for FieldPath {
     type Err = anyhow::Error;
 
+    // TODO Need to handle escaping of '/' by '\'
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let segments = s
             .split('/')
@@ -277,7 +284,15 @@ pub trait JsonValue: Default {
         Self: Sized;
 }
 
-// Don't implement for `serde_json::Value` directly, as it is not a good use of the `apply` method I think.
+impl JsonValue for serde_json::Value {
+    fn try_as_mut(value: &mut serde_json::Value) -> anyhow::Result<&mut Self> {
+        Ok(value)
+    }
+
+    fn into_value(self) -> serde_json::Value {
+        self
+    }
+}
 
 impl JsonValue for Object {
     fn try_as_mut(value: &mut serde_json::Value) -> anyhow::Result<&mut Self> {
