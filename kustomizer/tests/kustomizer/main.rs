@@ -101,8 +101,8 @@ fn snapshot(path: &Path, actual: &str) -> datatest_stable::Result<()> {
     }
 
     let chunks = dissimilar::diff(&expected, actual);
-
     let formatted = format_chunks(chunks);
     println!("{formatted}");
-    Err(format!("snapshot mismatch for test {}", path.pretty()))?
+
+    Err(format!("snapshot mismatch {}", path.pretty()))?
 }

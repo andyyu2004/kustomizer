@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: my-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: my-app
+  template:
+    metadata:
+      labels:
+        app: my-app
+    spec:
+      containers:
+      - image: my-image:dev-latest
+        name: my-app
+---
+apiVersion: v1
+data:
+  revision.txt: |
+    dev-rev-123
+kind: ConfigMap
+metadata:
+  name: my-app-revision-hk679t46hb
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: my-app
+spec:
+  ports:
+  - port: 80
+    targetPort: 8080
+  selector:
+    app: my-app

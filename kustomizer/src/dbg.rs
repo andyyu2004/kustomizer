@@ -1,5 +1,9 @@
 use anyhow::{Context, bail};
-use std::{collections::HashSet, path::Path};
+use std::{
+    collections::HashSet,
+    path::Path,
+    process::{Command, Stdio},
+};
 
 use crate::PathExt;
 
@@ -8,15 +12,15 @@ pub fn diff_reference_impl(path: &Path, actual: &str) -> anyhow::Result<()> {
     assert!(path.exists(), "path does not exist: {}", path.pretty());
     assert!(path.is_dir(), "path is not a directory: {}", path.pretty());
 
-    let output = std::process::Command::new("kustomize")
+    let output = Command::new("kustomize")
         .arg("build")
         .arg("--load-restrictor=LoadRestrictionsNone")
         .arg("--enable-alpha-plugins")
         .arg("--enable-exec")
         .arg(".")
         .current_dir(path)
-        .stdout(std::process::Stdio::piped())
-        .stderr(std::process::Stdio::piped())
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
         .output()
         .context("kustomize build")?;
 
@@ -73,12 +77,41 @@ pub fn diff_reference_impl(path: &Path, actual: &str) -> anyhow::Result<()> {
     let expected = expected.join("---\n");
     let tmp_dir = Path::new("/tmp/kustomizer-test").join(path.file_name().unwrap());
     std::fs::create_dir_all(&tmp_dir).context("creating temporary directory")?;
-    std::fs::write(tmp_dir.join("expected.yaml"), &expected)?;
-    std::fs::write(tmp_dir.join("actual.yaml"), &actual)?;
-    let chunks = dissimilar::diff(&expected, &actual);
-    eprintln!("{}", format_chunks(chunks));
+    let actual_path = tmp_dir.join("actual.yaml");
+    let expected_path = tmp_dir.join("expected.yaml");
+    std::fs::write(&expected_path, &expected)?;
+    std::fs::write(&actual_path, &actual)?;
 
-    bail!("reference mismatch for test {}", path.pretty())
+    let output = Command::new("dyff")
+        .arg("between")
+        .arg("--ignore-order-changes")
+        .arg("--ignore-whitespace-changes")
+        .arg("--set-exit-code")
+        .arg(expected_path)
+        .arg(actual_path)
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .current_dir(&tmp_dir)
+        .output()
+        .context("running diff")?;
+
+    match output.status.code() {
+        Some(0) => Ok(()),
+        Some(1) => {
+            let diff = String::from_utf8_lossy(&output.stdout);
+            eprintln!("dyff found differences for {}:\n{diff}", path.pretty());
+            bail!("reference mismatch for test {}", path.pretty())
+        }
+        _ => {
+            let stderr = String::from_utf8_lossy(&output.stderr);
+            eprintln!("dyff failed with error: {stderr}");
+            bail!(
+                "dyff failed for {} with status: {}",
+                path.pretty(),
+                output.status
+            )
+        }
+    }
 }
 
 pub fn format_chunks(chunks: Vec<dissimilar::Chunk<'_>>) -> String {
@@ -91,5 +124,6 @@ pub fn format_chunks(chunks: Vec<dissimilar::Chunk<'_>>) -> String {
         };
         buf.push_str(&formatted);
     }
+
     buf
 }
