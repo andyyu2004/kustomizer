@@ -1,5 +1,6 @@
 use core::fmt;
 use json_patch::Patch as JsonPatch;
+use regex::Regex;
 use std::path::PathBuf;
 
 use crate::{
@@ -15,7 +16,7 @@ pub type Str = CompactString;
 pub type Kustomization = Manifest<apiversion::Beta, kind::Kustomize>;
 pub type Component = Manifest<apiversion::Alpha, kind::Component>;
 
-#[derive(Debug, PartialEq, Eq, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct Manifest<A, K> {
     #[serde(flatten)]
@@ -263,7 +264,7 @@ pub struct Replica {
     pub count: u32,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize)]
 #[serde(untagged, rename_all = "camelCase")]
 // Assuming inline patch is a JSON Patch or a file path for strategic merge patch, not sure if this
 // matches kustomize's exact semantics.
@@ -284,7 +285,7 @@ pub enum Patch {
     },
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub enum Target {
     LabelSelector(Selector),
@@ -304,20 +305,35 @@ impl Target {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct Pattern {
-    pub kind: Str,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub name: Option<Str>,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub namespace: Option<Str>,
+    #[serde(with = "crate::serde_ex::regex")]
+    pub kind: Regex,
+    #[serde(
+        with = "crate::serde_ex::opt_regex",
+        default,
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub name: Option<Regex>,
+    #[serde(
+        with = "crate::serde_ex::opt_regex",
+        default,
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub namespace: Option<Regex>,
 }
 
 impl Pattern {
     pub fn matches(&self, resource: &Resource) -> bool {
-        self.kind == resource.kind()
-            && (self.name.is_none() || self.name.as_ref() == Some(resource.name()))
-            && (self.namespace.is_none() || self.namespace.as_ref() == resource.namespace())
+        self.kind.is_match(resource.kind())
+            && self
+                .name
+                .as_ref()
+                .is_none_or(|re| re.is_match(resource.name()))
+            && self
+                .namespace
+                .as_ref()
+                .is_none_or(|re| resource.namespace().is_some_and(|ns| re.is_match(ns)))
     }
 }
 

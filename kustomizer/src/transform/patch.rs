@@ -46,11 +46,11 @@ impl<A: Send + Sync, K: Send + Sync> Transformer for PatchTransformer<'_, A, K> 
                     }
                     Patch::OutOfLine { path, target } => {
                         let path = self.manifest.parent_path.join(path);
-                        let res = Resource::load(&path).with_context(|| {
+                        let patch = Resource::load(&path).with_context(|| {
                             format!("loading resource from path `{}`", path.pretty())
                         });
 
-                        if let Ok(patch) = res {
+                        if let Ok(patch) = patch {
                             match target {
                                 Some(target) => {
                                     if !target.matches(&resource) {

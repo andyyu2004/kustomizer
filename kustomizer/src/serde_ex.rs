@@ -1,3 +1,63 @@
+pub mod regex {
+    use ::regex::Regex;
+    use serde::{Deserialize, Deserializer, Serializer};
+
+    pub fn serialize<S>(re: &Regex, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        serializer.collect_str(re)
+    }
+
+    pub fn deserialize<'de, D>(deserializer: D) -> Result<Regex, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let s: String = Deserialize::deserialize(deserializer)?;
+        super::anchored_regex(&s).map_err(serde::de::Error::custom)
+    }
+}
+
+fn anchored_regex(s: &str) -> Result<::regex::Regex, ::regex::Error> {
+    if s.starts_with('^') && s.ends_with('$') {
+        ::regex::Regex::new(s)
+    } else if s.starts_with('^') {
+        ::regex::Regex::new(&format!("{s}$"))
+    } else if s.ends_with('$') {
+        ::regex::Regex::new(&format!("^{s}"))
+    } else {
+        ::regex::Regex::new(&format!("^{s}$"))
+    }
+}
+
+pub mod opt_regex {
+    use regex::Regex;
+    use serde::{Deserialize, Deserializer, Serializer};
+
+    pub fn serialize<S>(re: &Option<Regex>, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        match re {
+            Some(re) => super::regex::serialize(re, serializer),
+            None => serializer.serialize_none(),
+        }
+    }
+
+    pub fn deserialize<'de, D>(deserializer: D) -> Result<Option<Regex>, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let opt: Option<String> = Deserialize::deserialize(deserializer)?;
+        match opt {
+            Some(s) => super::anchored_regex(&s)
+                .map(Some)
+                .map_err(serde::de::Error::custom),
+            None => Ok(None),
+        }
+    }
+}
+
 pub mod nested_yaml {
     use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
