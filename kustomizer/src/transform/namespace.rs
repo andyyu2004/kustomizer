@@ -23,8 +23,8 @@ impl Transformer for NamespaceTransformer {
             // Only apply to ServiceAccount subjects named "default" (defaultOnly behavior in kustomize)
             builtin.subjects.apply::<Object>(&mut resource, |subject| {
                 if let Some(kind) = subject.get("kind").and_then(|k| k.as_str())
-                    && let Some(name) = subject.get("name").and_then(|n| n.as_str())
                     && kind::ServiceAccount == *kind
+                    && let Some(name) = subject.get("name").and_then(|n| n.as_str())
                     && name == "default"
                 {
                     subject.insert(

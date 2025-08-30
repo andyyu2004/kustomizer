@@ -49,7 +49,7 @@ impl Builder {
                 self.renames
                     .lock()
                     .await
-                    .push(Rename::new(res.id().clone(), new_name.clone()));
+                    .push(Rename::new_name(res.id().clone(), new_name.clone()));
                 let mut res = res.clone();
                 res.set_name(new_name);
                 resmap.insert(res)?;
@@ -146,6 +146,15 @@ impl Builder {
             .transform(&mut resmap)
             .await?;
         if let Some(namespace) = &kustomization.namespace {
+            for res in resmap.iter() {
+                if res.namespace() != Some(namespace) {
+                    self.renames
+                        .lock()
+                        .await
+                        .push(Rename::new_namespace(res.id().clone(), namespace.clone()));
+                }
+            }
+
             NamespaceTransformer(namespace.clone())
                 .transform(&mut resmap)
                 .await?;
@@ -162,7 +171,7 @@ impl Builder {
         match (&kustomization.name_prefix, &kustomization.name_suffix) {
             (prefix, suffix) if !prefix.is_empty() || !suffix.is_empty() => {
                 self.renames.lock().await.extend(resmap.iter().map(|res| {
-                    Rename::new(
+                    Rename::new_name(
                         res.id().clone(),
                         format_compact!("{prefix}{}{suffix}", res.name()),
                     )

@@ -5,3 +5,7 @@ namespace: test
 
 resources:
   - resources.yaml
+  - crd.yaml
+  - clusterrole.yaml
+  - clusterrolebinding.yaml
+  - persistentvolume.yaml

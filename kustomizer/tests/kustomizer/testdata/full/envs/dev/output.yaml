@@ -75,6 +75,7 @@ metadata:
 subjects:
 - kind: ServiceAccount
   name: block-rollout
+  namespace: example
 roleRef:
   kind: Role
   name: configmap-getter
