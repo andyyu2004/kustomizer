@@ -79,14 +79,6 @@ impl AnnotationsView<'_> {
 pub struct MetadataViewMut<'a>(&'a mut Object);
 
 impl MetadataViewMut<'_> {
-    pub(crate) fn clear_internal_fields(&mut self) {
-        if let Some(mut annotations) = self.annotations_mut() {
-            annotations.remove(annotation::BEHAVIOR);
-            annotations.remove(annotation::FUNCTION);
-            annotations.remove(annotation::NEEDS_HASH);
-        }
-    }
-
     // This is private because it is unsafe to be used alone since the id must also be modified alongside.
     pub(super) fn set_name(&mut self, name: impl Into<String>) {
         self.0
@@ -164,8 +156,11 @@ impl AnnotationsViewMut<'_> {
         );
     }
 
-    pub fn remove(&mut self, key: &str) {
-        self.0.remove(key);
+    pub fn remove(&mut self, key: &str) -> Option<String> {
+        match self.0.remove(key)? {
+            serde_json::Value::String(v) => Some(v),
+            _ => None,
+        }
     }
 
     pub fn iter(&self) -> impl Iterator<Item = (&str, &str)> + '_ {
