@@ -1,6 +1,5 @@
 use anyhow::{Context, bail};
 use base64::{Engine as _, prelude::BASE64_STANDARD};
-use compact_str::format_compact;
 use tokio::io::AsyncBufReadExt as _;
 
 use crate::{
@@ -120,17 +119,16 @@ pub async fn process_key_value_sources(
 
 pub fn name_generated_resource(
     resource: Resource,
-    name: &Str,
+    name: Str,
     disable_name_suffix_hash: Option<bool>,
 ) -> anyhow::Result<Resource> {
+    let mut resource = resource.with_name(name);
     let suffix_hash = disable_name_suffix_hash.map(|v| !v).unwrap_or(true);
-
-    let name = if suffix_hash {
-        let hash = resource.shorthash()?;
-        format_compact!("{name}-{hash}")
-    } else {
-        name.clone()
-    };
-
-    Ok(resource.with_name(name))
+    if suffix_hash {
+        resource
+            .metadata_mut()
+            .make_annotations_mut()
+            .set_needs_hash();
+    }
+    Ok(resource)
 }

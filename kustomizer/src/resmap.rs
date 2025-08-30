@@ -34,10 +34,11 @@ impl fmt::Display for ResourceMap {
 }
 
 impl ResourceMap {
-    pub fn new() -> Self {
-        Self {
-            resources: IndexMap::new(),
-        }
+    pub fn try_new(resources: impl IntoIterator<Item = Resource>) -> anyhow::Result<Self> {
+        let iter = resources.into_iter();
+        let mut resmap = Self::with_capacity(iter.size_hint().0);
+        resmap.extend(iter)?;
+        Ok(resmap)
     }
 
     pub fn with_capacity(capacity: usize) -> Self {

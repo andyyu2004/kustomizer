@@ -97,6 +97,6 @@ impl ConfigMapGenerator<'_> {
             root,
         )?;
 
-        name_generated_resource(config_map, &generator.name, disable_name_suffix_hash)
+        name_generated_resource(config_map, generator.name.clone(), disable_name_suffix_hash)
     }
 }

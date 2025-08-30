@@ -34,12 +34,32 @@ impl Builder {
         &self,
         kustomization: &Located<Kustomization>,
     ) -> anyhow::Result<ResourceMap> {
-        let mut resmap = self.build(Default::default(), kustomization).await?;
+        let resources = self.build(Default::default(), kustomization).await?;
+        let mut resmap = ResourceMap::with_capacity(resources.len());
+
+        for res in resources {
+            if let Some(annotations) = res.annotations()
+                && annotations.needs_hash()
+            {
+                let new_name = format_compact!("{}-{}", res.name(), res.shorthash()?);
+                self.renames
+                    .lock()
+                    .await
+                    .push(Rename::new(res.id().clone(), new_name.clone()));
+                let mut res = res.clone();
+                res.set_name(new_name);
+                resmap.insert(res)?;
+            } else {
+                resmap.insert(res)?;
+            }
+        }
 
         let refspecs = RefSpecs::load_builtin();
         RenameTransformer::new(refspecs, &self.renames.lock().await)
             .transform(&mut resmap)
             .await?;
+
+        CleanupTransformer::default().transform(&mut resmap).await?;
 
         Ok(resmap)
     }
@@ -90,18 +110,6 @@ impl Builder {
         .generate(&kustomization.parent_path, &ResourceList::new([]))
         .await?;
 
-        assert_eq!(configmaps.len(), kustomization.config_map_generators.len());
-        for (cm, g) in configmaps.iter().zip(&kustomization.config_map_generators) {
-            if cm.name() != g.name {
-                let mut res_id = cm.id().clone();
-                res_id.name = g.name.clone();
-                self.renames
-                    .lock()
-                    .await
-                    .push(Rename::new(res_id, cm.name().clone()));
-            }
-        }
-
         resmap.extend(configmaps).with_context(|| {
             format!(
                 "failure merging resources from configmap generators in `{}`",
@@ -115,18 +123,6 @@ impl Builder {
         )
         .generate(&kustomization.parent_path, &ResourceList::new([]))
         .await?;
-
-        assert_eq!(secrets.len(), kustomization.secret_generators.len());
-        for (sec, g) in secrets.iter().zip(&kustomization.secret_generators) {
-            if sec.name() != g.name {
-                let mut res_id = sec.id().clone();
-                res_id.name = g.name.clone();
-                self.renames
-                    .lock()
-                    .await
-                    .push(Rename::new(res_id, sec.name().clone()));
-            }
-        }
 
         resmap.extend(secrets).with_context(|| {
             format!(
@@ -236,8 +232,6 @@ impl Builder {
             resmap = self.build(resmap, &component).await?;
         }
 
-        CleanupTransformer::default().transform(&mut resmap).await?;
-
         Ok(resmap)
     }
 
@@ -330,7 +324,7 @@ impl Builder {
                     )
                 })?
                 .unwrap();
-            let mut generated = FunctionPlugin::new(function_spec)
+            let generated = FunctionPlugin::new(function_spec)
                 .generate(workdir, &ResourceList::new([generator_spec]))
                 .await
                 .with_context(|| {
@@ -339,19 +333,6 @@ impl Builder {
                         path.pretty()
                     )
                 })?;
-
-            for res in &mut generated {
-                if let Some(annotations) = res.annotations()
-                    && annotations.needs_hash()
-                {
-                    let new_name = format_compact!("{}-{}", res.name(), res.shorthash()?);
-                    self.renames
-                        .lock()
-                        .await
-                        .push(Rename::new(res.id().clone(), new_name.clone()));
-                    res.set_name(new_name);
-                }
-            }
 
             Ok(generated)
         } else {

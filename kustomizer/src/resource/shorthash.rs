@@ -59,7 +59,9 @@ fn encode_config_map(resource: &Resource) -> anyhow::Result<String> {
         binary_data,
         data,
         kind: "ConfigMap",
-        name: resource.name().clone(),
+        // To get hashes to match kustomize, we ignore the name here?
+        name: Default::default(),
+        // name: resource.name().clone(),
     };
 
     Ok(serde_json::to_string(&config_map)?)

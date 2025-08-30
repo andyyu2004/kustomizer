@@ -101,6 +101,16 @@ impl MetadataViewMut<'_> {
         );
     }
 
+    pub fn make_annotations_mut(&mut self) -> AnnotationsViewMut<'_> {
+        if !self.0.contains_key("annotations") {
+            self.0.insert(
+                "annotations".to_string(),
+                serde_json::Value::Object(Object::new()),
+            );
+        }
+        self.annotations_mut().unwrap()
+    }
+
     pub fn annotations_mut(&mut self) -> Option<AnnotationsViewMut<'_>> {
         self.0
             .get_mut("annotations")
@@ -166,5 +176,9 @@ impl AnnotationsViewMut<'_> {
                 None
             }
         })
+    }
+
+    pub fn set_needs_hash(&mut self) {
+        self.insert(annotation::NEEDS_HASH, "true");
     }
 }

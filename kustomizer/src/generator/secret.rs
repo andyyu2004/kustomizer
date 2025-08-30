@@ -100,6 +100,6 @@ impl SecretGenerator<'_> {
             root,
         )?;
 
-        name_generated_resource(secret, &generator.name, disable_name_suffix_hash)
+        name_generated_resource(secret, generator.name.clone(), disable_name_suffix_hash)
     }
 }
