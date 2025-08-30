@@ -11,7 +11,7 @@
   create: true
   kind: Deployment
 
-- path: spec/template/spec/affinity/podAffinity/preferredDuringSchedulingIgnoredDuringExecution/podAffinityTerm/labelSelector/matchLabels
+- path: spec/template/spec/affinity/podAffinity/preferredDuringSchedulingIgnoredDuringExecution[]/podAffinityTerm/labelSelector/matchLabels
   create: false
   group: apps
   kind: Deployment
@@ -21,7 +21,7 @@
   group: apps
   kind: Deployment
 
-- path: spec/template/spec/affinity/podAntiAffinity/preferredDuringSchedulingIgnoredDuringExecution/podAffinityTerm/labelSelector/matchLabels
+- path: spec/template/spec/affinity/podAntiAffinity/preferredDuringSchedulingIgnoredDuringExecution[]/podAffinityTerm/labelSelector/matchLabels
   create: false
   group: apps
   kind: Deployment
@@ -49,7 +49,7 @@
   group: apps
   kind: StatefulSet
 
-- path: spec/template/spec/affinity/podAffinity/preferredDuringSchedulingIgnoredDuringExecution/podAffinityTerm/labelSelector/matchLabels
+- path: spec/template/spec/affinity/podAffinity/preferredDuringSchedulingIgnoredDuringExecution[]/podAffinityTerm/labelSelector/matchLabels
   create: false
   group: apps
   kind: StatefulSet
@@ -59,7 +59,7 @@
   group: apps
   kind: StatefulSet
 
-- path: spec/template/spec/affinity/podAntiAffinity/preferredDuringSchedulingIgnoredDuringExecution/podAffinityTerm/labelSelector/matchLabels
+- path: spec/template/spec/affinity/podAntiAffinity/preferredDuringSchedulingIgnoredDuringExecution[]/podAffinityTerm/labelSelector/matchLabels
   create: false
   group: apps
   kind: StatefulSet
