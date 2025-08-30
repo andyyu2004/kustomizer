@@ -133,6 +133,12 @@ impl Builder {
             )
         })?;
 
+        for component in &kustomization.components {
+            let component = load_component(kustomization.parent_path.join(component))
+                .with_context(|| format!("loading component `{}`", component.pretty()))?;
+            resmap = self.build(resmap, &component).await?;
+        }
+
         LabelTransformer(&kustomization.labels)
             .transform(&mut resmap)
             .await?;
@@ -226,12 +232,6 @@ impl Builder {
                     transformer_spec.id()
                 );
             }
-        }
-
-        for component in &kustomization.components {
-            let component = load_component(kustomization.parent_path.join(component))
-                .with_context(|| format!("loading component `{}`", component.pretty()))?;
-            resmap = self.build(resmap, &component).await?;
         }
 
         Ok(resmap)
