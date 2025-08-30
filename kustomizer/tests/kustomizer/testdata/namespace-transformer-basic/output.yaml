@@ -20,7 +20,7 @@ metadata:
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: ns1
+  name: test
 ---
 apiVersion: v1
 kind: ServiceAccount
@@ -41,7 +41,7 @@ metadata:
 subjects:
 - kind: ServiceAccount
   name: default
-  namespace: system
+  namespace: test
 - kind: ServiceAccount
   name: service-account
   namespace: system

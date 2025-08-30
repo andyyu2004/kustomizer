@@ -1,6 +1,4 @@
 - path: subjects[]
   kind: RoleBinding
-  create: true
 - path: subjects[]
   kind: ClusterRoleBinding
-  create: true

@@ -120,7 +120,8 @@ impl fmt::Display for ResId {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Resource {
     id: ResId,
-    root: Object,
+    // This will always be a JSON object, but stored as serde_json::Value for impl convenience
+    root: serde_json::Value,
 }
 
 pub type Object = serde_json::Map<String, serde_json::Value>;
@@ -162,7 +163,10 @@ impl Resource {
             "root must not duplicate metadata"
         );
 
-        Ok(Resource { id, root })
+        Ok(Resource {
+            id,
+            root: serde_json::Value::Object(root),
+        })
     }
 
     pub fn from_parts(id: ResId, mut root: Object) -> anyhow::Result<Self> {
@@ -177,7 +181,13 @@ impl Resource {
 
     pub fn into_parts(self) -> (ResId, Object) {
         let Resource { id, root } = self;
-        (id, root)
+        (
+            id,
+            match root {
+                serde_json::Value::Object(map) => map,
+                _ => panic!("root is always an object"),
+            },
+        )
     }
 
     pub fn set_name(&mut self, name: Str) {
@@ -224,10 +234,14 @@ impl Resource {
     }
 
     pub fn root(&self) -> &Object {
-        &self.root
+        self.root.as_object().expect("root is always an object")
     }
 
     pub fn root_mut(&mut self) -> &mut Object {
+        self.root.as_object_mut().expect("root is always an object")
+    }
+
+    pub(crate) fn root_raw_mut(&mut self) -> &mut serde_json::Value {
         &mut self.root
     }
 
@@ -325,11 +339,11 @@ impl Serialize for Resource {
         };
 
         debug_assert!(
-            self.root.contains_key("metadata"),
+            self.root().contains_key("metadata"),
             "Resource root must contain metadata"
         );
 
-        let mut root = self.root.clone();
+        let mut root = self.root().clone();
         let metadata = root.remove("metadata").unwrap();
 
         let metadata = serde_json::from_value(metadata).expect("invalid metadata");

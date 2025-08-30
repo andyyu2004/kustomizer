@@ -207,7 +207,7 @@ impl FieldSpec {
         }
 
         fn go<T>(
-            mut curr: &mut Object,
+            mut curr: &mut serde_json::Value,
             mut path: PathRef<'_>,
             f: &mut impl FnMut(&mut T) -> anyhow::Result<()>,
             create: bool,
@@ -218,34 +218,35 @@ impl FieldSpec {
             while let Some(segment) = path.first() {
                 match segment {
                     FieldPathSegment::Field(field) => {
-                        if !curr.contains_key(field.as_str()) {
+                        let obj = curr.as_object_mut().ok_or_else(|| {
+                            anyhow::anyhow!(
+                                "expected a mapping at `{}` but found a value of different type",
+                                field
+                            )
+                        })?;
+
+                        if !obj.contains_key(field.as_str()) {
                             if !create {
                                 return Ok(());
                             }
 
-                            curr.insert(field.to_string(), T::default().into_value());
+                            obj.insert(field.to_string(), T::default().into_value());
                         }
 
-                        let val = curr.get_mut(field.as_str()).unwrap();
+                        let val = obj.get_mut(field.as_str()).unwrap();
                         if path.len() == 1 {
                             f(T::try_as_mut(val)?)?;
                             return Ok(());
                         }
 
-                        curr = val.as_object_mut().ok_or_else(|| {
-                            anyhow::anyhow!(
-                                "expected a mapping at `{field}` but found a value of different type",
-                            )
-                        })?;
+                        curr = val;
                     }
                     FieldPathSegment::Array(field) => {
                         match curr.get_mut(field.as_str()) {
                             Some(v) => match v.as_array_mut() {
                                 Some(seq) => {
                                     for item in seq {
-                                        if let Some(map) = item.as_object_mut() {
-                                            go(map, &path[1..], f, create)?;
-                                        }
+                                        go(item, &path[1..], f, create)?;
                                     }
 
                                     return Ok(());
@@ -262,10 +263,12 @@ impl FieldSpec {
                 path = &path[1..];
             }
 
+            f(T::try_as_mut(curr)?)?;
+
             Ok(())
         }
 
-        go(resource.root_mut(), &self.path, f, self.create).with_context(|| {
+        go(resource.root_raw_mut(), &self.path, f, self.create).with_context(|| {
             format!(
                 "applying field spec `{}` `{}` to resource {}",
                 self.matcher,

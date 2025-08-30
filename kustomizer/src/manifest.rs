@@ -404,6 +404,7 @@ pub mod kind {
     define_symbol!(ResourceList = "ResourceList");
     define_symbol!(ImageTagTransformer = "ImageTagTransformer");
     define_symbol!(ServiceAccount = "ServiceAccount");
+    define_symbol!(Namespace = "Namespace");
 }
 
 pub mod apiversion {

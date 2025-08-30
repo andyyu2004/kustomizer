@@ -3,6 +3,7 @@ use crate::{
     manifest::{Str, kind},
     patch::openapi,
     resmap::ResourceMap,
+    resource::Object,
 };
 
 use super::Transformer;
@@ -20,21 +21,23 @@ impl Transformer for NamespaceTransformer {
         for mut resource in std::mem::take(resources) {
             // Quirk of kustomize is to apply namespaces to (cluster) rolebinding subjects too
             // Only apply to ServiceAccount subjects named "default" (defaultOnly behavior in kustomize)
-            builtin
-                .subjects
-                .apply::<serde_json::Value>(&mut resource, |subject| {
-                    if let Some(kind) = subject.get("kind").and_then(|k| k.as_str())
-                        && let Some(name) = subject.get("name").and_then(|n| n.as_str())
-                        && kind::ServiceAccount == *kind
-                        && name == "default"
-                    {
-                        *subject.get_mut("namespace").unwrap() =
-                            serde_json::Value::String(ns.clone());
-                    }
-                    Ok(())
-                })?;
+            builtin.subjects.apply::<Object>(&mut resource, |subject| {
+                if let Some(kind) = subject.get("kind").and_then(|k| k.as_str())
+                    && let Some(name) = subject.get("name").and_then(|n| n.as_str())
+                    && kind::ServiceAccount == *kind
+                    && name == "default"
+                {
+                    subject.insert(
+                        "namespace".to_string(),
+                        serde_json::Value::String(ns.clone()),
+                    );
+                }
+                Ok(())
+            })?;
 
-            if spec.is_namespaced(resource.gvk()) {
+            if kind::Namespace == **resource.kind() {
+                out.insert(resource.with_name(self.0.clone()))?;
+            } else if spec.is_namespaced(resource.gvk()) {
                 out.insert(resource.with_namespace(self.0.clone()))?;
             } else {
                 out.insert(resource)?;
