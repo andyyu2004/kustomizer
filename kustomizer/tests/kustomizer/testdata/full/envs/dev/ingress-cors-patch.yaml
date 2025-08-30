@@ -1,0 +1,10 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: placeholder
+  annotations:
+    nginx.ingress.kubernetes.io/enable-cors: "true"
+    nginx.ingress.kubernetes.io/cors-allow-credentials: "true"
+    nginx.ingress.kubernetes.io/cors-allow-methods: "GET,OPTIONS,POST,PUT,DELETE"
+    nginx.ingress.kubernetes.io/cors-allow-origin: "*"
+    nginx.ingress.kubernetes.io/cors-allow-headers: Accept,Authorization,Cache-Control,Content-Type,DNT,If-Modified-Since,Keep-Alive,Origin,User-Agent,X-Requested-With,x-agx-device-type,x-agx-device-id,x-agx-guest-token,x-agx-store-alias,x-api-key,x-ga-client-id,example-store-id,example-graphql-operation,example-accept-currency,example-organization-id,example-storefront-key,example-uvdb-region-id,baggage,Sentry-Trace,traceparent

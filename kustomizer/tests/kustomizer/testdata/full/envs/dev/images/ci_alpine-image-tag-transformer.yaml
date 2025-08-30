@@ -1,0 +1,8 @@
+apiVersion: builtin
+kind: ImageTagTransformer
+metadata:
+  name: ci_alpine-itt
+imageTag:
+  name: ci_alpine-image
+  newName: docker.io/example/ci_alpine
+  newTag: f2734561bf63d2a8fa14b8a32ae0b869634dc3e8

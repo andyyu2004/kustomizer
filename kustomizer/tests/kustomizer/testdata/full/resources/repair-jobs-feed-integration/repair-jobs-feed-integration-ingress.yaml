@@ -7,7 +7,7 @@ metadata:
 spec:
   ingressClassName: nginx
   rules:
-    - host: repair-jobs-feed-integration.{{ .SUBDOMAIN }}partly.{{ .TLD }}
+    - host: repair-jobs-feed-integration.{{ .SUBDOMAIN }}example.{{ .TLD }}
       http:
         paths:
           - backend:
@@ -19,5 +19,5 @@ spec:
             pathType: ImplementationSpecific
   tls:
     - hosts:
-        - repair-jobs-feed-integration.{{ .SUBDOMAIN }}partly.{{ .TLD }}
+        - repair-jobs-feed-integration.{{ .SUBDOMAIN }}example.{{ .TLD }}
       secretName: repair-jobs-feed-integration-ingress-tls

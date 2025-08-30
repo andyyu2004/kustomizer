@@ -7,7 +7,7 @@ metadata:
 spec:
   ingressClassName: nginx
   rules:
-    - host: dataqa-api-rs.{{ .SUBDOMAIN }}partly.{{ .TLD }}
+    - host: dataqa-api-rs.{{ .SUBDOMAIN }}example.{{ .TLD }}
       http:
         paths:
           - backend:
@@ -19,5 +19,5 @@ spec:
             pathType: ImplementationSpecific
   tls:
     - hosts:
-        - dataqa-api-rs.{{ .SUBDOMAIN }}partly.{{ .TLD }}
+        - dataqa-api-rs.{{ .SUBDOMAIN }}example.{{ .TLD }}
       secretName: dataqa-api-rs-ingress-tls

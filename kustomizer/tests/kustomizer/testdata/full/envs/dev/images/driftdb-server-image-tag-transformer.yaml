@@ -1,0 +1,8 @@
+apiVersion: builtin
+kind: ImageTagTransformer
+metadata:
+  name: driftdb-server-itt
+imageTag:
+  name: driftdb-server-image
+  newName: docker.io/example/driftdb_server
+  newTag: 8fa199db8735c8470c2aa4f79b5b4459583831f5

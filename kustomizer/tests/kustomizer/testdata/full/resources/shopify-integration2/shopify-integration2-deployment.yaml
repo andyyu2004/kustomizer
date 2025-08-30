@@ -15,7 +15,7 @@ spec:
             - name: shopify_integration2__LOGGING__LEVEL
               value: info
             - name: SHOPIFY_INTEGRATION2_BASE_URL
-              value: https://shopify-integration.integrations.partly.com
+              value: https://shopify-integration.integrations.example.com
             - name: SHOPIFY_INTEGRATION_SCEHMA_ID
               value: SHOPIFY_2
             - name: SHOPIFY_INTEGRATION_ENABLE_WEBHOOKS

@@ -1,0 +1,8 @@
+apiVersion: builtin
+kind: ImageTagTransformer
+metadata:
+  name: devbox-itt
+imageTag:
+  name: devbox-image
+  newName: docker.io/example/devbox
+  newTag: 8d50fb759156429c6207fe972e68c0865a1b6684

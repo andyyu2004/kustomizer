@@ -7,7 +7,7 @@ metadata:
 spec:
   ingressClassName: nginx
   rules:
-    - host: api.repairer.{{ .SUBDOMAIN }}partly.{{ .TLD }}
+    - host: api.repairer.{{ .SUBDOMAIN }}example.{{ .TLD }}
       http:
         paths:
           - backend:
@@ -19,5 +19,5 @@ spec:
             pathType: ImplementationSpecific
   tls:
     - hosts:
-        - api.repairer.{{ .SUBDOMAIN }}partly.{{ .TLD }}
+        - api.repairer.{{ .SUBDOMAIN }}example.{{ .TLD }}
       secretName: repairer-server-ingress-tls

@@ -1,0 +1,8 @@
+apiVersion: builtin
+kind: ImageTagTransformer
+metadata:
+  name: api-scraper-itt
+imageTag:
+  name: api-scraper-image
+  newName: docker.io/example/api_scraper
+  newTag: 3e39d9c52eedd4e3afc18ee22d44fc0a9e3845d4

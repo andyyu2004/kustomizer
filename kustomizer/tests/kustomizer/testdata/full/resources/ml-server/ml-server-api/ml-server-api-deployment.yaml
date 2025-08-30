@@ -32,10 +32,10 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: metadata.name
-            - name: PARTLY_ENVIRONMENT
+            - name: example_ENVIRONMENT
               valueFrom:
                 configMapKeyRef:
-                  key: PARTLY_ENVIRONMENT
+                  key: example_ENVIRONMENT
                   name: base-configs
             - name: GOOGLE_APPLICATION_CREDENTIALS
               value: /var/gcp-credentials/credentials.json

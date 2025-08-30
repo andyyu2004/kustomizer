@@ -45,9 +45,9 @@ spec:
             - name: PGBOUNCER_PORT
               value: "6432"
             - name: POSTGRESQL_DATABASE
-              value: partly
+              value: example
             - name: PGBOUNCER_DATABASE
-              value: partly
+              value: example
             - name: POSTGRESQL_HOST
               valueFrom:
                 configMapKeyRef:

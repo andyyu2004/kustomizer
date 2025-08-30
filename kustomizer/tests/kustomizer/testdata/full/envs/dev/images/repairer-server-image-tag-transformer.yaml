@@ -1,0 +1,8 @@
+apiVersion: builtin
+kind: ImageTagTransformer
+metadata:
+  name: repairer-server-itt
+imageTag:
+  name: repairer-server-image
+  newName: docker.io/example/repairer_server
+  newTag: b10c9da2761b6dd9307fafe2b946a60021284c0e

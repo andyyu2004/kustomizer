@@ -18,7 +18,7 @@ spec:
                   key: PG_DB_BOUNCER_HOST
                   name: base-configs
             - name: PRISMA_DB_URL
-              value: postgresql://$(PG_DB_USERNAME_NODE_API):$(PG_DB_PASSWORD_NODE_API)@$(PG_DB_HOST):$(PG_DB_PORT)/$(PG_DB_DATABASE)?schema=partly&application_name=node-api&connection_limit=100&pool_timeout=120&pgbouncer=true
+              value: postgresql://$(PG_DB_USERNAME_NODE_API):$(PG_DB_PASSWORD_NODE_API)@$(PG_DB_HOST):$(PG_DB_PORT)/$(PG_DB_DATABASE)?schema=example&application_name=node-api&connection_limit=100&pool_timeout=120&pgbouncer=true
             - name: NODE_OPTIONS
               value: --max-old-space-size=3072
             - name: APOLLO_SERVER_PLATFORM

@@ -1,4 +1,4 @@
-apiVersion: cloudflare.partly.com/v1
+apiVersion: cloudflare.example.com/v1
 kind: CloudflareWorker
 metadata:
   name: mfe-router
@@ -10,7 +10,7 @@ spec:
       name: mfe-router-worker
       key: worker.js
   route:
-    pattern: app.placeholder.partly.pro # Will be patched per environment
+    pattern: app.placeholder.example.pro # Will be patched per environment
   vars:
     APP_VERSIONS: # Will be patched by release script
       placeholder: "placeholder"

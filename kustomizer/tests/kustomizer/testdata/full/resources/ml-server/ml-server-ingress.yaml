@@ -7,7 +7,7 @@ metadata:
 spec:
   ingressClassName: nginx
   rules:
-    - host: mls.{{ .SUBDOMAIN }}partly.{{ .TLD }}
+    - host: mls.{{ .SUBDOMAIN }}example.{{ .TLD }}
       http:
         paths:
           - backend:
@@ -19,5 +19,5 @@ spec:
             pathType: ImplementationSpecific
   tls:
     - hosts:
-        - mls.{{ .SUBDOMAIN }}partly.{{ .TLD }}
+        - mls.{{ .SUBDOMAIN }}example.{{ .TLD }}
       secretName: ml-server-ingress-tls

@@ -11,7 +11,7 @@ metadata:
 spec:
   ingressClassName: nginx
   rules:
-    - host: api.{{ .SUBDOMAIN }}partly.{{ .TLD }}
+    - host: api.{{ .SUBDOMAIN }}example.{{ .TLD }}
       http:
         paths:
           - backend:
@@ -24,4 +24,4 @@ spec:
   tls:
     - secretName: core-server-ingress-tls
       hosts:
-        - api.{{ .SUBDOMAIN }}partly.{{ .TLD }}
+        - api.{{ .SUBDOMAIN }}example.{{ .TLD }}

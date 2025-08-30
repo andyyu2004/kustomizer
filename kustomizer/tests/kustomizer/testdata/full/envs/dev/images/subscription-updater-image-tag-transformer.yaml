@@ -1,0 +1,8 @@
+apiVersion: builtin
+kind: ImageTagTransformer
+metadata:
+  name: subscription-updater-itt
+imageTag:
+  name: subscription-updater-image
+  newName: docker.io/example/subscription_updater
+  newTag: 708815140b16f8963e7b485586dc69b7bfffac41

@@ -1,0 +1,42 @@
+apiVersion: scylla.scylladb.com/v1
+kind: ScyllaCluster
+metadata:
+  name: scylla
+spec:
+  datacenter:
+    name: dc1
+    racks:
+      - name: rack1
+        members: 1
+        storage:
+          capacity: 50Gi
+          storageClassName: longhorn
+        resources:
+          requests:
+            cpu: 1
+            memory: 4Gi
+          limits:
+            cpu: 1
+            memory: 4Gi
+        placement:
+          podAntiAffinity:
+            preferredDuringSchedulingIgnoredDuringExecution:
+              - weight: 100
+                podAffinityTerm:
+                  labelSelector:
+                    matchExpressions:
+                      - key: app
+                        operator: In
+                        values:
+                          - scylla
+                  topologyKey: kubernetes.io/hostname
+                  # Empty selector matches all namespaces, null or omitted matches only the pod's namespace
+                  namespaceSelector: {}
+          nodeAffinity:
+            requiredDuringSchedulingIgnoredDuringExecution:
+              nodeSelectorTerms:
+                - matchExpressions:
+                    - key: kubernetes.io/os
+                      operator: In
+                      values:
+                        - linux

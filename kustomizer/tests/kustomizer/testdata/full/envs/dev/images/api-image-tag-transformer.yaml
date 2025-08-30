@@ -1,0 +1,8 @@
+apiVersion: builtin
+kind: ImageTagTransformer
+metadata:
+  name: api-itt
+imageTag:
+  name: api-image
+  newName: docker.io/example/api
+  newTag: cb26e993e33fec9294cf3a0253df9fff61e17079

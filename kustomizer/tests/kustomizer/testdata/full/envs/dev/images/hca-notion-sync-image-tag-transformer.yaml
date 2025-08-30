@@ -1,0 +1,8 @@
+apiVersion: builtin
+kind: ImageTagTransformer
+metadata:
+  name: hca-notion-sync-itt
+imageTag:
+  name: hca-notion-sync-image
+  newName: docker.io/example/hca_notion_sync
+  newTag: cff33221611a749264c2294278b4bfeeb42e4868

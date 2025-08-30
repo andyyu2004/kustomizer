@@ -7,7 +7,7 @@ metadata:
 spec:
   ingressClassName: nginx
   rules:
-    - host: shopify-integration2.{{ .SUBDOMAIN }}partly.{{ .TLD }}
+    - host: shopify-integration2.{{ .SUBDOMAIN }}example.{{ .TLD }}
       http:
         paths:
           - backend:
@@ -19,5 +19,5 @@ spec:
             pathType: ImplementationSpecific
   tls:
     - hosts:
-        - shopify-integration2.{{ .SUBDOMAIN }}partly.{{ .TLD }}
+        - shopify-integration2.{{ .SUBDOMAIN }}example.{{ .TLD }}
       secretName: shopify-integration2-ingress-tls

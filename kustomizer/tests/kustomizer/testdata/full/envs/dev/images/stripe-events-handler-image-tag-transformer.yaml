@@ -1,0 +1,8 @@
+apiVersion: builtin
+kind: ImageTagTransformer
+metadata:
+  name: stripe-events-handler-itt
+imageTag:
+  name: stripe-events-handler-image
+  newName: docker.io/example/stripe_events_handler
+  newTag: dc37ae031c4ca5476ccc06924baac877bbe4fe03

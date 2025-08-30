@@ -1,0 +1,8 @@
+apiVersion: builtin
+kind: ImageTagTransformer
+metadata:
+  name: ml-server-itt
+imageTag:
+  name: ml-server-image
+  newName: docker.io/example/ml_server
+  newTag: a31d8f6add740b74f73d5c38abe65855d6774efd

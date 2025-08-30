@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: scylla
+spec:
+  type: LoadBalancer
+  loadBalancerClass: tailscale
+  selector:
+    app: scylla
+  ports:
+    - name: cql
+      port: 9042
+      targetPort: cql
+      protocol: TCP

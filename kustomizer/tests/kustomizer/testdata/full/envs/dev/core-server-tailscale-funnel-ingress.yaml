@@ -1,0 +1,16 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: core-server-funnel
+  annotations:
+    tailscale.com/funnel: "true"
+spec:
+  ingressClassName: tailscale
+  tls:
+    - hosts:
+        - "core-server-{{ .ENV }}"
+  defaultBackend:
+    service:
+      name: example-core-server
+      port:
+        number: 80

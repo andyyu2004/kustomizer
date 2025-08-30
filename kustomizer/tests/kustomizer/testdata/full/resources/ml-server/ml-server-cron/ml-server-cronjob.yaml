@@ -31,10 +31,10 @@ spec:
                     configMapKeyRef:
                       key: OTEL_EXPORTER_OTLP_ENDPOINT
                       name: base-configs
-                - name: PARTLY_ENVIRONMENT
+                - name: example_ENVIRONMENT
                   valueFrom:
                     configMapKeyRef:
-                      key: PARTLY_ENVIRONMENT
+                      key: example_ENVIRONMENT
                       name: base-configs
                 - name: PG_DB_HOST
                   valueFrom:

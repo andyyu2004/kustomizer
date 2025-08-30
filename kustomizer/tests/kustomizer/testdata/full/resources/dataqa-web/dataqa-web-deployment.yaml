@@ -43,15 +43,15 @@ spec:
       initContainers:
         - env:
             - name: API_URL
-              value: https://api.{{ .SUBDOMAIN }}partly.{{ .TLD }}
+              value: https://api.{{ .SUBDOMAIN }}example.{{ .TLD }}
             - name: APP_URL
-              value: https://dataqa.{{ .SUBDOMAIN }}partly.{{ .TLD }}
+              value: https://dataqa.{{ .SUBDOMAIN }}example.{{ .TLD }}
             - name: DATAQA_API_RS_URL
-              value: https://dataqa-api-rs.{{ .SUBDOMAIN }}partly.{{ .TLD }}
+              value: https://dataqa-api-rs.{{ .SUBDOMAIN }}example.{{ .TLD }}
             - name: SOURCE_PATH
               value: /app/dist/
             - name: ASSET_URL
-              value: https://cdn.partly.com/assets/dataqa/
+              value: https://cdn.example.com/assets/dataqa/
             - name: DEST_PATH
               value: /tmp/www/dataqa-web
             - name: DATAQA_API_URL

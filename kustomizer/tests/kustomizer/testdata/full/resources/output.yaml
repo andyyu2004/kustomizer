@@ -3,7 +3,7 @@ apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: block-rollout
-  namespace: partly
+  namespace: example
   annotations:
     argocd.argoproj.io/hook: Sync
     argocd.argoproj.io/sync-wave: '-3'
@@ -13,7 +13,7 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
   name: configmap-getter
-  namespace: partly
+  namespace: example
   annotations:
     argocd.argoproj.io/hook: Sync
     argocd.argoproj.io/sync-wave: '-3'
@@ -30,7 +30,7 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
   name: block-rollout-rolebinding
-  namespace: partly
+  namespace: example
   annotations:
     argocd.argoproj.io/hook: Sync
     argocd.argoproj.io/sync-wave: '-3'
@@ -47,7 +47,7 @@ apiVersion: batch/v1
 kind: Job
 metadata:
   name: block-rollout
-  namespace: partly
+  namespace: example
   annotations:
     argocd.argoproj.io/hook: Sync
     argocd.argoproj.io/sync-wave: '-3'
@@ -82,18 +82,18 @@ spec:
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: base-configs-cbc6h26dgf
-  namespace: partly
+  name: base-configs-tg98dfhhkg
+  namespace: example
   annotations:
     argocd.argoproj.io/sync-wave: '-5'
 data:
-  ENV: dev
+  ENV: base
 ---
 apiVersion: v1
 kind: Secret
 metadata:
   name: base-secrets-56cb2c6hhd
-  namespace: partly
+  namespace: example
   annotations:
     argocd.argoproj.io/sync-wave: '-5'
 data:
@@ -104,7 +104,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: example-core-server
-  namespace: partly
+  namespace: example
   labels:
     app.kubernetes.io/name: core-server
 spec:
@@ -126,7 +126,7 @@ spec:
         - secretRef:
             name: base-secrets-56cb2c6hhd
         - configMapRef:
-            name: base-configs-cbc6h26dgf
+            name: base-configs-tg98dfhhkg
         image: core-server-image
         imagePullPolicy: IfNotPresent
         livenessProbe:
@@ -172,7 +172,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: example-core-server
-  namespace: partly
+  namespace: example
   labels:
     app.kubernetes.io/name: core-server
 spec:
@@ -192,7 +192,7 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: example-core-server
-  namespace: partly
+  namespace: example
   labels:
     app.kubernetes.io/name: core-server
   annotations:
@@ -202,7 +202,7 @@ metadata:
 spec:
   ingressClassName: nginx
   rules:
-  - host: api.{{ .SUBDOMAIN }}partly.{{ .TLD }}
+  - host: api.{{ .SUBDOMAIN }}example.{{ .TLD }}
     http:
       paths:
       - backend:
@@ -215,13 +215,13 @@ spec:
   tls:
   - secretName: core-server-ingress-tls
     hosts:
-    - api.{{ .SUBDOMAIN }}partly.{{ .TLD }}
+    - api.{{ .SUBDOMAIN }}example.{{ .TLD }}
 ---
 apiVersion: batch/v1
 kind: CronJob
 metadata:
   name: example-currency-updater-cron
-  namespace: partly
+  namespace: example
   labels:
     app.kubernetes.io/name: currency-updater
 spec:
@@ -242,7 +242,7 @@ spec:
             - secretRef:
                 name: base-secrets-56cb2c6hhd
             - configMapRef:
-                name: base-configs-cbc6h26dgf
+                name: base-configs-tg98dfhhkg
             image: currency-updater-image
             name: example-currency-updater-cron
         metadata:
@@ -256,7 +256,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: example-data-ingestor
-  namespace: partly
+  namespace: example
   labels:
     app.kubernetes.io/name: data-ingestor
 spec:
@@ -278,7 +278,7 @@ spec:
         - secretRef:
             name: base-secrets-56cb2c6hhd
         - configMapRef:
-            name: base-configs-cbc6h26dgf
+            name: base-configs-tg98dfhhkg
         image: data-ingestor-image
         imagePullPolicy: IfNotPresent
         livenessProbe:
@@ -324,7 +324,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: example-data-ingestor
-  namespace: partly
+  namespace: example
   labels:
     app.kubernetes.io/name: data-ingestor
 spec:
@@ -344,7 +344,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: example-dataqa-api-rs
-  namespace: partly
+  namespace: example
   labels:
     app.kubernetes.io/name: dataqa-api-rs
 spec:
@@ -358,7 +358,7 @@ spec:
         - name: OTEL_SERVICE_NAME
           value: dataqa-api-rs
         - name: DATAQA_API_RS__UPLOAD__AWS_OPTIONS__CDN_BASE_URL
-          value: https://cdn.partly.com/
+          value: https://cdn.example.com/
         - name: SOURCE_VERSION
           valueFrom:
             configMapKeyRef:
@@ -368,7 +368,7 @@ spec:
         - secretRef:
             name: base-secrets-56cb2c6hhd
         - configMapRef:
-            name: base-configs-cbc6h26dgf
+            name: base-configs-tg98dfhhkg
         image: dataqa-api-rs-image
         imagePullPolicy: IfNotPresent
         livenessProbe:
@@ -414,7 +414,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: example-dataqa-api-rs
-  namespace: partly
+  namespace: example
   labels:
     app.kubernetes.io/name: dataqa-api-rs
 spec:
@@ -434,7 +434,7 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: example-dataqa-api-rs
-  namespace: partly
+  namespace: example
   labels:
     app.kubernetes.io/name: dataqa-api-rs
   annotations:
@@ -442,7 +442,7 @@ metadata:
 spec:
   ingressClassName: nginx
   rules:
-  - host: dataqa-api-rs.{{ .SUBDOMAIN }}partly.{{ .TLD }}
+  - host: dataqa-api-rs.{{ .SUBDOMAIN }}example.{{ .TLD }}
     http:
       paths:
       - backend:
@@ -454,14 +454,14 @@ spec:
         pathType: ImplementationSpecific
   tls:
   - hosts:
-    - dataqa-api-rs.{{ .SUBDOMAIN }}partly.{{ .TLD }}
+    - dataqa-api-rs.{{ .SUBDOMAIN }}example.{{ .TLD }}
     secretName: dataqa-api-rs-ingress-tls
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: example-dataqa-web
-  namespace: partly
+  namespace: example
   labels:
     app.kubernetes.io/name: dataqa-web
 spec:
@@ -510,15 +510,15 @@ spec:
       initContainers:
       - env:
         - name: API_URL
-          value: https://api.{{ .SUBDOMAIN }}partly.{{ .TLD }}
+          value: https://api.{{ .SUBDOMAIN }}example.{{ .TLD }}
         - name: APP_URL
-          value: https://dataqa.{{ .SUBDOMAIN }}partly.{{ .TLD }}
+          value: https://dataqa.{{ .SUBDOMAIN }}example.{{ .TLD }}
         - name: DATAQA_API_RS_URL
-          value: https://dataqa-api-rs.{{ .SUBDOMAIN }}partly.{{ .TLD }}
+          value: https://dataqa-api-rs.{{ .SUBDOMAIN }}example.{{ .TLD }}
         - name: SOURCE_PATH
           value: /app/dist/
         - name: ASSET_URL
-          value: https://cdn.partly.com/assets/dataqa/
+          value: https://cdn.example.com/assets/dataqa/
         - name: DEST_PATH
           value: /tmp/www/dataqa-web
         - name: DATAQA_API_URL
@@ -549,7 +549,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: example-dataqa-web
-  namespace: partly
+  namespace: example
   labels:
     app.kubernetes.io/name: dataqa-web
 spec:
@@ -569,7 +569,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: dataqa-web-nginx-conf
-  namespace: partly
+  namespace: example
   labels:
     app.kubernetes.io/name: dataqa-web
 data:
@@ -601,7 +601,7 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: example-dataqa-web
-  namespace: partly
+  namespace: example
   labels:
     app.kubernetes.io/name: dataqa-web
   annotations:
@@ -609,7 +609,7 @@ metadata:
 spec:
   ingressClassName: nginx
   rules:
-  - host: dataqa.{{ .SUBDOMAIN }}partly.{{ .TLD }}
+  - host: dataqa.{{ .SUBDOMAIN }}example.{{ .TLD }}
     http:
       paths:
       - backend:
@@ -621,14 +621,14 @@ spec:
         pathType: ImplementationSpecific
   tls:
   - hosts:
-    - dataqa.{{ .SUBDOMAIN }}partly.{{ .TLD }}
+    - dataqa.{{ .SUBDOMAIN }}example.{{ .TLD }}
     secretName: dataqa-web-ingress-tls
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: example-driftdb-server
-  namespace: partly
+  namespace: example
   labels:
     app.kubernetes.io/name: driftdb-server
 spec:
@@ -650,7 +650,7 @@ spec:
         - secretRef:
             name: base-secrets-56cb2c6hhd
         - configMapRef:
-            name: base-configs-cbc6h26dgf
+            name: base-configs-tg98dfhhkg
         image: driftdb-server-image
         imagePullPolicy: IfNotPresent
         name: driftdb-server
@@ -676,7 +676,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: example-driftdb-server
-  namespace: partly
+  namespace: example
   labels:
     app.kubernetes.io/name: driftdb-server
 spec:
@@ -696,7 +696,7 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: example-driftdb-server
-  namespace: partly
+  namespace: example
   labels:
     app.kubernetes.io/name: driftdb-server
   annotations:
@@ -704,7 +704,7 @@ metadata:
 spec:
   ingressClassName: nginx
   rules:
-  - host: api.{{ .SUBDOMAIN }}partly.{{ .TLD }}
+  - host: api.{{ .SUBDOMAIN }}example.{{ .TLD }}
     http:
       paths:
       - backend:
@@ -716,14 +716,14 @@ spec:
         pathType: ImplementationSpecific
   tls:
   - hosts:
-    - api.{{ .SUBDOMAIN }}partly.{{ .TLD }}
+    - api.{{ .SUBDOMAIN }}example.{{ .TLD }}
     secretName: driftdb-server-ingress-tls
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: example-elasticsearch-ingestor-high
-  namespace: partly
+  namespace: example
   labels:
     app.kubernetes.io/name: elasticsearch-ingestor-high
 spec:
@@ -749,7 +749,7 @@ spec:
         - secretRef:
             name: base-secrets-56cb2c6hhd
         - configMapRef:
-            name: base-configs-cbc6h26dgf
+            name: base-configs-tg98dfhhkg
         image: elasticsearch-ingestor-image
         imagePullPolicy: IfNotPresent
         livenessProbe:
@@ -795,7 +795,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: example-elasticsearch-ingestor-high
-  namespace: partly
+  namespace: example
   labels:
     app.kubernetes.io/name: elasticsearch-ingestor-high
 spec:
@@ -815,7 +815,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: example-elasticsearch-ingestor-low
-  namespace: partly
+  namespace: example
   labels:
     app.kubernetes.io/name: elasticsearch-ingestor-low
 spec:
@@ -841,7 +841,7 @@ spec:
         - secretRef:
             name: base-secrets-56cb2c6hhd
         - configMapRef:
-            name: base-configs-cbc6h26dgf
+            name: base-configs-tg98dfhhkg
         image: elasticsearch-ingestor-image
         imagePullPolicy: IfNotPresent
         livenessProbe:
@@ -887,7 +887,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: example-elasticsearch-ingestor-low
-  namespace: partly
+  namespace: example
   labels:
     app.kubernetes.io/name: elasticsearch-ingestor-low
 spec:
@@ -907,7 +907,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: example-elasticsearch-ingestor-rs
-  namespace: partly
+  namespace: example
   labels:
     app.kubernetes.io/name: elasticsearch-ingestor-rs
 spec:
@@ -929,7 +929,7 @@ spec:
         - secretRef:
             name: base-secrets-56cb2c6hhd
         - configMapRef:
-            name: base-configs-cbc6h26dgf
+            name: base-configs-tg98dfhhkg
         image: elasticsearch-ingestor-rs-image
         imagePullPolicy: IfNotPresent
         livenessProbe:
@@ -975,7 +975,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: example-elasticsearch-ingestor-rs
-  namespace: partly
+  namespace: example
   labels:
     app.kubernetes.io/name: elasticsearch-ingestor-rs
 spec:
@@ -995,7 +995,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: example-email-integration
-  namespace: partly
+  namespace: example
   labels:
     app.kubernetes.io/name: email-integration
 spec:
@@ -1017,7 +1017,7 @@ spec:
         - secretRef:
             name: base-secrets-56cb2c6hhd
         - configMapRef:
-            name: base-configs-cbc6h26dgf
+            name: base-configs-tg98dfhhkg
         image: email-integration-image
         imagePullPolicy: IfNotPresent
         livenessProbe:
@@ -1058,7 +1058,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: example-email-integration
-  namespace: partly
+  namespace: example
   labels:
     app.kubernetes.io/name: email-integration
 spec:
@@ -1078,7 +1078,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: example-file-ingestor
-  namespace: partly
+  namespace: example
   labels:
     app.kubernetes.io/name: file-ingestor
 spec:
@@ -1100,7 +1100,7 @@ spec:
         - secretRef:
             name: base-secrets-56cb2c6hhd
         - configMapRef:
-            name: base-configs-cbc6h26dgf
+            name: base-configs-tg98dfhhkg
         image: file-ingestor-image
         imagePullPolicy: IfNotPresent
         livenessProbe:
@@ -1146,7 +1146,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: example-file-ingestor
-  namespace: partly
+  namespace: example
   labels:
     app.kubernetes.io/name: file-ingestor
 spec:
@@ -1166,7 +1166,7 @@ apiVersion: batch/v1
 kind: CronJob
 metadata:
   name: example-garbage-collector-cron
-  namespace: partly
+  namespace: example
   labels:
     app.kubernetes.io/name: garbage-collector
 spec:
@@ -1187,7 +1187,7 @@ spec:
             - secretRef:
                 name: base-secrets-56cb2c6hhd
             - configMapRef:
-                name: base-configs-cbc6h26dgf
+                name: base-configs-tg98dfhhkg
             image: garbage-collector-image
             name: garbage-collector
         metadata:
@@ -1201,7 +1201,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: example-hca-notion-sync
-  namespace: partly
+  namespace: example
   labels:
     app.kubernetes.io/name: hca-notion-sync
 spec:
@@ -1227,7 +1227,7 @@ spec:
         - secretRef:
             name: base-secrets-56cb2c6hhd
         - configMapRef:
-            name: base-configs-cbc6h26dgf
+            name: base-configs-tg98dfhhkg
         image: hca-notion-sync-image
         imagePullPolicy: IfNotPresent
         livenessProbe:
@@ -1273,7 +1273,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: example-hca-notion-sync
-  namespace: partly
+  namespace: example
   labels:
     app.kubernetes.io/name: hca-notion-sync
 spec:
@@ -1293,7 +1293,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: example-lookup-scanner
-  namespace: partly
+  namespace: example
   labels:
     app.kubernetes.io/name: lookup-scanner
 spec:
@@ -1313,7 +1313,7 @@ spec:
         - name: LOOKUP_SCANNER__SYSTEM__AWS_OPTIONS__S3_BUCKET_PUBLIC
           value: example-staging-cdn
         - name: LOOKUP_SCANNER__SYSTEM__AWS_OPTIONS__CDN_BASE_URL
-          value: https://cdn.partly.pro/
+          value: https://cdn.example.pro/
         - name: SOURCE_VERSION
           valueFrom:
             configMapKeyRef:
@@ -1323,7 +1323,7 @@ spec:
         - secretRef:
             name: base-secrets-56cb2c6hhd
         - configMapRef:
-            name: base-configs-cbc6h26dgf
+            name: base-configs-tg98dfhhkg
         image: lookup-scanner-image
         imagePullPolicy: IfNotPresent
         livenessProbe:
@@ -1369,7 +1369,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: example-lookup-scanner
-  namespace: partly
+  namespace: example
   labels:
     app.kubernetes.io/name: lookup-scanner
 spec:
@@ -1389,7 +1389,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: example-lookup-server
-  namespace: partly
+  namespace: example
   labels:
     app.kubernetes.io/name: lookup-server
 spec:
@@ -1413,7 +1413,7 @@ spec:
         - secretRef:
             name: base-secrets-56cb2c6hhd
         - configMapRef:
-            name: base-configs-cbc6h26dgf
+            name: base-configs-tg98dfhhkg
         image: lookup-server-image
         imagePullPolicy: IfNotPresent
         livenessProbe:
@@ -1470,7 +1470,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: example-lookup-server
-  namespace: partly
+  namespace: example
   labels:
     app.kubernetes.io/name: lookup-server
 spec:
@@ -1490,7 +1490,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: example-lookup-server-cdc
-  namespace: partly
+  namespace: example
   labels:
     app.kubernetes.io/name: lookup-server-cdc
 spec:
@@ -1512,7 +1512,7 @@ spec:
         - secretRef:
             name: base-secrets-56cb2c6hhd
         - configMapRef:
-            name: base-configs-cbc6h26dgf
+            name: base-configs-tg98dfhhkg
         image: lookup-server-cdc-image
         imagePullPolicy: IfNotPresent
         livenessProbe:
@@ -1558,7 +1558,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: example-lookup-server-cdc
-  namespace: partly
+  namespace: example
   labels:
     app.kubernetes.io/name: lookup-server-cdc
 spec:
@@ -1578,7 +1578,7 @@ apiVersion: batch/v1
 kind: Job
 metadata:
   name: example-migrations-scylla
-  namespace: partly
+  namespace: example
   labels:
     app.kubernetes.io/name: migrations-scylla
   annotations:
@@ -1606,7 +1606,7 @@ spec:
         - secretRef:
             name: base-secrets-56cb2c6hhd
         - configMapRef:
-            name: base-configs-cbc6h26dgf
+            name: base-configs-tg98dfhhkg
         image: migrations-scylla-image
         imagePullPolicy: IfNotPresent
         name: migrations-scylla
@@ -1631,7 +1631,7 @@ apiVersion: batch/v1
 kind: Job
 metadata:
   name: example-migrations-elastic
-  namespace: partly
+  namespace: example
   labels:
     app.kubernetes.io/name: migrations-elastic
   annotations:
@@ -1657,7 +1657,7 @@ spec:
         - secretRef:
             name: base-secrets-56cb2c6hhd
         - configMapRef:
-            name: base-configs-cbc6h26dgf
+            name: base-configs-tg98dfhhkg
         env:
         - name: NODE_OPTIONS
           value: --max-old-space-size=2048
@@ -1684,7 +1684,7 @@ apiVersion: batch/v1
 kind: Job
 metadata:
   name: example-migrations-postgres
-  namespace: partly
+  namespace: example
   labels:
     app.kubernetes.io/name: migrations-postgres
   annotations:
@@ -1710,7 +1710,7 @@ spec:
         - secretRef:
             name: base-secrets-56cb2c6hhd
         - configMapRef:
-            name: base-configs-cbc6h26dgf
+            name: base-configs-tg98dfhhkg
         env:
         - name: NODE_OPTIONS
           value: --max-old-space-size=2048
@@ -1737,7 +1737,7 @@ apiVersion: batch/v1
 kind: Job
 metadata:
   name: example-migrations-background
-  namespace: partly
+  namespace: example
   labels:
     app.kubernetes.io/name: migrations-background
   annotations:
@@ -1766,7 +1766,7 @@ spec:
         - secretRef:
             name: base-secrets-56cb2c6hhd
         - configMapRef:
-            name: base-configs-cbc6h26dgf
+            name: base-configs-tg98dfhhkg
         env:
         - name: NODE_OPTIONS
           value: --max-old-space-size=2048
@@ -1784,18 +1784,18 @@ apiVersion: v1
 kind: Secret
 metadata:
   name: mfe-router-secrets
-  namespace: partly
+  namespace: example
 type: Opaque
 stringData:
   ENVIRONMENT: '{{ .ENV }}'
-  CORE_API_URL: https://api.{{ .SUBDOMAIN }}partly.{{ .TLD }}
-  REPAIRER_API_URL: https://api.{{ .SUBDOMAIN }}repairer.partly.{{ .TLD }}
+  CORE_API_URL: https://api.{{ .SUBDOMAIN }}example.{{ .TLD }}
+  REPAIRER_API_URL: https://api.{{ .SUBDOMAIN }}repairer.example.{{ .TLD }}
 ---
-apiVersion: cloudflare.partly.com/v1
+apiVersion: cloudflare.example.com/v1
 kind: CloudflareWorker
 metadata:
   name: mfe-router
-  namespace: partly
+  namespace: example
 spec:
   name: app-placeholder-example-pro
   compatibilityDate: 2025-06-11
@@ -1804,7 +1804,7 @@ spec:
       name: mfe-router-worker
       key: worker.js
   route:
-    pattern: app.placeholder.partly.pro
+    pattern: app.placeholder.example.pro
   vars:
     APP_VERSIONS:
       placeholder: placeholder
@@ -1820,7 +1820,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: mfe-router-worker
-  namespace: partly
+  namespace: example
 data:
   worker.js: |
     export default {
@@ -1833,7 +1833,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: example-ml-server-api
-  namespace: partly
+  namespace: example
   labels:
     app.kubernetes.io/name: ml-server-api
 spec:
@@ -1856,21 +1856,21 @@ spec:
           valueFrom:
             configMapKeyRef:
               key: ML_SERVER_LOG_LEVEL
-              name: base-configs-cbc6h26dgf
+              name: base-configs-tg98dfhhkg
         - name: PYROSCOPE_INGEST_URL
           valueFrom:
             configMapKeyRef:
-              name: base-configs-cbc6h26dgf
+              name: base-configs-tg98dfhhkg
               key: PYROSCOPE_INGEST_URL
         - name: POD_NAME
           valueFrom:
             fieldRef:
               fieldPath: metadata.name
-        - name: PARTLY_ENVIRONMENT
+        - name: example_ENVIRONMENT
           valueFrom:
             configMapKeyRef:
-              key: PARTLY_ENVIRONMENT
-              name: base-configs-cbc6h26dgf
+              key: example_ENVIRONMENT
+              name: base-configs-tg98dfhhkg
         - name: GOOGLE_APPLICATION_CREDENTIALS
           value: /var/gcp-credentials/credentials.json
         - name: PG_DB_PASSWORD
@@ -1887,42 +1887,42 @@ spec:
           valueFrom:
             configMapKeyRef:
               key: PG_DB_HOST
-              name: base-configs-cbc6h26dgf
+              name: base-configs-tg98dfhhkg
         - name: PG_DB_PORT
           valueFrom:
             configMapKeyRef:
               key: PG_DB_PORT
-              name: base-configs-cbc6h26dgf
+              name: base-configs-tg98dfhhkg
         - name: PG_DB_USERNAME
           valueFrom:
             configMapKeyRef:
               key: PG_DB_USERNAME_MLSERVER
-              name: base-configs-cbc6h26dgf
+              name: base-configs-tg98dfhhkg
         - name: PG_DB_DATABASE
           valueFrom:
             configMapKeyRef:
               key: PG_DB_DATABASE
-              name: base-configs-cbc6h26dgf
+              name: base-configs-tg98dfhhkg
         - name: OTEL_EXPORTER_OTLP_ENDPOINT
           valueFrom:
             configMapKeyRef:
               key: OTEL_EXPORTER_OTLP_ENDPOINT
-              name: base-configs-cbc6h26dgf
+              name: base-configs-tg98dfhhkg
         - name: KAFKA_BROKER_HOST_LIST
           valueFrom:
             configMapKeyRef:
               key: KAFKA_BROKER_HOST_LIST
-              name: base-configs-cbc6h26dgf
+              name: base-configs-tg98dfhhkg
         - name: S3_BUCKET_PUBLIC
           valueFrom:
             configMapKeyRef:
               key: S3_BUCKET_PUBLIC
-              name: base-configs-cbc6h26dgf
+              name: base-configs-tg98dfhhkg
         - name: S3_REGION
           valueFrom:
             configMapKeyRef:
               key: S3_REGION
-              name: base-configs-cbc6h26dgf
+              name: base-configs-tg98dfhhkg
         - name: S3_KEY
           valueFrom:
             secretKeyRef:
@@ -1994,7 +1994,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: example-ml-server
-  namespace: partly
+  namespace: example
   labels:
     app.kubernetes.io/name: ml-server-api
 spec:
@@ -2017,7 +2017,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: example-ml-server-workers
-  namespace: partly
+  namespace: example
   labels:
     app.kubernetes.io/name: ml-server-workers
 spec:
@@ -2037,17 +2037,17 @@ spec:
         - name: OTEL_SERVICE_NAME
           value: ml-server-workers
         - name: CDN_BASE_URL
-          value: http://cdn.partly.com
+          value: http://cdn.example.com
         - name: ML_SERVER_LOG_LEVEL
           valueFrom:
             configMapKeyRef:
               key: ML_SERVER_LOG_LEVEL
-              name: base-configs-cbc6h26dgf
-        - name: PARTLY_ENVIRONMENT
+              name: base-configs-tg98dfhhkg
+        - name: example_ENVIRONMENT
           valueFrom:
             configMapKeyRef:
-              key: PARTLY_ENVIRONMENT
-              name: base-configs-cbc6h26dgf
+              key: example_ENVIRONMENT
+              name: base-configs-tg98dfhhkg
         - name: GOOGLE_APPLICATION_CREDENTIALS
           value: /var/gcp-credentials/credentials.json
         - name: PG_DB_PASSWORD
@@ -2064,42 +2064,42 @@ spec:
           valueFrom:
             configMapKeyRef:
               key: PG_DB_HOST
-              name: base-configs-cbc6h26dgf
+              name: base-configs-tg98dfhhkg
         - name: PG_DB_PORT
           valueFrom:
             configMapKeyRef:
               key: PG_DB_PORT
-              name: base-configs-cbc6h26dgf
+              name: base-configs-tg98dfhhkg
         - name: PG_DB_USERNAME
           valueFrom:
             configMapKeyRef:
               key: PG_DB_USERNAME_MLSERVER
-              name: base-configs-cbc6h26dgf
+              name: base-configs-tg98dfhhkg
         - name: PG_DB_DATABASE
           valueFrom:
             configMapKeyRef:
               key: PG_DB_DATABASE
-              name: base-configs-cbc6h26dgf
+              name: base-configs-tg98dfhhkg
         - name: OTEL_EXPORTER_OTLP_ENDPOINT
           valueFrom:
             configMapKeyRef:
               key: OTEL_EXPORTER_OTLP_ENDPOINT
-              name: base-configs-cbc6h26dgf
+              name: base-configs-tg98dfhhkg
         - name: KAFKA_BROKER_HOST_LIST
           valueFrom:
             configMapKeyRef:
               key: KAFKA_BROKER_HOST_LIST
-              name: base-configs-cbc6h26dgf
+              name: base-configs-tg98dfhhkg
         - name: S3_BUCKET_PUBLIC
           valueFrom:
             configMapKeyRef:
               key: S3_BUCKET_PUBLIC
-              name: base-configs-cbc6h26dgf
+              name: base-configs-tg98dfhhkg
         - name: S3_REGION
           valueFrom:
             configMapKeyRef:
               key: S3_REGION
-              name: base-configs-cbc6h26dgf
+              name: base-configs-tg98dfhhkg
         - name: S3_KEY
           valueFrom:
             secretKeyRef:
@@ -2173,7 +2173,7 @@ apiVersion: batch/v1
 kind: CronJob
 metadata:
   name: example-ml-server-cron
-  namespace: partly
+  namespace: example
   labels:
     app.kubernetes.io/name: ml-server-cron
 spec:
@@ -2208,32 +2208,32 @@ spec:
               valueFrom:
                 configMapKeyRef:
                   key: OTEL_EXPORTER_OTLP_ENDPOINT
-                  name: base-configs-cbc6h26dgf
-            - name: PARTLY_ENVIRONMENT
+                  name: base-configs-tg98dfhhkg
+            - name: example_ENVIRONMENT
               valueFrom:
                 configMapKeyRef:
-                  key: PARTLY_ENVIRONMENT
-                  name: base-configs-cbc6h26dgf
+                  key: example_ENVIRONMENT
+                  name: base-configs-tg98dfhhkg
             - name: PG_DB_HOST
               valueFrom:
                 configMapKeyRef:
                   key: PG_DB_HOST
-                  name: base-configs-cbc6h26dgf
+                  name: base-configs-tg98dfhhkg
             - name: PG_DB_PORT
               valueFrom:
                 configMapKeyRef:
                   key: PG_DB_PORT
-                  name: base-configs-cbc6h26dgf
+                  name: base-configs-tg98dfhhkg
             - name: PG_DB_USERNAME
               valueFrom:
                 configMapKeyRef:
                   key: PG_DB_USERNAME_MLSERVER
-                  name: base-configs-cbc6h26dgf
+                  name: base-configs-tg98dfhhkg
             - name: PG_DB_DATABASE
               valueFrom:
                 configMapKeyRef:
                   key: PG_DB_DATABASE
-                  name: base-configs-cbc6h26dgf
+                  name: base-configs-tg98dfhhkg
             - name: PG_DB_PASSWORD
               valueFrom:
                 secretKeyRef:
@@ -2259,13 +2259,13 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: example-ml-server
-  namespace: partly
+  namespace: example
   annotations:
     cert-manager.io/cluster-issuer: letsencrypt-prod
 spec:
   ingressClassName: nginx
   rules:
-  - host: mls.{{ .SUBDOMAIN }}partly.{{ .TLD }}
+  - host: mls.{{ .SUBDOMAIN }}example.{{ .TLD }}
     http:
       paths:
       - backend:
@@ -2277,14 +2277,14 @@ spec:
         pathType: ImplementationSpecific
   tls:
   - hosts:
-    - mls.{{ .SUBDOMAIN }}partly.{{ .TLD }}
+    - mls.{{ .SUBDOMAIN }}example.{{ .TLD }}
     secretName: ml-server-ingress-tls
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: example-node
-  namespace: partly
+  namespace: example
   labels:
     app.kubernetes.io/name: node
 spec:
@@ -2301,9 +2301,9 @@ spec:
           valueFrom:
             configMapKeyRef:
               key: PG_DB_BOUNCER_HOST
-              name: base-configs-cbc6h26dgf
+              name: base-configs-tg98dfhhkg
         - name: PRISMA_DB_URL
-          value: postgresql://$(PG_DB_USERNAME_NODE_API):$(PG_DB_PASSWORD_NODE_API)@$(PG_DB_HOST):$(PG_DB_PORT)/$(PG_DB_DATABASE)?schema=partly&application_name=node-api&connection_limit=100&pool_timeout=120&pgbouncer=true
+          value: postgresql://$(PG_DB_USERNAME_NODE_API):$(PG_DB_PASSWORD_NODE_API)@$(PG_DB_HOST):$(PG_DB_PORT)/$(PG_DB_DATABASE)?schema=example&application_name=node-api&connection_limit=100&pool_timeout=120&pgbouncer=true
         - name: NODE_OPTIONS
           value: --max-old-space-size=3072
         - name: APOLLO_SERVER_PLATFORM
@@ -2326,7 +2326,7 @@ spec:
         - secretRef:
             name: base-secrets-56cb2c6hhd
         - configMapRef:
-            name: base-configs-cbc6h26dgf
+            name: base-configs-tg98dfhhkg
         image: api-image
         imagePullPolicy: IfNotPresent
         livenessProbe:
@@ -2374,7 +2374,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: example-node
-  namespace: partly
+  namespace: example
   labels:
     app.kubernetes.io/name: node
 spec:
@@ -2394,7 +2394,7 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: example-node
-  namespace: partly
+  namespace: example
   labels:
     app.kubernetes.io/name: node
   annotations:
@@ -2405,7 +2405,7 @@ metadata:
 spec:
   ingressClassName: nginx
   rules:
-  - host: api.{{ .SUBDOMAIN }}partly.{{ .TLD }}
+  - host: api.{{ .SUBDOMAIN }}example.{{ .TLD }}
     http:
       paths:
       - backend:
@@ -2424,14 +2424,14 @@ spec:
         pathType: ImplementationSpecific
   tls:
   - hosts:
-    - api.{{ .SUBDOMAIN }}partly.{{ .TLD }}
+    - api.{{ .SUBDOMAIN }}example.{{ .TLD }}
     secretName: node-ingress-tls
 ---
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: example-node-internal
-  namespace: partly
+  namespace: example
   labels:
     app.kubernetes.io/name: node
   annotations:
@@ -2440,7 +2440,7 @@ metadata:
 spec:
   ingressClassName: nginx
   rules:
-  - host: api.{{ .SUBDOMAIN }}partly.{{ .TLD }}
+  - host: api.{{ .SUBDOMAIN }}example.{{ .TLD }}
     http:
       paths:
       - backend:
@@ -2452,14 +2452,14 @@ spec:
         pathType: ImplementationSpecific
   tls:
   - hosts:
-    - api.{{ .SUBDOMAIN }}partly.{{ .TLD }}
+    - api.{{ .SUBDOMAIN }}example.{{ .TLD }}
     secretName: node-internal-ingress-tls
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: example-pim-web
-  namespace: partly
+  namespace: example
   labels:
     app.kubernetes.io/name: pim-web
 spec:
@@ -2521,11 +2521,11 @@ spec:
       initContainers:
       - env:
         - name: API_URL
-          value: https://api.{{ .SUBDOMAIN }}partly.{{ .TLD }}
+          value: https://api.{{ .SUBDOMAIN }}example.{{ .TLD }}
         - name: APP_URL
-          value: https://pim.{{ .SUBDOMAIN }}partly.{{ .TLD }}
+          value: https://pim.{{ .SUBDOMAIN }}example.{{ .TLD }}
         - name: SOCKET_URL
-          value: https://api.{{ .SUBDOMAIN }}partly.{{ .TLD }}
+          value: https://api.{{ .SUBDOMAIN }}example.{{ .TLD }}
         - name: STRIPE_KEY
           value: pk_live_6woLtFpo1ysBGItcPI2o0cRq00Zv058l9o
         - name: GOOGLE_MAPS_API_KEY
@@ -2533,13 +2533,13 @@ spec:
         - name: MIXPANEL_API_KEY
           value: ce88a0d9ed9b08af651e4a5fa4c79eba
         - name: MIXPANEL_API_URL
-          value: https://mixpanel.partly.com
+          value: https://mixpanel.example.com
         - name: TRANSIFEX_TOKEN
           value: 1/3794e2bc6d9f07a4bccd3bed06944207362694c7
         - name: SOURCE_PATH
           value: /app/dist/
         - name: ASSET_URL
-          value: https://cdn.partly.parts/assets/pim-web/
+          value: https://cdn.example.parts/assets/pim-web/
         - name: DEST_PATH
           value: /tmp/www/pim-web
         image: pim-web-image
@@ -2566,7 +2566,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: example-pim-web
-  namespace: partly
+  namespace: example
   labels:
     app.kubernetes.io/name: pim-web
 spec:
@@ -2586,7 +2586,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: pim-web-nginx-conf
-  namespace: partly
+  namespace: example
   labels:
     app.kubernetes.io/name: pim-web
 data:
@@ -2618,7 +2618,7 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: example-pim-web
-  namespace: partly
+  namespace: example
   labels:
     app.kubernetes.io/name: pim-web
   annotations:
@@ -2626,7 +2626,7 @@ metadata:
 spec:
   ingressClassName: nginx
   rules:
-  - host: pim.{{ .SUBDOMAIN }}partly.{{ .TLD }}
+  - host: pim.{{ .SUBDOMAIN }}example.{{ .TLD }}
     http:
       paths:
       - backend:
@@ -2638,14 +2638,14 @@ spec:
         pathType: ImplementationSpecific
   tls:
   - hosts:
-    - pim.{{ .SUBDOMAIN }}partly.{{ .TLD }}
+    - pim.{{ .SUBDOMAIN }}example.{{ .TLD }}
     secretName: pim-web-ingress-tls
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: pgbouncer
-  namespace: partly
+  namespace: example
 spec:
   selector:
     matchLabels:
@@ -2689,18 +2689,18 @@ spec:
         - name: PGBOUNCER_PORT
           value: '6432'
         - name: POSTGRESQL_DATABASE
-          value: partly
+          value: example
         - name: PGBOUNCER_DATABASE
-          value: partly
+          value: example
         - name: POSTGRESQL_HOST
           valueFrom:
             configMapKeyRef:
-              name: base-configs-cbc6h26dgf
+              name: base-configs-tg98dfhhkg
               key: PG_DB_HOST
         - name: POSTGRESQL_USERNAME
           valueFrom:
             configMapKeyRef:
-              name: base-configs-cbc6h26dgf
+              name: base-configs-tg98dfhhkg
               key: PG_DB_USERNAME
         - name: POSTGRESQL_PASSWORD
           valueFrom:
@@ -2725,7 +2725,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: pgbouncer
-  namespace: partly
+  namespace: example
   labels:
     app.kubernetes.io/name: pgbouncer
 spec:
@@ -2740,7 +2740,7 @@ apiVersion: v1
 kind: Secret
 metadata:
   name: redis-secrets
-  namespace: partly
+  namespace: example
   annotations:
     argocd.argoproj.io/sync-wave: '-5'
 type: Opaque
@@ -2751,7 +2751,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: example-repair-jobs-feed-integration
-  namespace: partly
+  namespace: example
   labels:
     app.kubernetes.io/name: repair-jobs-feed-integration
 spec:
@@ -2775,7 +2775,7 @@ spec:
         - secretRef:
             name: base-secrets-56cb2c6hhd
         - configMapRef:
-            name: base-configs-cbc6h26dgf
+            name: base-configs-tg98dfhhkg
         image: repair-jobs-feed-integration-image
         imagePullPolicy: IfNotPresent
         name: repair-jobs-feed-integration
@@ -2812,7 +2812,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: example-repair-jobs-feed-integration
-  namespace: partly
+  namespace: example
   labels:
     app.kubernetes.io/name: repair-jobs-feed-integration
 spec:
@@ -2832,7 +2832,7 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: example-repair-jobs-feed-integration
-  namespace: partly
+  namespace: example
   labels:
     app.kubernetes.io/name: repair-jobs-feed-integration
   annotations:
@@ -2840,7 +2840,7 @@ metadata:
 spec:
   ingressClassName: nginx
   rules:
-  - host: repair-jobs-feed-integration.{{ .SUBDOMAIN }}partly.{{ .TLD }}
+  - host: repair-jobs-feed-integration.{{ .SUBDOMAIN }}example.{{ .TLD }}
     http:
       paths:
       - backend:
@@ -2852,14 +2852,14 @@ spec:
         pathType: ImplementationSpecific
   tls:
   - hosts:
-    - repair-jobs-feed-integration.{{ .SUBDOMAIN }}partly.{{ .TLD }}
+    - repair-jobs-feed-integration.{{ .SUBDOMAIN }}example.{{ .TLD }}
     secretName: repair-jobs-feed-integration-ingress-tls
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: storefront-repairer-server
-  namespace: partly
+  namespace: example
   labels:
     app.kubernetes.io/name: repairer-server
 spec:
@@ -2877,7 +2877,7 @@ spec:
           value: repairer-server
         envFrom:
         - configMapRef:
-            name: base-configs-cbc6h26dgf
+            name: base-configs-tg98dfhhkg
         - secretRef:
             name: base-secrets-56cb2c6hhd
         image: repairer-server-image
@@ -2928,7 +2928,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: storefront-repairer-server
-  namespace: partly
+  namespace: example
   labels:
     app.kubernetes.io/name: repairer-server
 spec:
@@ -2948,7 +2948,7 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: storefront-repairer-server
-  namespace: partly
+  namespace: example
   labels:
     app.kubernetes.io/name: repairer-server
   annotations:
@@ -2956,7 +2956,7 @@ metadata:
 spec:
   ingressClassName: nginx
   rules:
-  - host: api.repairer.{{ .SUBDOMAIN }}partly.{{ .TLD }}
+  - host: api.repairer.{{ .SUBDOMAIN }}example.{{ .TLD }}
     http:
       paths:
       - backend:
@@ -2968,14 +2968,14 @@ spec:
         pathType: ImplementationSpecific
   tls:
   - hosts:
-    - api.repairer.{{ .SUBDOMAIN }}partly.{{ .TLD }}
+    - api.repairer.{{ .SUBDOMAIN }}example.{{ .TLD }}
     secretName: repairer-server-ingress-tls
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: example-sample-integration
-  namespace: partly
+  namespace: example
   labels:
     app.kubernetes.io/name: sample-integration
 spec:
@@ -2989,7 +2989,7 @@ spec:
         - name: OTEL_SERVICE_NAME
           value: sample-integration
         - name: SAMPLE_INTEGRATION_BASE_URL
-          value: sample-integration.integrations.partly.com
+          value: sample-integration.integrations.example.com
         - name: SAMPLE_INTEGRATION_PROTOCOL
           value: https
         - name: SOURCE_VERSION
@@ -3001,7 +3001,7 @@ spec:
         - secretRef:
             name: base-secrets-56cb2c6hhd
         - configMapRef:
-            name: base-configs-cbc6h26dgf
+            name: base-configs-tg98dfhhkg
         image: sample-integration-image
         imagePullPolicy: IfNotPresent
         livenessProbe:
@@ -3047,7 +3047,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: example-sample-integration
-  namespace: partly
+  namespace: example
   labels:
     app.kubernetes.io/name: sample-integration
 spec:
@@ -3067,7 +3067,7 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: example-sample-integration
-  namespace: partly
+  namespace: example
   labels:
     app.kubernetes.io/name: sample-integration
   annotations:
@@ -3075,7 +3075,7 @@ metadata:
 spec:
   ingressClassName: nginx
   rules:
-  - host: sample-integration.{{ .SUBDOMAIN }}partly.{{ .TLD }}
+  - host: sample-integration.{{ .SUBDOMAIN }}example.{{ .TLD }}
     http:
       paths:
       - backend:
@@ -3087,14 +3087,14 @@ spec:
         pathType: ImplementationSpecific
   tls:
   - hosts:
-    - sample-integration.{{ .SUBDOMAIN }}partly.{{ .TLD }}
+    - sample-integration.{{ .SUBDOMAIN }}example.{{ .TLD }}
     secretName: sample-integration-ingress-tls
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: example-shopify-integration2
-  namespace: partly
+  namespace: example
   labels:
     app.kubernetes.io/name: shopify-integration2
 spec:
@@ -3110,7 +3110,7 @@ spec:
         - name: shopify_integration2__LOGGING__LEVEL
           value: info
         - name: SHOPIFY_INTEGRATION2_BASE_URL
-          value: https://shopify-integration.integrations.partly.com
+          value: https://shopify-integration.integrations.example.com
         - name: SHOPIFY_INTEGRATION_SCEHMA_ID
           value: SHOPIFY_2
         - name: SHOPIFY_INTEGRATION_ENABLE_WEBHOOKS
@@ -3130,7 +3130,7 @@ spec:
         - secretRef:
             name: base-secrets-56cb2c6hhd
         - configMapRef:
-            name: base-configs-cbc6h26dgf
+            name: base-configs-tg98dfhhkg
         image: shopify-integration2-image
         imagePullPolicy: IfNotPresent
         name: shopify-integration2
@@ -3168,7 +3168,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: example-shopify-integration2
-  namespace: partly
+  namespace: example
   labels:
     app.kubernetes.io/name: shopify-integration2
 spec:
@@ -3188,7 +3188,7 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: example-shopify-integration2
-  namespace: partly
+  namespace: example
   labels:
     app.kubernetes.io/name: shopify-integration2
   annotations:
@@ -3196,7 +3196,7 @@ metadata:
 spec:
   ingressClassName: nginx
   rules:
-  - host: shopify-integration2.{{ .SUBDOMAIN }}partly.{{ .TLD }}
+  - host: shopify-integration2.{{ .SUBDOMAIN }}example.{{ .TLD }}
     http:
       paths:
       - backend:
@@ -3208,14 +3208,14 @@ spec:
         pathType: ImplementationSpecific
   tls:
   - hosts:
-    - shopify-integration2.{{ .SUBDOMAIN }}partly.{{ .TLD }}
+    - shopify-integration2.{{ .SUBDOMAIN }}example.{{ .TLD }}
     secretName: shopify-integration2-ingress-tls
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: example-subscription-updater
-  namespace: partly
+  namespace: example
   labels:
     app.kubernetes.io/name: subscription-updater
 spec:
@@ -3248,7 +3248,7 @@ spec:
         - secretRef:
             name: base-secrets-56cb2c6hhd
         - configMapRef:
-            name: base-configs-cbc6h26dgf
+            name: base-configs-tg98dfhhkg
         image: subscription-updater-image
         imagePullPolicy: IfNotPresent
         livenessProbe:
@@ -3292,7 +3292,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: example-subscription-updater
-  namespace: partly
+  namespace: example
   labels:
     app.kubernetes.io/name: subscription-updater
 spec:
@@ -3312,7 +3312,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: example-vrm-search
-  namespace: partly
+  namespace: example
   labels:
     app.kubernetes.io/name: vrm-search
 spec:
@@ -3336,7 +3336,7 @@ spec:
         - secretRef:
             name: base-secrets-56cb2c6hhd
         - configMapRef:
-            name: base-configs-cbc6h26dgf
+            name: base-configs-tg98dfhhkg
         image: vrm-search-image
         imagePullPolicy: IfNotPresent
         livenessProbe:
@@ -3382,7 +3382,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: example-vrm-search
-  namespace: partly
+  namespace: example
   labels:
     app.kubernetes.io/name: vrm-search
 spec:
@@ -3402,7 +3402,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: example-webhooks-notifier
-  namespace: partly
+  namespace: example
   labels:
     app.kubernetes.io/name: webhooks-notifier
 spec:
@@ -3426,7 +3426,7 @@ spec:
         - secretRef:
             name: base-secrets-56cb2c6hhd
         - configMapRef:
-            name: base-configs-cbc6h26dgf
+            name: base-configs-tg98dfhhkg
         image: webhooks-notifier-image
         imagePullPolicy: IfNotPresent
         livenessProbe:
@@ -3472,7 +3472,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: example-webhooks-notifier
-  namespace: partly
+  namespace: example
   labels:
     app.kubernetes.io/name: webhooks-notifier
 spec:
@@ -3492,7 +3492,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: example-external-job-integration
-  namespace: partly
+  namespace: example
   labels:
     app.kubernetes.io/name: example-external-job-integration
 spec:
@@ -3513,9 +3513,9 @@ spec:
               key: monorepo-revision
         envFrom:
         - configMapRef:
-            name: base-configs-cbc6h26dgf
+            name: base-configs-tg98dfhhkg
         - configMapRef:
-            name: external-job-integration-km5b4t95cd
+            name: external-job-integration-t74684c65d
         - secretRef:
             name: base-secrets-56cb2c6hhd
         - secretRef:
@@ -3539,7 +3539,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: example-external-job-integration
-  namespace: partly
+  namespace: example
   labels:
     app.kubernetes.io/name: example-external-job-integration
 spec:
@@ -3559,7 +3559,7 @@ apiVersion: v1
 kind: Secret
 metadata:
   name: audatex-secrets
-  namespace: partly
+  namespace: example
   labels:
     app.kubernetes.io/name: example-external-job-integration
 type: Opaque
@@ -3570,12 +3570,12 @@ stringData:
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: external-job-integration-km5b4t95cd
-  namespace: partly
+  name: external-job-integration-t74684c65d
+  namespace: example
   labels:
     app.kubernetes.io/name: example-external-job-integration
 data:
   STEER_ORG_ID: 0caceb05-0b06-6000-811d-6a0e152ff190
   STEER_REPAIRER_ID: d70fa182-bec6-4494-959b-bc57ffedc191
-  AUDATEX_CORE_EMAIL: evan+audatexscript@partly.com
+  AUDATEX_CORE_EMAIL: evan+audatexscript@example.com
   AUDATEX_USERNAME: audatex

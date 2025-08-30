@@ -1,0 +1,8 @@
+apiVersion: builtin
+kind: ImageTagTransformer
+metadata:
+  name: repairer-web-itt
+imageTag:
+  name: repairer-web-image
+  newName: docker.io/example/repairer_web
+  newTag: 50b1a8a257f0deaa94d2599acac0de7b49194f02

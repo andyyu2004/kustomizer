@@ -1,0 +1,8 @@
+apiVersion: builtin
+kind: ImageTagTransformer
+metadata:
+  name: alertmanager-webhooks-itt
+imageTag:
+  name: alertmanager-webhooks-image
+  newName: docker.io/example/alertmanager_webhooks
+  newTag: 2116f1feef2e3510c6a3b579d988cbb2786a4771

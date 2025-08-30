@@ -54,11 +54,11 @@ spec:
       initContainers:
         - env:
             - name: API_URL
-              value: https://api.{{ .SUBDOMAIN }}partly.{{ .TLD }}
+              value: https://api.{{ .SUBDOMAIN }}example.{{ .TLD }}
             - name: APP_URL
-              value: https://pim.{{ .SUBDOMAIN }}partly.{{ .TLD }}
+              value: https://pim.{{ .SUBDOMAIN }}example.{{ .TLD }}
             - name: SOCKET_URL
-              value: https://api.{{ .SUBDOMAIN }}partly.{{ .TLD }}
+              value: https://api.{{ .SUBDOMAIN }}example.{{ .TLD }}
             - name: STRIPE_KEY
               value: pk_live_6woLtFpo1ysBGItcPI2o0cRq00Zv058l9o
             - name: GOOGLE_MAPS_API_KEY
@@ -66,13 +66,13 @@ spec:
             - name: MIXPANEL_API_KEY
               value: ce88a0d9ed9b08af651e4a5fa4c79eba
             - name: MIXPANEL_API_URL
-              value: https://mixpanel.partly.com
+              value: https://mixpanel.example.com
             - name: TRANSIFEX_TOKEN
               value: 1/3794e2bc6d9f07a4bccd3bed06944207362694c7
             - name: SOURCE_PATH
               value: /app/dist/
             - name: ASSET_URL
-              value: https://cdn.partly.parts/assets/pim-web/
+              value: https://cdn.example.parts/assets/pim-web/
             - name: DEST_PATH
               value: /tmp/www/pim-web
           image: pim-web-image

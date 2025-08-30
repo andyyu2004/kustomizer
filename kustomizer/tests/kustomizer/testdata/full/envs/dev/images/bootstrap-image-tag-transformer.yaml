@@ -1,0 +1,8 @@
+apiVersion: builtin
+kind: ImageTagTransformer
+metadata:
+  name: bootstrap-itt
+imageTag:
+  name: bootstrap-image
+  newName: docker.io/example/bootstrap
+  newTag: de39fb7ca03664bda4206b7228722a71e3b45344

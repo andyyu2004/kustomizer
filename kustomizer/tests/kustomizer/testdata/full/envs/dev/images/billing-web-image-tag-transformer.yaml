@@ -1,0 +1,8 @@
+apiVersion: builtin
+kind: ImageTagTransformer
+metadata:
+  name: billing-web-itt
+imageTag:
+  name: billing-web-image
+  newName: docker.io/example/billing_web
+  newTag: 4ca5a9b562c25954e6ab38457ab1dc089619eb9b

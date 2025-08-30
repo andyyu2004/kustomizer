@@ -1,0 +1,8 @@
+apiVersion: builtin
+kind: ImageTagTransformer
+metadata:
+  name: mfe-sam-itt
+imageTag:
+  name: mfe-sam-image
+  newName: docker.io/example/mfe_sam
+  newTag: d9647c45a3ae6bf96276dd2124eee631e478fb3e

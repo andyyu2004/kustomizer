@@ -1,0 +1,8 @@
+apiVersion: builtin
+kind: ImageTagTransformer
+metadata:
+  name: robouser-tests-itt
+imageTag:
+  name: robouser-tests-image
+  newName: docker.io/example/robouser_tests
+  newTag: 1c3b67f10dbdb1bc018ff5ea2d9bf3f2291b9fcf

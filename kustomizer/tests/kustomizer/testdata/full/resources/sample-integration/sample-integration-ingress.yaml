@@ -7,7 +7,7 @@ metadata:
 spec:
   ingressClassName: nginx
   rules:
-    - host: sample-integration.{{ .SUBDOMAIN }}partly.{{ .TLD }}
+    - host: sample-integration.{{ .SUBDOMAIN }}example.{{ .TLD }}
       http:
         paths:
           - backend:
@@ -19,5 +19,5 @@ spec:
             pathType: ImplementationSpecific
   tls:
     - hosts:
-        - sample-integration.{{ .SUBDOMAIN }}partly.{{ .TLD }}
+        - sample-integration.{{ .SUBDOMAIN }}example.{{ .TLD }}
       secretName: sample-integration-ingress-tls

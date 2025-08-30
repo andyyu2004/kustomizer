@@ -1,0 +1,8 @@
+apiVersion: builtin
+kind: ImageTagTransformer
+metadata:
+  name: mfe-react-19-template-itt
+imageTag:
+  name: mfe-react-19-template-image
+  newName: docker.io/example/mfe_react_19_template
+  newTag: 92e4b135b0d2789b337f99c78cee280dba2a7ea0

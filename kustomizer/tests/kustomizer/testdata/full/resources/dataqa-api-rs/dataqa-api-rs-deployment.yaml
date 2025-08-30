@@ -13,7 +13,7 @@ spec:
             - name: OTEL_SERVICE_NAME
               value: dataqa-api-rs
             - name: DATAQA_API_RS__UPLOAD__AWS_OPTIONS__CDN_BASE_URL
-              value: https://cdn.partly.com/
+              value: https://cdn.example.com/
           envFrom:
             - secretRef:
                 name: base-secrets

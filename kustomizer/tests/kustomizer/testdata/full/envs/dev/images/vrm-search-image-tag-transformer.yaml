@@ -1,0 +1,8 @@
+apiVersion: builtin
+kind: ImageTagTransformer
+metadata:
+  name: vrm-search-itt
+imageTag:
+  name: vrm-search-image
+  newName: docker.io/example/vrm_search
+  newTag: 1ed42c30da01e07e98eadef6353753f532e8518e

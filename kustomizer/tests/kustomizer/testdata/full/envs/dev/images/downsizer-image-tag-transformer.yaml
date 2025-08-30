@@ -1,0 +1,8 @@
+apiVersion: builtin
+kind: ImageTagTransformer
+metadata:
+  name: downsizer-itt
+imageTag:
+  name: downsizer-image
+  newName: docker.io/example/downsizer
+  newTag: 338b96f195c2ad10a3fe3e92e2051ad3ccdaa674

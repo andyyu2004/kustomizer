@@ -1,0 +1,35 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - ./core-server-tailscale-funnel-ingress.yaml
+  - ./scylla-tailscale-service.yaml
+  - ./unlock-postgres-knex-migrations-lock-hack.yaml
+  - ../../resources
+
+patches:
+  - path: ingress-cors-patch.yaml
+    target:
+      kind: Ingress
+
+  - path: base-configs-patch.yaml
+
+  - path: scylla-cluster-patch.yaml
+
+components:
+  - ../../resources/components/scylla
+  - ../../resources/components/postgres
+
+replicas:
+  - name: example-node
+    count: 1
+  - name: example-data-ingestor
+    count: 1
+  - name: example-dataqa-api-rs
+    count: 1
+  - name: example-elasticsearch-ingestor-rs
+    count: 1
+  - name: example-ml-server-api
+    count: 1
+  - name: example-pim-web
+    count: 1
