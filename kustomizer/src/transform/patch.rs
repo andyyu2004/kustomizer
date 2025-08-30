@@ -4,7 +4,7 @@ use crate::{
     Located, PathExt,
     manifest::{Manifest, Patch},
     resmap::ResourceMap,
-    resource::Resource,
+    resource::{GvkMatcher, Resource},
 };
 
 use super::Transformer;
@@ -51,6 +51,12 @@ impl<A: Send + Sync, K: Send + Sync> Transformer for PatchTransformer<'_, A, K> 
                         });
 
                         if let Ok(patch) = patch {
+                            let gvk = patch.gvk();
+                            let matcher = GvkMatcher {
+                                group: gvk.group.clone(),
+                                version: gvk.version.clone(),
+                                kind: gvk.kind.clone(),
+                            };
                             match target {
                                 Some(target) => {
                                     if !target.matches(&resource) {
@@ -58,12 +64,15 @@ impl<A: Send + Sync, K: Send + Sync> Transformer for PatchTransformer<'_, A, K> 
                                     }
                                 }
                                 None => {
-                                    // If no target is specified, match the patch id against the resource
-                                    if patch.id() != resource.id() {
+                                    // If no target is specified, match the patch gvk/name against the resource
+                                    if !matcher.matches(resource.gvk())
+                                        || patch.name() != resource.name()
+                                    {
                                         continue;
                                     }
                                 }
                             }
+
                             resource.patch(patch).with_context(|| {
                                 format!(
                                     "applying strategic merge patch from `{}` to resource `{}`",

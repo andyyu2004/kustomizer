@@ -4,7 +4,6 @@ kind: Kustomization
 resources:
   - ./core-server-tailscale-funnel-ingress.yaml
   - ./scylla-tailscale-service.yaml
-  - ./unlock-postgres-knex-migrations-lock-hack.yaml
   - ../../resources
 
 patches:

@@ -40,26 +40,26 @@ impl fmt::Display for Gvk {
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Deserialize, Serialize)]
 pub struct GvkMatcher {
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub group: Option<Str>,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub version: Option<Str>,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub kind: Option<Str>,
+    #[serde(default, skip_serializing_if = "Str::is_empty")]
+    pub group: Str,
+    #[serde(default, skip_serializing_if = "Str::is_empty")]
+    pub version: Str,
+    #[serde(default, skip_serializing_if = "Str::is_empty")]
+    pub kind: Str,
 }
 
 impl fmt::Display for GvkMatcher {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        if let Some(kind) = &self.kind {
-            write!(f, "{kind}.")?;
+        if !self.kind.is_empty() {
+            write!(f, "{}.", self.kind)?;
         }
 
-        if let Some(version) = &self.version {
-            write!(f, "{version}.")?;
+        if !self.version.is_empty() {
+            write!(f, "{}.", self.version)?;
         }
 
-        if let Some(group) = &self.group {
-            write!(f, "{group}")
+        if !self.group.is_empty() {
+            write!(f, "{}", self.group)
         } else {
             write!(f, "*")
         }
@@ -68,15 +68,17 @@ impl fmt::Display for GvkMatcher {
 
 impl GvkMatcher {
     pub fn matches(&self, gvk: &Gvk) -> bool {
-        (self.group.is_none() || self.group.as_ref() == Some(&gvk.group))
-            && (self.version.is_none() || self.version.as_ref() == Some(&gvk.version))
-            && (self.kind.is_none() || self.kind.as_ref() == Some(&gvk.kind))
+        (self.group.is_empty() || self.group == gvk.group)
+            && (self.version.is_empty() || self.version == gvk.version)
+            && (self.kind.is_empty() || self.kind == gvk.kind)
     }
 
     pub fn overlaps_with(&self, other: &GvkMatcher) -> bool {
-        (self.group.is_none() || other.group.is_none() || self.group == other.group)
-            && (self.version.is_none() || other.version.is_none() || self.version == other.version)
-            && (self.kind.is_none() || other.kind.is_none() || self.kind == other.kind)
+        (self.group.is_empty() || other.group.is_empty() || self.group == other.group)
+            && (self.version.is_empty()
+                || other.version.is_empty()
+                || self.version == other.version)
+            && (self.kind.is_empty() || other.kind.is_empty() || self.kind == other.kind)
     }
 }
 

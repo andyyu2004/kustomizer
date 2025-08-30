@@ -36,33 +36,6 @@ spec:
     targetPort: cql
     protocol: TCP
 ---
-apiVersion: batch/v1
-kind: Job
-metadata:
-  name: unlock-postgres-knex-migrations-lock-hack
-  annotations:
-    argocd.argoproj.io/hook: PostSync
-    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
-spec:
-  backoffLimit: 3
-  template:
-    spec:
-      restartPolicy: Never
-      containers:
-      - name: unlock-migrations
-        image: postgres:17
-        command:
-        - psql
-        - $(POSTGRESQL_URL)
-        - -c
-        - DELETE FROM example.knex_sql_migrations_lock;
-        env:
-        - name: POSTGRESQL_URL
-          valueFrom:
-            secretKeyRef:
-              name: base-secrets-56cb2c6hhd
-              key: POSTGRESQL_URL
----
 apiVersion: v1
 kind: ServiceAccount
 metadata:
@@ -146,22 +119,27 @@ spec:
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: base-configs-tg98dfhhkg
+  name: base-configs-m228kf585k
   namespace: example
   annotations:
     argocd.argoproj.io/sync-wave: '-5'
 data:
-  ENV: base
+  ENV: dev
+  LOG_LEVEL: debug
+  SCYLLA_ADDRESSES: scylla-client:9042
+  SCYLLA_LOCAL_DATA_CENTER: dc1
+  SCYLLA_REPLICATION_FACTOR: '1'
+  SCYLLA_SERVERS: scylla-client
 ---
 apiVersion: v1
 kind: Secret
 metadata:
-  name: base-secrets-56cb2c6hhd
+  name: base-secrets-62htgm2m82
   namespace: example
   annotations:
     argocd.argoproj.io/sync-wave: '-5'
 data:
-  POSTGRESQL_URL: dXNlcm5hbWU=
+  POSTGRESQL_URL: Ym9icGF0Y2g=
 type: Opaque
 ---
 apiVersion: apps/v1
@@ -188,9 +166,9 @@ spec:
               key: monorepo-revision
         envFrom:
         - secretRef:
-            name: base-secrets-56cb2c6hhd
+            name: base-secrets-62htgm2m82
         - configMapRef:
-            name: base-configs-tg98dfhhkg
+            name: base-configs-m228kf585k
         image: core-server-image
         imagePullPolicy: IfNotPresent
         livenessProbe:
@@ -309,9 +287,9 @@ spec:
               value: currency-updater-cron
             envFrom:
             - secretRef:
-                name: base-secrets-56cb2c6hhd
+                name: base-secrets-62htgm2m82
             - configMapRef:
-                name: base-configs-tg98dfhhkg
+                name: base-configs-m228kf585k
             image: currency-updater-image
             name: example-currency-updater-cron
         metadata:
@@ -345,9 +323,9 @@ spec:
               key: monorepo-revision
         envFrom:
         - secretRef:
-            name: base-secrets-56cb2c6hhd
+            name: base-secrets-62htgm2m82
         - configMapRef:
-            name: base-configs-tg98dfhhkg
+            name: base-configs-m228kf585k
         image: data-ingestor-image
         imagePullPolicy: IfNotPresent
         livenessProbe:
@@ -435,9 +413,9 @@ spec:
               key: monorepo-revision
         envFrom:
         - secretRef:
-            name: base-secrets-56cb2c6hhd
+            name: base-secrets-62htgm2m82
         - configMapRef:
-            name: base-configs-tg98dfhhkg
+            name: base-configs-m228kf585k
         image: dataqa-api-rs-image
         imagePullPolicy: IfNotPresent
         livenessProbe:
@@ -727,9 +705,9 @@ spec:
               key: monorepo-revision
         envFrom:
         - secretRef:
-            name: base-secrets-56cb2c6hhd
+            name: base-secrets-62htgm2m82
         - configMapRef:
-            name: base-configs-tg98dfhhkg
+            name: base-configs-m228kf585k
         image: driftdb-server-image
         imagePullPolicy: IfNotPresent
         name: driftdb-server
@@ -831,9 +809,9 @@ spec:
               key: monorepo-revision
         envFrom:
         - secretRef:
-            name: base-secrets-56cb2c6hhd
+            name: base-secrets-62htgm2m82
         - configMapRef:
-            name: base-configs-tg98dfhhkg
+            name: base-configs-m228kf585k
         image: elasticsearch-ingestor-image
         imagePullPolicy: IfNotPresent
         livenessProbe:
@@ -923,9 +901,9 @@ spec:
               key: monorepo-revision
         envFrom:
         - secretRef:
-            name: base-secrets-56cb2c6hhd
+            name: base-secrets-62htgm2m82
         - configMapRef:
-            name: base-configs-tg98dfhhkg
+            name: base-configs-m228kf585k
         image: elasticsearch-ingestor-image
         imagePullPolicy: IfNotPresent
         livenessProbe:
@@ -1011,9 +989,9 @@ spec:
               key: monorepo-revision
         envFrom:
         - secretRef:
-            name: base-secrets-56cb2c6hhd
+            name: base-secrets-62htgm2m82
         - configMapRef:
-            name: base-configs-tg98dfhhkg
+            name: base-configs-m228kf585k
         image: elasticsearch-ingestor-rs-image
         imagePullPolicy: IfNotPresent
         livenessProbe:
@@ -1099,9 +1077,9 @@ spec:
               key: monorepo-revision
         envFrom:
         - secretRef:
-            name: base-secrets-56cb2c6hhd
+            name: base-secrets-62htgm2m82
         - configMapRef:
-            name: base-configs-tg98dfhhkg
+            name: base-configs-m228kf585k
         image: email-integration-image
         imagePullPolicy: IfNotPresent
         livenessProbe:
@@ -1182,9 +1160,9 @@ spec:
               key: monorepo-revision
         envFrom:
         - secretRef:
-            name: base-secrets-56cb2c6hhd
+            name: base-secrets-62htgm2m82
         - configMapRef:
-            name: base-configs-tg98dfhhkg
+            name: base-configs-m228kf585k
         image: file-ingestor-image
         imagePullPolicy: IfNotPresent
         livenessProbe:
@@ -1269,9 +1247,9 @@ spec:
               value: garbage-collector
             envFrom:
             - secretRef:
-                name: base-secrets-56cb2c6hhd
+                name: base-secrets-62htgm2m82
             - configMapRef:
-                name: base-configs-tg98dfhhkg
+                name: base-configs-m228kf585k
             image: garbage-collector-image
             name: garbage-collector
         metadata:
@@ -1309,9 +1287,9 @@ spec:
               key: monorepo-revision
         envFrom:
         - secretRef:
-            name: base-secrets-56cb2c6hhd
+            name: base-secrets-62htgm2m82
         - configMapRef:
-            name: base-configs-tg98dfhhkg
+            name: base-configs-m228kf585k
         image: hca-notion-sync-image
         imagePullPolicy: IfNotPresent
         livenessProbe:
@@ -1405,9 +1383,9 @@ spec:
               key: monorepo-revision
         envFrom:
         - secretRef:
-            name: base-secrets-56cb2c6hhd
+            name: base-secrets-62htgm2m82
         - configMapRef:
-            name: base-configs-tg98dfhhkg
+            name: base-configs-m228kf585k
         image: lookup-scanner-image
         imagePullPolicy: IfNotPresent
         livenessProbe:
@@ -1495,9 +1473,9 @@ spec:
               key: monorepo-revision
         envFrom:
         - secretRef:
-            name: base-secrets-56cb2c6hhd
+            name: base-secrets-62htgm2m82
         - configMapRef:
-            name: base-configs-tg98dfhhkg
+            name: base-configs-m228kf585k
         image: lookup-server-image
         imagePullPolicy: IfNotPresent
         livenessProbe:
@@ -1594,9 +1572,9 @@ spec:
               key: monorepo-revision
         envFrom:
         - secretRef:
-            name: base-secrets-56cb2c6hhd
+            name: base-secrets-62htgm2m82
         - configMapRef:
-            name: base-configs-tg98dfhhkg
+            name: base-configs-m228kf585k
         image: lookup-server-cdc-image
         imagePullPolicy: IfNotPresent
         livenessProbe:
@@ -1688,9 +1666,9 @@ spec:
       containers:
       - envFrom:
         - secretRef:
-            name: base-secrets-56cb2c6hhd
+            name: base-secrets-62htgm2m82
         - configMapRef:
-            name: base-configs-tg98dfhhkg
+            name: base-configs-m228kf585k
         image: migrations-scylla-image
         imagePullPolicy: IfNotPresent
         name: migrations-scylla
@@ -1739,9 +1717,9 @@ spec:
         imagePullPolicy: null
         envFrom:
         - secretRef:
-            name: base-secrets-56cb2c6hhd
+            name: base-secrets-62htgm2m82
         - configMapRef:
-            name: base-configs-tg98dfhhkg
+            name: base-configs-m228kf585k
         env:
         - name: NODE_OPTIONS
           value: --max-old-space-size=2048
@@ -1792,9 +1770,9 @@ spec:
         imagePullPolicy: null
         envFrom:
         - secretRef:
-            name: base-secrets-56cb2c6hhd
+            name: base-secrets-62htgm2m82
         - configMapRef:
-            name: base-configs-tg98dfhhkg
+            name: base-configs-m228kf585k
         env:
         - name: NODE_OPTIONS
           value: --max-old-space-size=2048
@@ -1848,9 +1826,9 @@ spec:
         imagePullPolicy: Always
         envFrom:
         - secretRef:
-            name: base-secrets-56cb2c6hhd
+            name: base-secrets-62htgm2m82
         - configMapRef:
-            name: base-configs-tg98dfhhkg
+            name: base-configs-m228kf585k
         env:
         - name: NODE_OPTIONS
           value: --max-old-space-size=2048
@@ -1940,11 +1918,11 @@ spec:
           valueFrom:
             configMapKeyRef:
               key: ML_SERVER_LOG_LEVEL
-              name: base-configs-tg98dfhhkg
+              name: base-configs-m228kf585k
         - name: PYROSCOPE_INGEST_URL
           valueFrom:
             configMapKeyRef:
-              name: base-configs-tg98dfhhkg
+              name: base-configs-m228kf585k
               key: PYROSCOPE_INGEST_URL
         - name: POD_NAME
           valueFrom:
@@ -1954,69 +1932,69 @@ spec:
           valueFrom:
             configMapKeyRef:
               key: example_ENVIRONMENT
-              name: base-configs-tg98dfhhkg
+              name: base-configs-m228kf585k
         - name: GOOGLE_APPLICATION_CREDENTIALS
           value: /var/gcp-credentials/credentials.json
         - name: PG_DB_PASSWORD
           valueFrom:
             secretKeyRef:
               key: PG_DB_PASSWORD_MLSERVER
-              name: base-secrets-56cb2c6hhd
+              name: base-secrets-62htgm2m82
         - name: OPENAI_API_KEY
           valueFrom:
             secretKeyRef:
               key: OPENAI_API_KEY
-              name: base-secrets-56cb2c6hhd
+              name: base-secrets-62htgm2m82
         - name: PG_DB_HOST
           valueFrom:
             configMapKeyRef:
               key: PG_DB_HOST
-              name: base-configs-tg98dfhhkg
+              name: base-configs-m228kf585k
         - name: PG_DB_PORT
           valueFrom:
             configMapKeyRef:
               key: PG_DB_PORT
-              name: base-configs-tg98dfhhkg
+              name: base-configs-m228kf585k
         - name: PG_DB_USERNAME
           valueFrom:
             configMapKeyRef:
               key: PG_DB_USERNAME_MLSERVER
-              name: base-configs-tg98dfhhkg
+              name: base-configs-m228kf585k
         - name: PG_DB_DATABASE
           valueFrom:
             configMapKeyRef:
               key: PG_DB_DATABASE
-              name: base-configs-tg98dfhhkg
+              name: base-configs-m228kf585k
         - name: OTEL_EXPORTER_OTLP_ENDPOINT
           valueFrom:
             configMapKeyRef:
               key: OTEL_EXPORTER_OTLP_ENDPOINT
-              name: base-configs-tg98dfhhkg
+              name: base-configs-m228kf585k
         - name: KAFKA_BROKER_HOST_LIST
           valueFrom:
             configMapKeyRef:
               key: KAFKA_BROKER_HOST_LIST
-              name: base-configs-tg98dfhhkg
+              name: base-configs-m228kf585k
         - name: S3_BUCKET_PUBLIC
           valueFrom:
             configMapKeyRef:
               key: S3_BUCKET_PUBLIC
-              name: base-configs-tg98dfhhkg
+              name: base-configs-m228kf585k
         - name: S3_REGION
           valueFrom:
             configMapKeyRef:
               key: S3_REGION
-              name: base-configs-tg98dfhhkg
+              name: base-configs-m228kf585k
         - name: S3_KEY
           valueFrom:
             secretKeyRef:
               key: S3_KEY
-              name: base-secrets-56cb2c6hhd
+              name: base-secrets-62htgm2m82
         - name: S3_SECRET
           valueFrom:
             secretKeyRef:
               key: S3_SECRET
-              name: base-secrets-56cb2c6hhd
+              name: base-secrets-62htgm2m82
         - name: SOURCE_VERSION
           valueFrom:
             configMapKeyRef:
@@ -2126,74 +2104,74 @@ spec:
           valueFrom:
             configMapKeyRef:
               key: ML_SERVER_LOG_LEVEL
-              name: base-configs-tg98dfhhkg
+              name: base-configs-m228kf585k
         - name: example_ENVIRONMENT
           valueFrom:
             configMapKeyRef:
               key: example_ENVIRONMENT
-              name: base-configs-tg98dfhhkg
+              name: base-configs-m228kf585k
         - name: GOOGLE_APPLICATION_CREDENTIALS
           value: /var/gcp-credentials/credentials.json
         - name: PG_DB_PASSWORD
           valueFrom:
             secretKeyRef:
               key: PG_DB_PASSWORD_MLSERVER
-              name: base-secrets-56cb2c6hhd
+              name: base-secrets-62htgm2m82
         - name: OPENAI_API_KEY
           valueFrom:
             secretKeyRef:
               key: OPENAI_API_KEY
-              name: base-secrets-56cb2c6hhd
+              name: base-secrets-62htgm2m82
         - name: PG_DB_HOST
           valueFrom:
             configMapKeyRef:
               key: PG_DB_HOST
-              name: base-configs-tg98dfhhkg
+              name: base-configs-m228kf585k
         - name: PG_DB_PORT
           valueFrom:
             configMapKeyRef:
               key: PG_DB_PORT
-              name: base-configs-tg98dfhhkg
+              name: base-configs-m228kf585k
         - name: PG_DB_USERNAME
           valueFrom:
             configMapKeyRef:
               key: PG_DB_USERNAME_MLSERVER
-              name: base-configs-tg98dfhhkg
+              name: base-configs-m228kf585k
         - name: PG_DB_DATABASE
           valueFrom:
             configMapKeyRef:
               key: PG_DB_DATABASE
-              name: base-configs-tg98dfhhkg
+              name: base-configs-m228kf585k
         - name: OTEL_EXPORTER_OTLP_ENDPOINT
           valueFrom:
             configMapKeyRef:
               key: OTEL_EXPORTER_OTLP_ENDPOINT
-              name: base-configs-tg98dfhhkg
+              name: base-configs-m228kf585k
         - name: KAFKA_BROKER_HOST_LIST
           valueFrom:
             configMapKeyRef:
               key: KAFKA_BROKER_HOST_LIST
-              name: base-configs-tg98dfhhkg
+              name: base-configs-m228kf585k
         - name: S3_BUCKET_PUBLIC
           valueFrom:
             configMapKeyRef:
               key: S3_BUCKET_PUBLIC
-              name: base-configs-tg98dfhhkg
+              name: base-configs-m228kf585k
         - name: S3_REGION
           valueFrom:
             configMapKeyRef:
               key: S3_REGION
-              name: base-configs-tg98dfhhkg
+              name: base-configs-m228kf585k
         - name: S3_KEY
           valueFrom:
             secretKeyRef:
               key: S3_KEY
-              name: base-secrets-56cb2c6hhd
+              name: base-secrets-62htgm2m82
         - name: S3_SECRET
           valueFrom:
             secretKeyRef:
               key: S3_SECRET
-              name: base-secrets-56cb2c6hhd
+              name: base-secrets-62htgm2m82
         - name: SENTRY_DSN
           value: https://ebdb64e290de0a72169b60e82d725c31@o4507103828049920.ingest.de.sentry.io/4507103831392336
         - name: SOURCE_VERSION
@@ -2292,37 +2270,37 @@ spec:
               valueFrom:
                 configMapKeyRef:
                   key: OTEL_EXPORTER_OTLP_ENDPOINT
-                  name: base-configs-tg98dfhhkg
+                  name: base-configs-m228kf585k
             - name: example_ENVIRONMENT
               valueFrom:
                 configMapKeyRef:
                   key: example_ENVIRONMENT
-                  name: base-configs-tg98dfhhkg
+                  name: base-configs-m228kf585k
             - name: PG_DB_HOST
               valueFrom:
                 configMapKeyRef:
                   key: PG_DB_HOST
-                  name: base-configs-tg98dfhhkg
+                  name: base-configs-m228kf585k
             - name: PG_DB_PORT
               valueFrom:
                 configMapKeyRef:
                   key: PG_DB_PORT
-                  name: base-configs-tg98dfhhkg
+                  name: base-configs-m228kf585k
             - name: PG_DB_USERNAME
               valueFrom:
                 configMapKeyRef:
                   key: PG_DB_USERNAME_MLSERVER
-                  name: base-configs-tg98dfhhkg
+                  name: base-configs-m228kf585k
             - name: PG_DB_DATABASE
               valueFrom:
                 configMapKeyRef:
                   key: PG_DB_DATABASE
-                  name: base-configs-tg98dfhhkg
+                  name: base-configs-m228kf585k
             - name: PG_DB_PASSWORD
               valueFrom:
                 secretKeyRef:
                   key: PG_DB_PASSWORD_MLSERVER
-                  name: base-secrets-56cb2c6hhd
+                  name: base-secrets-62htgm2m82
             - name: GOOGLE_APPLICATION_CREDENTIALS
               value: /var/gcp-credentials/credentials.json
             image: ml-server-image
@@ -2390,7 +2368,7 @@ spec:
           valueFrom:
             configMapKeyRef:
               key: PG_DB_BOUNCER_HOST
-              name: base-configs-tg98dfhhkg
+              name: base-configs-m228kf585k
         - name: PRISMA_DB_URL
           value: postgresql://$(PG_DB_USERNAME_NODE_API):$(PG_DB_PASSWORD_NODE_API)@$(PG_DB_HOST):$(PG_DB_PORT)/$(PG_DB_DATABASE)?schema=example&application_name=node-api&connection_limit=100&pool_timeout=120&pgbouncer=true
         - name: NODE_OPTIONS
@@ -2413,9 +2391,9 @@ spec:
               key: monorepo-revision
         envFrom:
         - secretRef:
-            name: base-secrets-56cb2c6hhd
+            name: base-secrets-62htgm2m82
         - configMapRef:
-            name: base-configs-tg98dfhhkg
+            name: base-configs-m228kf585k
         image: api-image
         imagePullPolicy: IfNotPresent
         livenessProbe:
@@ -2799,17 +2777,17 @@ spec:
         - name: POSTGRESQL_HOST
           valueFrom:
             configMapKeyRef:
-              name: base-configs-tg98dfhhkg
+              name: base-configs-m228kf585k
               key: PG_DB_HOST
         - name: POSTGRESQL_USERNAME
           valueFrom:
             configMapKeyRef:
-              name: base-configs-tg98dfhhkg
+              name: base-configs-m228kf585k
               key: PG_DB_USERNAME
         - name: POSTGRESQL_PASSWORD
           valueFrom:
             secretKeyRef:
-              name: base-secrets-56cb2c6hhd
+              name: base-secrets-62htgm2m82
               key: PG_DB_PASSWORD
         - name: PGBOUNCER_SERVER_TLS_SSLMODE
           value: prefer
@@ -2877,9 +2855,9 @@ spec:
               key: monorepo-revision
         envFrom:
         - secretRef:
-            name: base-secrets-56cb2c6hhd
+            name: base-secrets-62htgm2m82
         - configMapRef:
-            name: base-configs-tg98dfhhkg
+            name: base-configs-m228kf585k
         image: repair-jobs-feed-integration-image
         imagePullPolicy: IfNotPresent
         name: repair-jobs-feed-integration
@@ -2986,9 +2964,9 @@ spec:
           value: repairer-server
         envFrom:
         - configMapRef:
-            name: base-configs-tg98dfhhkg
+            name: base-configs-m228kf585k
         - secretRef:
-            name: base-secrets-56cb2c6hhd
+            name: base-secrets-62htgm2m82
         image: repairer-server-image
         imagePullPolicy: IfNotPresent
         livenessProbe:
@@ -3113,9 +3091,9 @@ spec:
               key: monorepo-revision
         envFrom:
         - secretRef:
-            name: base-secrets-56cb2c6hhd
+            name: base-secrets-62htgm2m82
         - configMapRef:
-            name: base-configs-tg98dfhhkg
+            name: base-configs-m228kf585k
         image: sample-integration-image
         imagePullPolicy: IfNotPresent
         livenessProbe:
@@ -3247,9 +3225,9 @@ spec:
               key: monorepo-revision
         envFrom:
         - secretRef:
-            name: base-secrets-56cb2c6hhd
+            name: base-secrets-62htgm2m82
         - configMapRef:
-            name: base-configs-tg98dfhhkg
+            name: base-configs-m228kf585k
         image: shopify-integration2-image
         imagePullPolicy: IfNotPresent
         name: shopify-integration2
@@ -3370,9 +3348,9 @@ spec:
               key: monorepo-revision
         envFrom:
         - secretRef:
-            name: base-secrets-56cb2c6hhd
+            name: base-secrets-62htgm2m82
         - configMapRef:
-            name: base-configs-tg98dfhhkg
+            name: base-configs-m228kf585k
         image: subscription-updater-image
         imagePullPolicy: IfNotPresent
         livenessProbe:
@@ -3458,9 +3436,9 @@ spec:
               key: monorepo-revision
         envFrom:
         - secretRef:
-            name: base-secrets-56cb2c6hhd
+            name: base-secrets-62htgm2m82
         - configMapRef:
-            name: base-configs-tg98dfhhkg
+            name: base-configs-m228kf585k
         image: vrm-search-image
         imagePullPolicy: IfNotPresent
         livenessProbe:
@@ -3548,9 +3526,9 @@ spec:
               key: monorepo-revision
         envFrom:
         - secretRef:
-            name: base-secrets-56cb2c6hhd
+            name: base-secrets-62htgm2m82
         - configMapRef:
-            name: base-configs-tg98dfhhkg
+            name: base-configs-m228kf585k
         image: webhooks-notifier-image
         imagePullPolicy: IfNotPresent
         livenessProbe:
@@ -3637,11 +3615,11 @@ spec:
               key: monorepo-revision
         envFrom:
         - configMapRef:
-            name: base-configs-tg98dfhhkg
+            name: base-configs-m228kf585k
         - configMapRef:
             name: external-job-integration-t74684c65d
         - secretRef:
-            name: base-secrets-56cb2c6hhd
+            name: base-secrets-62htgm2m82
         - secretRef:
             name: audatex-secrets
         image: repairer-server-image

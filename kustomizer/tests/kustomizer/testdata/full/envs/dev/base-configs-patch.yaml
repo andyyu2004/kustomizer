@@ -4,3 +4,4 @@ metadata:
   name: base-configs
 data:
   ENV: dev
+  LOG_LEVEL: debug
