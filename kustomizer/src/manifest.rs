@@ -72,6 +72,7 @@ pub struct ImageTag {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct Generator {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub namespace: Option<Str>,
@@ -162,6 +163,8 @@ pub struct KeyValuePairSources {
     pub literals: Box<[KeyValuePair]>,
     #[serde(default, skip_serializing_if = "<[_]>::is_empty")]
     pub files: Box<[MaybeKeyValuePair]>,
+    #[serde(default, skip_serializing_if = "<[_]>::is_empty")]
+    pub envs: Box<[PathBuf]>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]

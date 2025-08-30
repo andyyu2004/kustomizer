@@ -132,7 +132,6 @@ impl Builder {
 
         assert_eq!(secrets.len(), kustomization.secret_generators.len());
         for (sec, g) in secrets.iter().zip(&kustomization.secret_generators) {
-            todo!();
             if sec.name() != g.name {
                 let mut res_id = sec.id().clone();
                 res_id.name = g.name.clone();

@@ -82,11 +82,12 @@ spec:
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: base-configs-42745tchd9
+  name: base-configs-cbc6h26dgf
   namespace: partly
   annotations:
     argocd.argoproj.io/sync-wave: '-5'
-data: {}
+data:
+  ENV: dev
 ---
 apiVersion: v1
 kind: Secret
@@ -121,7 +122,7 @@ spec:
         - secretRef:
             name: base-secrets
         - configMapRef:
-            name: base-configs-42745tchd9
+            name: base-configs-cbc6h26dgf
         image: core-server-image
         imagePullPolicy: IfNotPresent
         livenessProbe:
@@ -237,7 +238,7 @@ spec:
             - secretRef:
                 name: base-secrets
             - configMapRef:
-                name: base-configs-42745tchd9
+                name: base-configs-cbc6h26dgf
             image: currency-updater-image
             name: example-currency-updater-cron
         metadata:
@@ -268,7 +269,7 @@ spec:
         - secretRef:
             name: base-secrets
         - configMapRef:
-            name: base-configs-42745tchd9
+            name: base-configs-cbc6h26dgf
         image: data-ingestor-image
         imagePullPolicy: IfNotPresent
         livenessProbe:
@@ -353,7 +354,7 @@ spec:
         - secretRef:
             name: base-secrets
         - configMapRef:
-            name: base-configs-42745tchd9
+            name: base-configs-cbc6h26dgf
         image: dataqa-api-rs-image
         imagePullPolicy: IfNotPresent
         livenessProbe:
@@ -625,7 +626,7 @@ spec:
         - secretRef:
             name: base-secrets
         - configMapRef:
-            name: base-configs-42745tchd9
+            name: base-configs-cbc6h26dgf
         image: driftdb-server-image
         imagePullPolicy: IfNotPresent
         name: driftdb-server
@@ -719,7 +720,7 @@ spec:
         - secretRef:
             name: base-secrets
         - configMapRef:
-            name: base-configs-42745tchd9
+            name: base-configs-cbc6h26dgf
         image: elasticsearch-ingestor-image
         imagePullPolicy: IfNotPresent
         livenessProbe:
@@ -806,7 +807,7 @@ spec:
         - secretRef:
             name: base-secrets
         - configMapRef:
-            name: base-configs-42745tchd9
+            name: base-configs-cbc6h26dgf
         image: elasticsearch-ingestor-image
         imagePullPolicy: IfNotPresent
         livenessProbe:
@@ -889,7 +890,7 @@ spec:
         - secretRef:
             name: base-secrets
         - configMapRef:
-            name: base-configs-42745tchd9
+            name: base-configs-cbc6h26dgf
         image: elasticsearch-ingestor-rs-image
         imagePullPolicy: IfNotPresent
         livenessProbe:
@@ -972,7 +973,7 @@ spec:
         - secretRef:
             name: base-secrets
         - configMapRef:
-            name: base-configs-42745tchd9
+            name: base-configs-cbc6h26dgf
         image: email-integration-image
         imagePullPolicy: IfNotPresent
         livenessProbe:
@@ -1050,7 +1051,7 @@ spec:
         - secretRef:
             name: base-secrets
         - configMapRef:
-            name: base-configs-42745tchd9
+            name: base-configs-cbc6h26dgf
         image: file-ingestor-image
         imagePullPolicy: IfNotPresent
         livenessProbe:
@@ -1137,7 +1138,7 @@ spec:
             - secretRef:
                 name: base-secrets
             - configMapRef:
-                name: base-configs-42745tchd9
+                name: base-configs-cbc6h26dgf
             image: garbage-collector-image
             name: garbage-collector
         metadata:
@@ -1172,7 +1173,7 @@ spec:
         - secretRef:
             name: base-secrets
         - configMapRef:
-            name: base-configs-42745tchd9
+            name: base-configs-cbc6h26dgf
         image: hca-notion-sync-image
         imagePullPolicy: IfNotPresent
         livenessProbe:
@@ -1263,7 +1264,7 @@ spec:
         - secretRef:
             name: base-secrets
         - configMapRef:
-            name: base-configs-42745tchd9
+            name: base-configs-cbc6h26dgf
         image: lookup-scanner-image
         imagePullPolicy: IfNotPresent
         livenessProbe:
@@ -1348,7 +1349,7 @@ spec:
         - secretRef:
             name: base-secrets
         - configMapRef:
-            name: base-configs-42745tchd9
+            name: base-configs-cbc6h26dgf
         image: lookup-server-image
         imagePullPolicy: IfNotPresent
         livenessProbe:
@@ -1442,7 +1443,7 @@ spec:
         - secretRef:
             name: base-secrets
         - configMapRef:
-            name: base-configs-42745tchd9
+            name: base-configs-cbc6h26dgf
         image: lookup-server-cdc-image
         imagePullPolicy: IfNotPresent
         livenessProbe:
@@ -1536,7 +1537,7 @@ spec:
         - secretRef:
             name: base-secrets
         - configMapRef:
-            name: base-configs-42745tchd9
+            name: base-configs-cbc6h26dgf
         image: migrations-scylla-image
         imagePullPolicy: IfNotPresent
         name: migrations-scylla
@@ -1587,7 +1588,7 @@ spec:
         - secretRef:
             name: base-secrets
         - configMapRef:
-            name: base-configs-42745tchd9
+            name: base-configs-cbc6h26dgf
         env:
         - name: NODE_OPTIONS
           value: --max-old-space-size=2048
@@ -1640,7 +1641,7 @@ spec:
         - secretRef:
             name: base-secrets
         - configMapRef:
-            name: base-configs-42745tchd9
+            name: base-configs-cbc6h26dgf
         env:
         - name: NODE_OPTIONS
           value: --max-old-space-size=2048
@@ -1696,7 +1697,7 @@ spec:
         - secretRef:
             name: base-secrets
         - configMapRef:
-            name: base-configs-42745tchd9
+            name: base-configs-cbc6h26dgf
         env:
         - name: NODE_OPTIONS
           value: --max-old-space-size=2048
@@ -1786,11 +1787,11 @@ spec:
           valueFrom:
             configMapKeyRef:
               key: ML_SERVER_LOG_LEVEL
-              name: base-configs-42745tchd9
+              name: base-configs-cbc6h26dgf
         - name: PYROSCOPE_INGEST_URL
           valueFrom:
             configMapKeyRef:
-              name: base-configs-42745tchd9
+              name: base-configs-cbc6h26dgf
               key: PYROSCOPE_INGEST_URL
         - name: POD_NAME
           valueFrom:
@@ -1800,7 +1801,7 @@ spec:
           valueFrom:
             configMapKeyRef:
               key: PARTLY_ENVIRONMENT
-              name: base-configs-42745tchd9
+              name: base-configs-cbc6h26dgf
         - name: GOOGLE_APPLICATION_CREDENTIALS
           value: /var/gcp-credentials/credentials.json
         - name: PG_DB_PASSWORD
@@ -1817,42 +1818,42 @@ spec:
           valueFrom:
             configMapKeyRef:
               key: PG_DB_HOST
-              name: base-configs-42745tchd9
+              name: base-configs-cbc6h26dgf
         - name: PG_DB_PORT
           valueFrom:
             configMapKeyRef:
               key: PG_DB_PORT
-              name: base-configs-42745tchd9
+              name: base-configs-cbc6h26dgf
         - name: PG_DB_USERNAME
           valueFrom:
             configMapKeyRef:
               key: PG_DB_USERNAME_MLSERVER
-              name: base-configs-42745tchd9
+              name: base-configs-cbc6h26dgf
         - name: PG_DB_DATABASE
           valueFrom:
             configMapKeyRef:
               key: PG_DB_DATABASE
-              name: base-configs-42745tchd9
+              name: base-configs-cbc6h26dgf
         - name: OTEL_EXPORTER_OTLP_ENDPOINT
           valueFrom:
             configMapKeyRef:
               key: OTEL_EXPORTER_OTLP_ENDPOINT
-              name: base-configs-42745tchd9
+              name: base-configs-cbc6h26dgf
         - name: KAFKA_BROKER_HOST_LIST
           valueFrom:
             configMapKeyRef:
               key: KAFKA_BROKER_HOST_LIST
-              name: base-configs-42745tchd9
+              name: base-configs-cbc6h26dgf
         - name: S3_BUCKET_PUBLIC
           valueFrom:
             configMapKeyRef:
               key: S3_BUCKET_PUBLIC
-              name: base-configs-42745tchd9
+              name: base-configs-cbc6h26dgf
         - name: S3_REGION
           valueFrom:
             configMapKeyRef:
               key: S3_REGION
-              name: base-configs-42745tchd9
+              name: base-configs-cbc6h26dgf
         - name: S3_KEY
           valueFrom:
             secretKeyRef:
@@ -1967,12 +1968,12 @@ spec:
           valueFrom:
             configMapKeyRef:
               key: ML_SERVER_LOG_LEVEL
-              name: base-configs-42745tchd9
+              name: base-configs-cbc6h26dgf
         - name: PARTLY_ENVIRONMENT
           valueFrom:
             configMapKeyRef:
               key: PARTLY_ENVIRONMENT
-              name: base-configs-42745tchd9
+              name: base-configs-cbc6h26dgf
         - name: GOOGLE_APPLICATION_CREDENTIALS
           value: /var/gcp-credentials/credentials.json
         - name: PG_DB_PASSWORD
@@ -1989,42 +1990,42 @@ spec:
           valueFrom:
             configMapKeyRef:
               key: PG_DB_HOST
-              name: base-configs-42745tchd9
+              name: base-configs-cbc6h26dgf
         - name: PG_DB_PORT
           valueFrom:
             configMapKeyRef:
               key: PG_DB_PORT
-              name: base-configs-42745tchd9
+              name: base-configs-cbc6h26dgf
         - name: PG_DB_USERNAME
           valueFrom:
             configMapKeyRef:
               key: PG_DB_USERNAME_MLSERVER
-              name: base-configs-42745tchd9
+              name: base-configs-cbc6h26dgf
         - name: PG_DB_DATABASE
           valueFrom:
             configMapKeyRef:
               key: PG_DB_DATABASE
-              name: base-configs-42745tchd9
+              name: base-configs-cbc6h26dgf
         - name: OTEL_EXPORTER_OTLP_ENDPOINT
           valueFrom:
             configMapKeyRef:
               key: OTEL_EXPORTER_OTLP_ENDPOINT
-              name: base-configs-42745tchd9
+              name: base-configs-cbc6h26dgf
         - name: KAFKA_BROKER_HOST_LIST
           valueFrom:
             configMapKeyRef:
               key: KAFKA_BROKER_HOST_LIST
-              name: base-configs-42745tchd9
+              name: base-configs-cbc6h26dgf
         - name: S3_BUCKET_PUBLIC
           valueFrom:
             configMapKeyRef:
               key: S3_BUCKET_PUBLIC
-              name: base-configs-42745tchd9
+              name: base-configs-cbc6h26dgf
         - name: S3_REGION
           valueFrom:
             configMapKeyRef:
               key: S3_REGION
-              name: base-configs-42745tchd9
+              name: base-configs-cbc6h26dgf
         - name: S3_KEY
           valueFrom:
             secretKeyRef:
@@ -2128,32 +2129,32 @@ spec:
               valueFrom:
                 configMapKeyRef:
                   key: OTEL_EXPORTER_OTLP_ENDPOINT
-                  name: base-configs-42745tchd9
+                  name: base-configs-cbc6h26dgf
             - name: PARTLY_ENVIRONMENT
               valueFrom:
                 configMapKeyRef:
                   key: PARTLY_ENVIRONMENT
-                  name: base-configs-42745tchd9
+                  name: base-configs-cbc6h26dgf
             - name: PG_DB_HOST
               valueFrom:
                 configMapKeyRef:
                   key: PG_DB_HOST
-                  name: base-configs-42745tchd9
+                  name: base-configs-cbc6h26dgf
             - name: PG_DB_PORT
               valueFrom:
                 configMapKeyRef:
                   key: PG_DB_PORT
-                  name: base-configs-42745tchd9
+                  name: base-configs-cbc6h26dgf
             - name: PG_DB_USERNAME
               valueFrom:
                 configMapKeyRef:
                   key: PG_DB_USERNAME_MLSERVER
-                  name: base-configs-42745tchd9
+                  name: base-configs-cbc6h26dgf
             - name: PG_DB_DATABASE
               valueFrom:
                 configMapKeyRef:
                   key: PG_DB_DATABASE
-                  name: base-configs-42745tchd9
+                  name: base-configs-cbc6h26dgf
             - name: PG_DB_PASSWORD
               valueFrom:
                 secretKeyRef:
@@ -2221,7 +2222,7 @@ spec:
           valueFrom:
             configMapKeyRef:
               key: PG_DB_BOUNCER_HOST
-              name: base-configs-42745tchd9
+              name: base-configs-cbc6h26dgf
         - name: PRISMA_DB_URL
           value: postgresql://$(PG_DB_USERNAME_NODE_API):$(PG_DB_PASSWORD_NODE_API)@$(PG_DB_HOST):$(PG_DB_PORT)/$(PG_DB_DATABASE)?schema=partly&application_name=node-api&connection_limit=100&pool_timeout=120&pgbouncer=true
         - name: NODE_OPTIONS
@@ -2241,7 +2242,7 @@ spec:
         - secretRef:
             name: base-secrets
         - configMapRef:
-            name: base-configs-42745tchd9
+            name: base-configs-cbc6h26dgf
         image: api-image
         imagePullPolicy: IfNotPresent
         livenessProbe:
@@ -2605,12 +2606,12 @@ spec:
         - name: POSTGRESQL_HOST
           valueFrom:
             configMapKeyRef:
-              name: base-configs-42745tchd9
+              name: base-configs-cbc6h26dgf
               key: PG_DB_HOST
         - name: POSTGRESQL_USERNAME
           valueFrom:
             configMapKeyRef:
-              name: base-configs-42745tchd9
+              name: base-configs-cbc6h26dgf
               key: PG_DB_USERNAME
         - name: POSTGRESQL_PASSWORD
           valueFrom:
@@ -2680,7 +2681,7 @@ spec:
         - secretRef:
             name: base-secrets
         - configMapRef:
-            name: base-configs-42745tchd9
+            name: base-configs-cbc6h26dgf
         image: repair-jobs-feed-integration-image
         imagePullPolicy: IfNotPresent
         name: repair-jobs-feed-integration
@@ -2782,7 +2783,7 @@ spec:
           value: repairer-server
         envFrom:
         - configMapRef:
-            name: base-configs-42745tchd9
+            name: base-configs-cbc6h26dgf
         - secretRef:
             name: base-secrets
         image: repairer-server-image
@@ -2901,7 +2902,7 @@ spec:
         - secretRef:
             name: base-secrets
         - configMapRef:
-            name: base-configs-42745tchd9
+            name: base-configs-cbc6h26dgf
         image: sample-integration-image
         imagePullPolicy: IfNotPresent
         livenessProbe:
@@ -3025,7 +3026,7 @@ spec:
         - secretRef:
             name: base-secrets
         - configMapRef:
-            name: base-configs-42745tchd9
+            name: base-configs-cbc6h26dgf
         image: shopify-integration2-image
         imagePullPolicy: IfNotPresent
         name: shopify-integration2
@@ -3138,7 +3139,7 @@ spec:
         - secretRef:
             name: base-secrets
         - configMapRef:
-            name: base-configs-42745tchd9
+            name: base-configs-cbc6h26dgf
         image: subscription-updater-image
         imagePullPolicy: IfNotPresent
         livenessProbe:
@@ -3221,7 +3222,7 @@ spec:
         - secretRef:
             name: base-secrets
         - configMapRef:
-            name: base-configs-42745tchd9
+            name: base-configs-cbc6h26dgf
         image: vrm-search-image
         imagePullPolicy: IfNotPresent
         livenessProbe:
@@ -3306,7 +3307,7 @@ spec:
         - secretRef:
             name: base-secrets
         - configMapRef:
-            name: base-configs-42745tchd9
+            name: base-configs-cbc6h26dgf
         image: webhooks-notifier-image
         imagePullPolicy: IfNotPresent
         livenessProbe:
@@ -3388,9 +3389,9 @@ spec:
       - env: []
         envFrom:
         - configMapRef:
-            name: base-configs-42745tchd9
+            name: base-configs-cbc6h26dgf
         - configMapRef:
-            name: external-job-integration-42745tchd9
+            name: external-job-integration-km5b4t95cd
         - secretRef:
             name: base-secrets
         - secretRef:
@@ -3445,8 +3446,12 @@ stringData:
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: external-job-integration-42745tchd9
+  name: external-job-integration-km5b4t95cd
   namespace: partly
   labels:
     app.kubernetes.io/name: example-external-job-integration
-data: {}
+data:
+  STEER_ORG_ID: 0caceb05-0b06-6000-811d-6a0e152ff190
+  STEER_REPAIRER_ID: d70fa182-bec6-4494-959b-bc57ffedc191
+  AUDATEX_CORE_EMAIL: evan+audatexscript@partly.com
+  AUDATEX_USERNAME: audatex
