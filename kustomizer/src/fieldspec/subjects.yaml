@@ -1,6 +1,6 @@
-- path: subjects[]/namespace
-  kind: RoleBinding
-  create: true
-- path: subjects[]/namespace
-  kind: ClusterRoleBinding
-  create: true
+# - path: subjects[]/namespace
+#   kind: RoleBinding
+#   create: true
+# - path: subjects[]/namespace
+#   kind: ClusterRoleBinding
+#   create: true

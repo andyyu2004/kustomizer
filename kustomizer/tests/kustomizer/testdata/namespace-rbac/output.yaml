@@ -25,4 +25,3 @@ roleRef:
 subjects:
 - kind: ServiceAccount
   name: test-serviceaccount
-  namespace: prod-namespace

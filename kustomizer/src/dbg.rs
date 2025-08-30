@@ -62,15 +62,16 @@ pub fn diff_reference_impl(path: &Path, actual: &str) -> anyhow::Result<()> {
     }
 
     // Remove kustomize.config.k8s.io/behavior annotations before comparison
+    // These annotations are not relevant for the diff. reference `kustomize` doesn't always remove
+    // the field for some reason.
+    // We can't use dyff's `--exclude` flag, because it doesn't seem to work with paths containing a `.`.
     // See: https://github.com/homeport/dyff/issues/362
     let clean_document = |mut doc: serde_yaml::Value| -> serde_yaml::Value {
         if let Some(metadata) = doc.get_mut("metadata")
             && let Some(annotations) = metadata.get_mut("annotations")
+            && let Some(annotations_map) = annotations.as_mapping_mut()
         {
-            if let Some(annotations_map) = annotations.as_mapping_mut() {
-                annotations_map
-                    .remove(&serde_yaml::Value::String(annotation::BEHAVIOR.to_string()));
-            }
+            annotations_map.remove(serde_yaml::Value::String(annotation::BEHAVIOR.to_string()));
         }
         doc
     };
