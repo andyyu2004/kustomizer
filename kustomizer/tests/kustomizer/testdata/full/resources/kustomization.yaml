@@ -48,7 +48,7 @@ patches:
       name: example-.*
     patch: |-
       - op: add
-        path: /spec/template/spec/containers/-1/env/-
+        path: /spec/template/spec/containers/0/env/-
         value:
           name: SOURCE_VERSION
           valueFrom:

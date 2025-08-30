@@ -117,6 +117,11 @@ spec:
       - env:
         - name: OTEL_SERVICE_NAME
           value: core-server
+        - name: SOURCE_VERSION
+          valueFrom:
+            configMapKeyRef:
+              name: example-monorepo-revision-sync
+              key: monorepo-revision
         envFrom:
         - secretRef:
             name: base-secrets-56cb2c6hhd
@@ -264,6 +269,11 @@ spec:
       - env:
         - name: OTEL_SERVICE_NAME
           value: data-ingestor
+        - name: SOURCE_VERSION
+          valueFrom:
+            configMapKeyRef:
+              name: example-monorepo-revision-sync
+              key: monorepo-revision
         envFrom:
         - secretRef:
             name: base-secrets-56cb2c6hhd
@@ -349,6 +359,11 @@ spec:
           value: dataqa-api-rs
         - name: DATAQA_API_RS__UPLOAD__AWS_OPTIONS__CDN_BASE_URL
           value: https://cdn.partly.com/
+        - name: SOURCE_VERSION
+          valueFrom:
+            configMapKeyRef:
+              name: example-monorepo-revision-sync
+              key: monorepo-revision
         envFrom:
         - secretRef:
             name: base-secrets-56cb2c6hhd
@@ -458,7 +473,12 @@ spec:
       containers:
       - image: nginx:1.21.1-alpine
         imagePullPolicy: IfNotPresent
-        env: []
+        env:
+        - name: SOURCE_VERSION
+          valueFrom:
+            configMapKeyRef:
+              name: example-monorepo-revision-sync
+              key: monorepo-revision
         livenessProbe:
           failureThreshold: 3
           httpGet:
@@ -621,6 +641,11 @@ spec:
       - env:
         - name: OTEL_SERVICE_NAME
           value: driftdb-server
+        - name: SOURCE_VERSION
+          valueFrom:
+            configMapKeyRef:
+              name: example-monorepo-revision-sync
+              key: monorepo-revision
         envFrom:
         - secretRef:
             name: base-secrets-56cb2c6hhd
@@ -715,6 +740,11 @@ spec:
           value: --max-old-space-size=3072
         - name: ELASTICSEARCH_INGESTOR_HIGH_PRIORITY
           value: '1'
+        - name: SOURCE_VERSION
+          valueFrom:
+            configMapKeyRef:
+              name: example-monorepo-revision-sync
+              key: monorepo-revision
         envFrom:
         - secretRef:
             name: base-secrets-56cb2c6hhd
@@ -802,6 +832,11 @@ spec:
           value: --max-old-space-size=1024
         - name: ELASTICSEARCH_INGESTOR_LOW_PRIORITY
           value: '1'
+        - name: SOURCE_VERSION
+          valueFrom:
+            configMapKeyRef:
+              name: example-monorepo-revision-sync
+              key: monorepo-revision
         envFrom:
         - secretRef:
             name: base-secrets-56cb2c6hhd
@@ -885,6 +920,11 @@ spec:
       - env:
         - name: OTEL_SERVICE_NAME
           value: elasticsearch-ingestor-rs
+        - name: SOURCE_VERSION
+          valueFrom:
+            configMapKeyRef:
+              name: example-monorepo-revision-sync
+              key: monorepo-revision
         envFrom:
         - secretRef:
             name: base-secrets-56cb2c6hhd
@@ -968,6 +1008,11 @@ spec:
       - env:
         - name: OTEL_SERVICE_NAME
           value: email-integration
+        - name: SOURCE_VERSION
+          valueFrom:
+            configMapKeyRef:
+              name: example-monorepo-revision-sync
+              key: monorepo-revision
         envFrom:
         - secretRef:
             name: base-secrets-56cb2c6hhd
@@ -1046,6 +1091,11 @@ spec:
       - env:
         - name: OTEL_SERVICE_NAME
           value: file-ingestor
+        - name: SOURCE_VERSION
+          valueFrom:
+            configMapKeyRef:
+              name: example-monorepo-revision-sync
+              key: monorepo-revision
         envFrom:
         - secretRef:
             name: base-secrets-56cb2c6hhd
@@ -1168,6 +1218,11 @@ spec:
           value: hca-notion-sync
         - name: NODE_OPTIONS
           value: --max-old-space-size=1500
+        - name: SOURCE_VERSION
+          valueFrom:
+            configMapKeyRef:
+              name: example-monorepo-revision-sync
+              key: monorepo-revision
         envFrom:
         - secretRef:
             name: base-secrets-56cb2c6hhd
@@ -1259,6 +1314,11 @@ spec:
           value: example-staging-cdn
         - name: LOOKUP_SCANNER__SYSTEM__AWS_OPTIONS__CDN_BASE_URL
           value: https://cdn.partly.pro/
+        - name: SOURCE_VERSION
+          valueFrom:
+            configMapKeyRef:
+              name: example-monorepo-revision-sync
+              key: monorepo-revision
         envFrom:
         - secretRef:
             name: base-secrets-56cb2c6hhd
@@ -1344,6 +1404,11 @@ spec:
           value: lookup-server
         - name: LOOKUP_SERVER__LOGGING__LEVEL
           value: info
+        - name: SOURCE_VERSION
+          valueFrom:
+            configMapKeyRef:
+              name: example-monorepo-revision-sync
+              key: monorepo-revision
         envFrom:
         - secretRef:
             name: base-secrets-56cb2c6hhd
@@ -1438,6 +1503,11 @@ spec:
       - env:
         - name: OTEL_SERVICE_NAME
           value: lookup-server-cdc
+        - name: SOURCE_VERSION
+          valueFrom:
+            configMapKeyRef:
+              name: example-monorepo-revision-sync
+              key: monorepo-revision
         envFrom:
         - secretRef:
             name: base-secrets-56cb2c6hhd
@@ -1863,6 +1933,11 @@ spec:
             secretKeyRef:
               key: S3_SECRET
               name: base-secrets-56cb2c6hhd
+        - name: SOURCE_VERSION
+          valueFrom:
+            configMapKeyRef:
+              name: example-monorepo-revision-sync
+              key: monorepo-revision
         image: ml-server-image
         livenessProbe:
           failureThreshold: 5
@@ -2037,6 +2112,11 @@ spec:
               name: base-secrets-56cb2c6hhd
         - name: SENTRY_DSN
           value: https://ebdb64e290de0a72169b60e82d725c31@o4507103828049920.ingest.de.sentry.io/4507103831392336
+        - name: SOURCE_VERSION
+          valueFrom:
+            configMapKeyRef:
+              name: example-monorepo-revision-sync
+              key: monorepo-revision
         image: ml-server-image
         livenessProbe:
           failureThreshold: 3
@@ -2237,6 +2317,11 @@ spec:
           value: latest
         - name: APOLLO_GRAPH_REF
           value: example-core@prod
+        - name: SOURCE_VERSION
+          valueFrom:
+            configMapKeyRef:
+              name: example-monorepo-revision-sync
+              key: monorepo-revision
         envFrom:
         - secretRef:
             name: base-secrets-56cb2c6hhd
@@ -2394,7 +2479,12 @@ spec:
       containers:
       - image: nginx:1.25.3-alpine3.18
         imagePullPolicy: IfNotPresent
-        env: []
+        env:
+        - name: SOURCE_VERSION
+          valueFrom:
+            configMapKeyRef:
+              name: example-monorepo-revision-sync
+              key: monorepo-revision
         livenessProbe:
           failureThreshold: 3
           httpGet:
@@ -2676,6 +2766,11 @@ spec:
           value: repair-jobs-feed-integration
         - name: repair_jobs_feed_integration__LOGGING__LEVEL
           value: info
+        - name: SOURCE_VERSION
+          valueFrom:
+            configMapKeyRef:
+              name: example-monorepo-revision-sync
+              key: monorepo-revision
         envFrom:
         - secretRef:
             name: base-secrets-56cb2c6hhd
@@ -2897,6 +2992,11 @@ spec:
           value: sample-integration.integrations.partly.com
         - name: SAMPLE_INTEGRATION_PROTOCOL
           value: https
+        - name: SOURCE_VERSION
+          valueFrom:
+            configMapKeyRef:
+              name: example-monorepo-revision-sync
+              key: monorepo-revision
         envFrom:
         - secretRef:
             name: base-secrets-56cb2c6hhd
@@ -3021,6 +3121,11 @@ spec:
           value: '1'
         - name: SHOPIFY_INTEGRATION__KAFKA__NOTIFICATION_BATCH_SIZE
           value: '50'
+        - name: SOURCE_VERSION
+          valueFrom:
+            configMapKeyRef:
+              name: example-monorepo-revision-sync
+              key: monorepo-revision
         envFrom:
         - secretRef:
             name: base-secrets-56cb2c6hhd
@@ -3134,6 +3239,11 @@ spec:
               fieldPath: metadata.name
         - name: APOLLO_SERVER_USER_VERSION
           value: latest
+        - name: SOURCE_VERSION
+          valueFrom:
+            configMapKeyRef:
+              name: example-monorepo-revision-sync
+              key: monorepo-revision
         envFrom:
         - secretRef:
             name: base-secrets-56cb2c6hhd
@@ -3217,6 +3327,11 @@ spec:
           value: vrm-search
         - name: NODE_OPTIONS
           value: --max-old-space-size=768
+        - name: SOURCE_VERSION
+          valueFrom:
+            configMapKeyRef:
+              name: example-monorepo-revision-sync
+              key: monorepo-revision
         envFrom:
         - secretRef:
             name: base-secrets-56cb2c6hhd
@@ -3302,6 +3417,11 @@ spec:
           value: webhooks-notifier
         - name: WEBHOOKS_NOTIFIER__LOGGING__LEVEL
           value: info
+        - name: SOURCE_VERSION
+          valueFrom:
+            configMapKeyRef:
+              name: example-monorepo-revision-sync
+              key: monorepo-revision
         envFrom:
         - secretRef:
             name: base-secrets-56cb2c6hhd
@@ -3385,7 +3505,12 @@ spec:
         app.kubernetes.io/name: example-external-job-integration
     spec:
       containers:
-      - env: []
+      - env:
+        - name: SOURCE_VERSION
+          valueFrom:
+            configMapKeyRef:
+              name: example-monorepo-revision-sync
+              key: monorepo-revision
         envFrom:
         - configMapRef:
             name: base-configs-cbc6h26dgf
