@@ -26,6 +26,7 @@ const KUSTOMIZE_FUNCTION_ANNOTATION: &str = "config.kubernetes.io/function";
 #[derive(Debug, Default)]
 pub struct Builder {
     resources_cache: Mutex<IndexMap<PathId, Resource>>,
+    renames: Mutex<Vec<Rename>>,
 }
 
 impl Builder {
@@ -33,7 +34,14 @@ impl Builder {
         &self,
         kustomization: &Located<Kustomization>,
     ) -> anyhow::Result<ResourceMap> {
-        self.build(Default::default(), kustomization).await
+        let mut resmap = self.build(Default::default(), kustomization).await?;
+
+        let refspecs = RefSpecs::load_builtin();
+        RenameTransformer::new(refspecs, &self.renames.lock().await)
+            .transform(&mut resmap)
+            .await?;
+
+        Ok(resmap)
     }
 
     #[tracing::instrument(skip_all, fields(path = %kustomization.path.pretty()))]
@@ -45,8 +53,6 @@ impl Builder {
         kustomization: &Located<Manifest<A, K>>,
     ) -> anyhow::Result<ResourceMap> {
         let mut resmap = self.build_kustomization_base(resmap, kustomization).await?;
-
-        let mut renames = vec![];
 
         for path in &kustomization.generators {
             let path = PathId::make(kustomization.parent_path.join(path))?;
@@ -103,7 +109,10 @@ impl Builder {
             if cm.name() != g.name {
                 let mut res_id = cm.id().clone();
                 res_id.name = g.name.clone();
-                renames.push(Rename::new(res_id, cm.name().clone()));
+                self.renames
+                    .lock()
+                    .await
+                    .push(Rename::new(res_id, cm.name().clone()));
             }
         }
 
@@ -123,10 +132,14 @@ impl Builder {
 
         assert_eq!(secrets.len(), kustomization.secret_generators.len());
         for (sec, g) in secrets.iter().zip(&kustomization.secret_generators) {
+            todo!();
             if sec.name() != g.name {
                 let mut res_id = sec.id().clone();
                 res_id.name = g.name.clone();
-                renames.push(Rename::new(res_id, sec.name().clone()));
+                self.renames
+                    .lock()
+                    .await
+                    .push(Rename::new(res_id, sec.name().clone()));
             }
         }
 
@@ -159,7 +172,7 @@ impl Builder {
 
         match (&kustomization.name_prefix, &kustomization.name_suffix) {
             (prefix, suffix) if !prefix.is_empty() || !suffix.is_empty() => {
-                renames.extend(resmap.iter().map(|res| {
+                self.renames.lock().await.extend(resmap.iter().map(|res| {
                     Rename::new(
                         res.id().clone(),
                         format_compact!("{prefix}{}{suffix}", res.name()),
@@ -240,11 +253,6 @@ impl Builder {
 
         CleanupTransformer::default().transform(&mut resmap).await?;
 
-        let refspecs = RefSpecs::load_builtin();
-        RenameTransformer::new(refspecs, &renames)
-            .transform(&mut resmap)
-            .await?;
-
         Ok(resmap)
     }
 
@@ -307,7 +315,7 @@ impl Builder {
                 .with_context(|| format!("loading kustomization resource {}", path.pretty()))?;
 
             let base = self
-                .build_kust(&kustomization)
+                .build(Default::default(), &kustomization)
                 .await
                 .with_context(|| format!("building kustomization resource {}", path.pretty()))?;
 
