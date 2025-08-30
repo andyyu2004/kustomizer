@@ -5,7 +5,7 @@ use std::{
     process::{Command, Stdio},
 };
 
-use crate::PathExt;
+use crate::{PathExt, resource::annotation};
 
 // Diff against reference kustomize implementation
 pub fn diff_reference_impl(path: &Path, actual: &str) -> anyhow::Result<()> {
@@ -61,14 +61,30 @@ pub fn diff_reference_impl(path: &Path, actual: &str) -> anyhow::Result<()> {
         return Ok(());
     }
 
+    // Remove kustomize.config.k8s.io/behavior annotations before comparison
+    // See: https://github.com/homeport/dyff/issues/362
+    let clean_document = |mut doc: serde_yaml::Value| -> serde_yaml::Value {
+        if let Some(metadata) = doc.get_mut("metadata")
+            && let Some(annotations) = metadata.get_mut("annotations")
+        {
+            if let Some(annotations_map) = annotations.as_mapping_mut() {
+                annotations_map
+                    .remove(&serde_yaml::Value::String(annotation::BEHAVIOR.to_string()));
+            }
+        }
+        doc
+    };
+
     let mut expected = expected_documents
         .into_iter()
+        .map(clean_document)
         .map(|doc| serde_yaml::to_string(&doc).unwrap())
         .collect::<Vec<_>>();
     expected.sort();
 
     let mut actual = actual_documents
         .into_iter()
+        .map(clean_document)
         .map(|doc| serde_yaml::to_string(&doc).unwrap())
         .collect::<Vec<_>>();
     actual.sort();
