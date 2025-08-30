@@ -1,0 +1,15 @@
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingWebhookConfiguration
+metadata:
+  name: example
+webhooks:
+  - name: example1
+    clientConfig:
+      service:
+        name: svc1
+        namespace: system
+  - name: example2
+    clientConfig:
+      service:
+        name: svc2
+        namespace: system

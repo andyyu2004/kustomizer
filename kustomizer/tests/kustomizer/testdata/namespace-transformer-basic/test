@@ -1,0 +1,3 @@
+#!/bin/bash
+# Basic namespace transformer test - tests that namespace is applied correctly
+# and that only ServiceAccount subjects named 'default' get namespace updates

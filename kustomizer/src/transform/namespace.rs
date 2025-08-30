@@ -1,4 +1,9 @@
-use crate::{fieldspec, manifest::Str, patch::openapi, resmap::ResourceMap};
+use crate::{
+    fieldspec,
+    manifest::{Str, kind},
+    patch::openapi,
+    resmap::ResourceMap,
+};
 
 use super::Transformer;
 
@@ -14,10 +19,20 @@ impl Transformer for NamespaceTransformer {
         let mut out = ResourceMap::with_capacity(resources.len());
         for mut resource in std::mem::take(resources) {
             // Quirk of kustomize is to apply namespaces to (cluster) rolebinding subjects too
-            builtin.subjects.apply::<String>(&mut resource, |ns_ref| {
-                *ns_ref = ns.clone();
-                Ok(())
-            })?;
+            // Only apply to ServiceAccount subjects named "default" (defaultOnly behavior in kustomize)
+            builtin
+                .subjects
+                .apply::<serde_json::Value>(&mut resource, |subject| {
+                    if let Some(kind) = subject.get("kind").and_then(|k| k.as_str())
+                        && let Some(name) = subject.get("name").and_then(|n| n.as_str())
+                        && kind::ServiceAccount == *kind
+                        && name == "default"
+                    {
+                        *subject.get_mut("namespace").unwrap() =
+                            serde_json::Value::String(ns.clone());
+                    }
+                    Ok(())
+                })?;
 
             if spec.is_namespaced(resource.gvk()) {
                 out.insert(resource.with_namespace(self.0.clone()))?;

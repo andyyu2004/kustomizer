@@ -1,0 +1,2 @@
+#!/bin/bash
+# Test that only ServiceAccount subjects named 'default' get namespace updates (defaultOnly mode)

@@ -1,0 +1,71 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cm1
+  namespace: test
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cm2
+  namespace: test
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: svc1
+  namespace: test
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: ns1
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: default
+  namespace: test
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: service-account
+  namespace: test
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: manager-rolebinding
+subjects:
+- kind: ServiceAccount
+  name: default
+  namespace: system
+- kind: ServiceAccount
+  name: service-account
+  namespace: system
+- kind: ServiceAccount
+  name: another
+  namespace: random
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingWebhookConfiguration
+metadata:
+  name: example
+webhooks:
+- name: example1
+  clientConfig:
+    service:
+      name: svc1
+      namespace: system
+- name: example2
+  clientConfig:
+    service:
+      name: svc2
+      namespace: system
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: crd

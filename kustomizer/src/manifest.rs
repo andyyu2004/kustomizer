@@ -403,6 +403,7 @@ pub mod kind {
     define_symbol!(Component = "Component");
     define_symbol!(ResourceList = "ResourceList");
     define_symbol!(ImageTagTransformer = "ImageTagTransformer");
+    define_symbol!(ServiceAccount = "ServiceAccount");
 }
 
 pub mod apiversion {
@@ -453,6 +454,12 @@ macro_rules! define_symbol {
 
         impl $crate::manifest::Symbol for $name {
             const VALUE: &'static str = $value;
+        }
+
+        impl PartialEq<str> for $name {
+            fn eq(&self, other: &str) -> bool {
+                other == $value
+            }
         }
     };
 }

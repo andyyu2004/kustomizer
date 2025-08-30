@@ -1,0 +1,27 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: manager-rolebinding
+subjects:
+- kind: ServiceAccount
+  name: default
+  namespace: system
+- kind: ServiceAccount
+  name: service-account
+  namespace: system
+- kind: ServiceAccount
+  name: another
+  namespace: random
+- kind: ServiceAccount
+  name: without-namespace
+- kind: Unrecognized
+  name: no-namespace
+- apiGroup: rbac.authorization.k8s.io
+  kind: User
+  name: alice@example.com
+- apiGroup: rbac.authorization.k8s.io
+  kind: Group
+  name: frontend-admins
+- apiGroup: rbac.authorization.k8s.io
+  kind: Group
+  name: system:serviceaccounts:qa
