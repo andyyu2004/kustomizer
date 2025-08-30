@@ -178,6 +178,11 @@ impl Resource {
         (id, root)
     }
 
+    pub fn set_name(&mut self, name: Str) {
+        self.metadata_mut().set_name(name.clone());
+        self.id.name = name;
+    }
+
     pub fn with_name(mut self, name: Str) -> Self {
         self.metadata_mut().set_name(name.clone());
         let (mut id, root) = self.into_parts();
@@ -364,4 +369,10 @@ impl<'de> Deserialize<'de> for Resource {
 
         Resource::new(id, res.metadata, res.root).map_err(serde::de::Error::custom)
     }
+}
+
+pub mod annotation {
+    pub const FUNCTION: &str = "config.kubernetes.io/function";
+    pub const BEHAVIOR: &str = "kustomize.config.k8s.io/behavior";
+    pub const NEEDS_HASH: &str = "kustomize.config.k8s.io/needs-hash";
 }

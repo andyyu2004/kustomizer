@@ -58,3 +58,12 @@ impl<'a> IntoIterator for &'a ResourceList {
         self.items.iter()
     }
 }
+
+impl<'a> IntoIterator for &'a mut ResourceList {
+    type Item = &'a mut Resource;
+    type IntoIter = std::slice::IterMut<'a, Resource>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.items.iter_mut()
+    }
+}

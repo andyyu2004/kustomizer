@@ -2,7 +2,7 @@ use serde::Deserialize as _;
 
 use crate::manifest::{Behavior, FunctionSpec};
 
-use super::{Object, Resource};
+use super::{Object, Resource, annotation};
 
 impl Resource {
     pub fn metadata(&self) -> MetadataView<'_> {
@@ -58,8 +58,12 @@ impl AnnotationsView<'_> {
         }
     }
 
+    pub fn needs_hash(&self) -> bool {
+        matches!(self.get(annotation::NEEDS_HASH), Some(v) if v == "true")
+    }
+
     pub fn function_spec(&self) -> anyhow::Result<Option<FunctionSpec>> {
-        match self.get("config.kubernetes.io/function") {
+        match self.get(annotation::FUNCTION) {
             Some(yaml) => {
                 let json = serde_yaml::from_str::<serde_json::Value>(yaml)?;
                 FunctionSpec::deserialize(json)
@@ -77,8 +81,9 @@ pub struct MetadataViewMut<'a>(&'a mut Object);
 impl MetadataViewMut<'_> {
     pub(crate) fn clear_internal_fields(&mut self) {
         if let Some(mut annotations) = self.annotations_mut() {
-            annotations.remove("config.kubernetes.io/function");
-            annotations.remove("kustomize.config.k8s.io/behavior");
+            annotations.remove(annotation::BEHAVIOR);
+            annotations.remove(annotation::FUNCTION);
+            annotations.remove(annotation::NEEDS_HASH);
         }
     }
 

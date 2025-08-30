@@ -92,10 +92,9 @@ data:
 apiVersion: v1
 kind: Secret
 metadata:
-  name: base-secrets
+  name: base-secrets-56cb2c6hhd
   namespace: partly
   annotations:
-    kustomize.config.k8s.io/needs-hash: 'true'
     argocd.argoproj.io/sync-wave: '-5'
 data:
   POSTGRESQL_URL: dXNlcm5hbWU=
@@ -120,7 +119,7 @@ spec:
           value: core-server
         envFrom:
         - secretRef:
-            name: base-secrets
+            name: base-secrets-56cb2c6hhd
         - configMapRef:
             name: base-configs-cbc6h26dgf
         image: core-server-image
@@ -236,7 +235,7 @@ spec:
               value: currency-updater-cron
             envFrom:
             - secretRef:
-                name: base-secrets
+                name: base-secrets-56cb2c6hhd
             - configMapRef:
                 name: base-configs-cbc6h26dgf
             image: currency-updater-image
@@ -267,7 +266,7 @@ spec:
           value: data-ingestor
         envFrom:
         - secretRef:
-            name: base-secrets
+            name: base-secrets-56cb2c6hhd
         - configMapRef:
             name: base-configs-cbc6h26dgf
         image: data-ingestor-image
@@ -352,7 +351,7 @@ spec:
           value: https://cdn.partly.com/
         envFrom:
         - secretRef:
-            name: base-secrets
+            name: base-secrets-56cb2c6hhd
         - configMapRef:
             name: base-configs-cbc6h26dgf
         image: dataqa-api-rs-image
@@ -624,7 +623,7 @@ spec:
           value: driftdb-server
         envFrom:
         - secretRef:
-            name: base-secrets
+            name: base-secrets-56cb2c6hhd
         - configMapRef:
             name: base-configs-cbc6h26dgf
         image: driftdb-server-image
@@ -718,7 +717,7 @@ spec:
           value: '1'
         envFrom:
         - secretRef:
-            name: base-secrets
+            name: base-secrets-56cb2c6hhd
         - configMapRef:
             name: base-configs-cbc6h26dgf
         image: elasticsearch-ingestor-image
@@ -805,7 +804,7 @@ spec:
           value: '1'
         envFrom:
         - secretRef:
-            name: base-secrets
+            name: base-secrets-56cb2c6hhd
         - configMapRef:
             name: base-configs-cbc6h26dgf
         image: elasticsearch-ingestor-image
@@ -888,7 +887,7 @@ spec:
           value: elasticsearch-ingestor-rs
         envFrom:
         - secretRef:
-            name: base-secrets
+            name: base-secrets-56cb2c6hhd
         - configMapRef:
             name: base-configs-cbc6h26dgf
         image: elasticsearch-ingestor-rs-image
@@ -971,7 +970,7 @@ spec:
           value: email-integration
         envFrom:
         - secretRef:
-            name: base-secrets
+            name: base-secrets-56cb2c6hhd
         - configMapRef:
             name: base-configs-cbc6h26dgf
         image: email-integration-image
@@ -1049,7 +1048,7 @@ spec:
           value: file-ingestor
         envFrom:
         - secretRef:
-            name: base-secrets
+            name: base-secrets-56cb2c6hhd
         - configMapRef:
             name: base-configs-cbc6h26dgf
         image: file-ingestor-image
@@ -1136,7 +1135,7 @@ spec:
               value: garbage-collector
             envFrom:
             - secretRef:
-                name: base-secrets
+                name: base-secrets-56cb2c6hhd
             - configMapRef:
                 name: base-configs-cbc6h26dgf
             image: garbage-collector-image
@@ -1171,7 +1170,7 @@ spec:
           value: --max-old-space-size=1500
         envFrom:
         - secretRef:
-            name: base-secrets
+            name: base-secrets-56cb2c6hhd
         - configMapRef:
             name: base-configs-cbc6h26dgf
         image: hca-notion-sync-image
@@ -1262,7 +1261,7 @@ spec:
           value: https://cdn.partly.pro/
         envFrom:
         - secretRef:
-            name: base-secrets
+            name: base-secrets-56cb2c6hhd
         - configMapRef:
             name: base-configs-cbc6h26dgf
         image: lookup-scanner-image
@@ -1347,7 +1346,7 @@ spec:
           value: info
         envFrom:
         - secretRef:
-            name: base-secrets
+            name: base-secrets-56cb2c6hhd
         - configMapRef:
             name: base-configs-cbc6h26dgf
         image: lookup-server-image
@@ -1441,7 +1440,7 @@ spec:
           value: lookup-server-cdc
         envFrom:
         - secretRef:
-            name: base-secrets
+            name: base-secrets-56cb2c6hhd
         - configMapRef:
             name: base-configs-cbc6h26dgf
         image: lookup-server-cdc-image
@@ -1535,7 +1534,7 @@ spec:
       containers:
       - envFrom:
         - secretRef:
-            name: base-secrets
+            name: base-secrets-56cb2c6hhd
         - configMapRef:
             name: base-configs-cbc6h26dgf
         image: migrations-scylla-image
@@ -1586,7 +1585,7 @@ spec:
         imagePullPolicy: null
         envFrom:
         - secretRef:
-            name: base-secrets
+            name: base-secrets-56cb2c6hhd
         - configMapRef:
             name: base-configs-cbc6h26dgf
         env:
@@ -1639,7 +1638,7 @@ spec:
         imagePullPolicy: null
         envFrom:
         - secretRef:
-            name: base-secrets
+            name: base-secrets-56cb2c6hhd
         - configMapRef:
             name: base-configs-cbc6h26dgf
         env:
@@ -1695,7 +1694,7 @@ spec:
         imagePullPolicy: Always
         envFrom:
         - secretRef:
-            name: base-secrets
+            name: base-secrets-56cb2c6hhd
         - configMapRef:
             name: base-configs-cbc6h26dgf
         env:
@@ -1808,12 +1807,12 @@ spec:
           valueFrom:
             secretKeyRef:
               key: PG_DB_PASSWORD_MLSERVER
-              name: base-secrets
+              name: base-secrets-56cb2c6hhd
         - name: OPENAI_API_KEY
           valueFrom:
             secretKeyRef:
               key: OPENAI_API_KEY
-              name: base-secrets
+              name: base-secrets-56cb2c6hhd
         - name: PG_DB_HOST
           valueFrom:
             configMapKeyRef:
@@ -1858,12 +1857,12 @@ spec:
           valueFrom:
             secretKeyRef:
               key: S3_KEY
-              name: base-secrets
+              name: base-secrets-56cb2c6hhd
         - name: S3_SECRET
           valueFrom:
             secretKeyRef:
               key: S3_SECRET
-              name: base-secrets
+              name: base-secrets-56cb2c6hhd
         image: ml-server-image
         livenessProbe:
           failureThreshold: 5
@@ -1980,12 +1979,12 @@ spec:
           valueFrom:
             secretKeyRef:
               key: PG_DB_PASSWORD_MLSERVER
-              name: base-secrets
+              name: base-secrets-56cb2c6hhd
         - name: OPENAI_API_KEY
           valueFrom:
             secretKeyRef:
               key: OPENAI_API_KEY
-              name: base-secrets
+              name: base-secrets-56cb2c6hhd
         - name: PG_DB_HOST
           valueFrom:
             configMapKeyRef:
@@ -2030,12 +2029,12 @@ spec:
           valueFrom:
             secretKeyRef:
               key: S3_KEY
-              name: base-secrets
+              name: base-secrets-56cb2c6hhd
         - name: S3_SECRET
           valueFrom:
             secretKeyRef:
               key: S3_SECRET
-              name: base-secrets
+              name: base-secrets-56cb2c6hhd
         - name: SENTRY_DSN
           value: https://ebdb64e290de0a72169b60e82d725c31@o4507103828049920.ingest.de.sentry.io/4507103831392336
         image: ml-server-image
@@ -2159,7 +2158,7 @@ spec:
               valueFrom:
                 secretKeyRef:
                   key: PG_DB_PASSWORD_MLSERVER
-                  name: base-secrets
+                  name: base-secrets-56cb2c6hhd
             - name: GOOGLE_APPLICATION_CREDENTIALS
               value: /var/gcp-credentials/credentials.json
             image: ml-server-image
@@ -2240,7 +2239,7 @@ spec:
           value: example-core@prod
         envFrom:
         - secretRef:
-            name: base-secrets
+            name: base-secrets-56cb2c6hhd
         - configMapRef:
             name: base-configs-cbc6h26dgf
         image: api-image
@@ -2616,7 +2615,7 @@ spec:
         - name: POSTGRESQL_PASSWORD
           valueFrom:
             secretKeyRef:
-              name: base-secrets
+              name: base-secrets-56cb2c6hhd
               key: PG_DB_PASSWORD
         - name: PGBOUNCER_SERVER_TLS_SSLMODE
           value: prefer
@@ -2679,7 +2678,7 @@ spec:
           value: info
         envFrom:
         - secretRef:
-            name: base-secrets
+            name: base-secrets-56cb2c6hhd
         - configMapRef:
             name: base-configs-cbc6h26dgf
         image: repair-jobs-feed-integration-image
@@ -2785,7 +2784,7 @@ spec:
         - configMapRef:
             name: base-configs-cbc6h26dgf
         - secretRef:
-            name: base-secrets
+            name: base-secrets-56cb2c6hhd
         image: repairer-server-image
         imagePullPolicy: IfNotPresent
         livenessProbe:
@@ -2900,7 +2899,7 @@ spec:
           value: https
         envFrom:
         - secretRef:
-            name: base-secrets
+            name: base-secrets-56cb2c6hhd
         - configMapRef:
             name: base-configs-cbc6h26dgf
         image: sample-integration-image
@@ -3024,7 +3023,7 @@ spec:
           value: '50'
         envFrom:
         - secretRef:
-            name: base-secrets
+            name: base-secrets-56cb2c6hhd
         - configMapRef:
             name: base-configs-cbc6h26dgf
         image: shopify-integration2-image
@@ -3137,7 +3136,7 @@ spec:
           value: latest
         envFrom:
         - secretRef:
-            name: base-secrets
+            name: base-secrets-56cb2c6hhd
         - configMapRef:
             name: base-configs-cbc6h26dgf
         image: subscription-updater-image
@@ -3220,7 +3219,7 @@ spec:
           value: --max-old-space-size=768
         envFrom:
         - secretRef:
-            name: base-secrets
+            name: base-secrets-56cb2c6hhd
         - configMapRef:
             name: base-configs-cbc6h26dgf
         image: vrm-search-image
@@ -3305,7 +3304,7 @@ spec:
           value: info
         envFrom:
         - secretRef:
-            name: base-secrets
+            name: base-secrets-56cb2c6hhd
         - configMapRef:
             name: base-configs-cbc6h26dgf
         image: webhooks-notifier-image
@@ -3393,7 +3392,7 @@ spec:
         - configMapRef:
             name: external-job-integration-km5b4t95cd
         - secretRef:
-            name: base-secrets
+            name: base-secrets-56cb2c6hhd
         - secretRef:
             name: audatex-secrets
         image: repairer-server-image

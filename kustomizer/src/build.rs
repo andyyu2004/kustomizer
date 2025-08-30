@@ -55,46 +55,23 @@ impl Builder {
         let mut resmap = self.build_kustomization_base(resmap, kustomization).await?;
 
         for path in &kustomization.generators {
-            let path = PathId::make(kustomization.parent_path.join(path))?;
-            let workdir = path.parent().unwrap();
-            let generator_spec = Resource::load(path)
-                .with_context(|| format!("loading generator spec from {}", path.pretty()))?;
-
-            if let Some(annotations) = generator_spec.annotations()
-                && annotations.has(KUSTOMIZE_FUNCTION_ANNOTATION)
-            {
-                let function_spec = annotations
-                    .function_spec()
-                    .with_context(|| {
-                        format!(
-                            "failed parsing function spec from generator spec at `{}`",
-                            path.pretty()
-                        )
-                    })?
-                    .unwrap();
-                let generated = FunctionPlugin::new(function_spec)
-                    .generate(workdir, &ResourceList::new([generator_spec]))
-                    .await
-                    .with_context(|| {
-                        format!(
-                            "failed generating resources from function spec at {}",
-                            path.pretty()
-                        )
-                    })?;
-
-                resmap.extend(generated).with_context(|| {
+            let generated = self
+                .build_generator(kustomization, path)
+                .await
+                .with_context(|| {
                     format!(
-                        "failure merging resources from generator at `{}`",
-                        path.pretty()
+                        "building generator at `{}` in `{}`",
+                        path.pretty(),
+                        kustomization.path.pretty()
                     )
                 })?;
-            } else {
-                bail!(
-                    "only custom generators with the `{KUSTOMIZE_FUNCTION_ANNOTATION}` annotation are supported `{}`, got {}",
-                    path.pretty(),
-                    generator_spec.id()
-                );
-            }
+
+            resmap.extend(generated).with_context(|| {
+                format!(
+                    "failure merging resources from generator at `{}`",
+                    path.pretty()
+                )
+            })?;
         }
 
         let configmaps = ConfigMapGenerator::new(
@@ -319,6 +296,61 @@ impl Builder {
                 .with_context(|| format!("building kustomization resource {}", path.pretty()))?;
 
             Ok(either::Either::Right(base))
+        }
+    }
+
+    async fn build_generator<A: Symbol, K: Symbol>(
+        &self,
+        kustomization: &Located<Manifest<A, K>>,
+        path: &Path,
+    ) -> anyhow::Result<ResourceList> {
+        let path = PathId::make(kustomization.parent_path.join(path))?;
+        let workdir = path.parent().unwrap();
+        let generator_spec = Resource::load(path)
+            .with_context(|| format!("loading generator spec from {}", path.pretty()))?;
+
+        if let Some(annotations) = generator_spec.annotations()
+            && annotations.has(KUSTOMIZE_FUNCTION_ANNOTATION)
+        {
+            let function_spec = annotations
+                .function_spec()
+                .with_context(|| {
+                    format!(
+                        "failed parsing function spec from generator spec at `{}`",
+                        path.pretty()
+                    )
+                })?
+                .unwrap();
+            let mut generated = FunctionPlugin::new(function_spec)
+                .generate(workdir, &ResourceList::new([generator_spec]))
+                .await
+                .with_context(|| {
+                    format!(
+                        "failed generating resources from function spec at {}",
+                        path.pretty()
+                    )
+                })?;
+
+            for res in &mut generated {
+                if let Some(annotations) = res.annotations()
+                    && annotations.needs_hash()
+                {
+                    let new_name = format_compact!("{}-{}", res.name(), res.shorthash()?);
+                    self.renames
+                        .lock()
+                        .await
+                        .push(Rename::new(res.id().clone(), new_name.clone()));
+                    res.set_name(new_name);
+                }
+            }
+
+            Ok(generated)
+        } else {
+            bail!(
+                "only custom generators with the `{KUSTOMIZE_FUNCTION_ANNOTATION}` annotation are supported `{}`, got {}",
+                path.pretty(),
+                generator_spec.id()
+            );
         }
     }
 }
