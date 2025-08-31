@@ -18,6 +18,29 @@
         "type": "github"
       }
     },
+    "gotmpl": {
+      "inputs": {
+        "flake-utils": [
+          "flake-utils"
+        ],
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1756607103,
+        "narHash": "sha256-o4PCd89fB9nWKgdhCngNMRJCFUa5iSlonUr7rSkLxzQ=",
+        "owner": "andyyu2004",
+        "repo": "gotmpl",
+        "rev": "44eb0b1035fc044fc9ef7ef847077c66b4a3dcd1",
+        "type": "github"
+      },
+      "original": {
+        "owner": "andyyu2004",
+        "repo": "gotmpl",
+        "type": "github"
+      }
+    },
     "nixpkgs": {
       "locked": {
         "lastModified": 1756542300,
@@ -37,6 +60,7 @@
     "root": {
       "inputs": {
         "flake-utils": "flake-utils",
+        "gotmpl": "gotmpl",
         "nixpkgs": "nixpkgs"
       }
     },
