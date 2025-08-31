@@ -6,6 +6,13 @@ use self::openapi::v2::ObjectSchema;
 
 pub mod openapi;
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "kebab-case")]
+pub enum PatchStrategy {
+    Merge,
+    Replace,
+}
+
 pub fn patch(base: &mut Resource, patch: Resource) -> anyhow::Result<()> {
     let spec = openapi::v2::Spec::load();
     let schema = spec.schema_for(base.gvk());

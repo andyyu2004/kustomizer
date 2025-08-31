@@ -3,7 +3,7 @@ use std::{collections::HashSet, fmt, str::FromStr, sync::OnceLock};
 use indexmap::IndexMap;
 use serde::{Deserialize, Serialize};
 
-use crate::{manifest::Str, resource::Gvk};
+use crate::{manifest::Str, patch::PatchStrategy, resource::Gvk};
 
 const SPEC_V2_GZ: &[u8] = include_bytes!("./openapi-v2-kubernetes-1.32-minimized.json");
 
@@ -27,7 +27,7 @@ struct Operation {
         rename = "x-kubernetes-group-version-kind",
         skip_serializing_if = "Option::is_none"
     )]
-    kubernetes_gvk: Option<Gvk>,
+    gvk: Option<Gvk>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
@@ -96,7 +96,7 @@ impl Spec {
         let namespaced = self.namespaced.get_or_init(|| {
             let mut set = HashSet::new();
             for (route, path) in &self.paths {
-                let Some(gvk) = path.get.as_ref().and_then(|op| op.kubernetes_gvk.as_ref()) else {
+                let Some(gvk) = path.get.as_ref().and_then(|op| op.gvk.as_ref()) else {
                     continue;
                 };
 
@@ -142,6 +142,16 @@ impl Spec {
 pub struct Schema {
     #[serde(flatten)]
     pub ty: Option<Type>,
+    #[serde(
+        rename = "x-kubernetes-patch-strategy",
+        skip_serializing_if = "Option::is_none"
+    )]
+    patch_strategy: Option<PatchStrategy>,
+    #[serde(
+        rename = "x-kubernetes-patch-key",
+        skip_serializing_if = "Option::is_none"
+    )]
+    patch_key: Option<Str>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
