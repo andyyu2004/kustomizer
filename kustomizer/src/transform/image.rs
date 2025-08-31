@@ -30,7 +30,15 @@ impl From<ImageTag> for ImageTagTransformer {
 }
 
 impl Transformer for ImageTagTransformer {
-    #[tracing::instrument(skip_all, name = "imagetag_transform")]
+    #[tracing::instrument(
+        skip_all,
+        name = "imagetag_transform",
+        fields(
+            image_tag = %self.image_tag.name,
+            new_tag = %self.image_tag.new_tag,
+            new_name = %self.image_tag.new_name
+        )
+    )]
     async fn transform(&mut self, resources: &mut ResourceMap) -> anyhow::Result<()> {
         let field_specs = &crate::fieldspec::Builtin::load().images;
 
