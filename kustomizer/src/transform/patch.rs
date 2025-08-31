@@ -1,6 +1,7 @@
-use std::{collections::HashMap, fs::File};
+use std::{fs::File, sync::LazyLock};
 
 use anyhow::Context as _;
+use dashmap::{DashMap, Entry};
 
 use crate::{
     Located, PathExt, PathId,
@@ -12,11 +13,12 @@ use crate::{
 use super::Transformer;
 use json_patch::Patch as JsonPatch;
 
+static RES_CACHE: LazyLock<DashMap<PathId, Resource>> = LazyLock::new(Default::default);
+static PATCH_CACHE: LazyLock<DashMap<PathId, JsonPatch>> = LazyLock::new(Default::default);
+
 pub struct PatchTransformer<'a, A, K> {
     manifest: &'a Located<Manifest<A, K>>,
     patches: &'a [Patch],
-    res_cache: HashMap<PathId, Resource>,
-    patch_cache: HashMap<PathId, JsonPatch>,
 }
 
 impl<'a, A, K> PatchTransformer<'a, A, K> {
@@ -24,24 +26,22 @@ impl<'a, A, K> PatchTransformer<'a, A, K> {
         Self {
             patches: &manifest.patches,
             manifest,
-            res_cache: Default::default(),
-            patch_cache: Default::default(),
         }
     }
 
-    fn load_resource(&mut self, path: PathId) -> anyhow::Result<&Resource> {
-        match self.res_cache.entry(path) {
-            std::collections::hash_map::Entry::Occupied(e) => Ok(e.into_mut()),
-            std::collections::hash_map::Entry::Vacant(e) => {
+    fn load_resource(&mut self, path: PathId) -> anyhow::Result<Resource> {
+        match RES_CACHE.entry(path) {
+            Entry::Occupied(e) => Ok(e.get().clone()),
+            Entry::Vacant(e) => {
                 let resource = Resource::load(path)
                     .with_context(|| format!("loading resource from path `{}`", path.pretty()))?;
-                Ok(e.insert(resource))
+                Ok(e.insert(resource).value().clone())
             }
         }
     }
 
     fn load_json_patch(&self, path: PathId) -> anyhow::Result<JsonPatch> {
-        match self.patch_cache.get(&path) {
+        match PATCH_CACHE.get(&path) {
             Some(patch) => Ok(patch.clone()),
             None => {
                 let file = File::open(path).with_context(|| {
