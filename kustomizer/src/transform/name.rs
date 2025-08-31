@@ -13,6 +13,7 @@ impl<F: FnMut(&str) -> Str> NameTransformer<F> {
 }
 
 impl<F: FnMut(&str) -> Str + Send> Transformer for NameTransformer<F> {
+    #[tracing::instrument(skip_all)]
     async fn transform(&mut self, resources: &mut ResourceMap) -> anyhow::Result<()> {
         // A fresh map is allocated because changing names of resources modifies their identity,
         // which can't be done in-place.
