@@ -5,7 +5,7 @@ use super::Transformer;
 pub struct LabelTransformer<'a>(pub &'a [Label]);
 
 impl Transformer for LabelTransformer<'_> {
-    #[tracing::instrument(skip_all)]
+    #[tracing::instrument(skip_all, name = "label_transform")]
     async fn transform(&mut self, resources: &mut ResourceMap) -> anyhow::Result<()> {
         if self.0.is_empty() {
             return Ok(());
