@@ -3,7 +3,11 @@ use std::{collections::HashSet, fmt, str::FromStr, sync::OnceLock};
 use indexmap::IndexMap;
 use serde::{Deserialize, Serialize};
 
-use crate::{manifest::Str, patch::PatchStrategy, resource::Gvk};
+use crate::{
+    manifest::Str,
+    patch::{ListType, PatchStrategy},
+    resource::Gvk,
+};
 
 const SPEC_V2_GZ: &[u8] = include_bytes!("./openapi-v2-kubernetes-1.32-minimized.json");
 
@@ -152,6 +156,16 @@ pub struct Schema {
         skip_serializing_if = "Option::is_none"
     )]
     patch_key: Option<Str>,
+    #[serde(
+        rename = "x-kubernetes-list-type",
+        skip_serializing_if = "Option::is_none"
+    )]
+    list_type: Option<ListType>,
+    #[serde(
+        rename = "x-kubernetes-list-map-keys",
+        skip_serializing_if = "Option::is_none"
+    )]
+    list_map_keys: Option<Box<[Str]>>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -169,7 +183,7 @@ pub struct Ref {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ObjectSchema {
-    pub properties: IndexMap<String, Schema>,
+    pub properties: IndexMap<Str, Schema>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]

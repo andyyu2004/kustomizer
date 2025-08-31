@@ -1,0 +1,25 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: test-app
+  labels:
+    app: test-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: test-app
+  template:
+    metadata:
+      labels:
+        app: test-app
+    spec:
+      containers:
+      - name: test-container
+        env:
+        - name: PATCH_VAR_1
+          value: patch_value_1
+        - name: PATCH_VAR_2
+          value: patch_value_2
+        - name: SHARED_VAR
+          value: overridden_value

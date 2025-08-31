@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: test-app
+  labels:
+    app: test-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: test-app
+  template:
+    metadata:
+      labels:
+        app: test-app
+    spec:
+      containers:
+      - name: test-container
+        image: nginx:latest
+        env:
+        - name: BASE_VAR_1
+          value: "base_value_1"
+        - name: BASE_VAR_2
+          value: "base_value_2"
+        - name: SHARED_VAR
+          value: "original_value"
