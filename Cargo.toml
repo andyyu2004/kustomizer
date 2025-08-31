@@ -4,6 +4,9 @@ members = [
 	"kustomizer"
 ]
 
+[profile.bench]
+debug = true
+
 [patch.crates-io]
 # for `as_u64_mut` and `as_f64_mut` methods
 serde_json = { git = "https://github.com/andyyu2004/serde-json" }
