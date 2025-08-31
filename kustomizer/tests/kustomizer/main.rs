@@ -77,7 +77,7 @@ fn show_reference_impl_error(path: &Path) -> anyhow::Result<()> {
 
     if output.status.success() {
         Err(anyhow::anyhow!(
-            "kustomize build succeeded for {} but expected failure",
+            "reference kustomize build succeeded for {} but expected failure",
             path.pretty()
         ))?;
     }

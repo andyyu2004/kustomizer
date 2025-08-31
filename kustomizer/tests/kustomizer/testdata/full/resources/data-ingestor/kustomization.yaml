@@ -7,3 +7,5 @@ labels:
 resources:
   - data-ingestor-deployment.yaml
   - data-ingestor-service.yaml
+generators:
+  - secret-generator-ksops.yaml

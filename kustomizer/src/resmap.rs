@@ -105,7 +105,7 @@ impl ResourceMap {
                 Behavior::Replace => todo!("replace"),
             },
             Entry::Vacant(entry) => match behavior {
-                // Allow merging into a non-existent resource, it just becomes a create.
+                // FIXME: temporarily allow merging into a non-existent resource to pass test.
                 Behavior::Create | Behavior::Merge => drop(entry.insert(resource)),
                 Behavior::Replace => {
                     bail!(

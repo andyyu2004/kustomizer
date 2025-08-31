@@ -286,6 +286,20 @@ spec:
     hosts:
     - api.dev9.example.pro
 ---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: core-server-secret
+  namespace: example-dev9
+  labels:
+    app.kubernetes.io/name: core-server
+    app.kubernetes.io/instance: example-dev9
+type: Opaque
+data:
+  CORE_SERVER_API_KEY: Y29yZV9zZXJ2ZXJfYXBpX2tleV9yZXNvdXJjZXNfMTIz
+  CORE_SERVER_SECRET: Y29yZV9zZXJ2ZXJfc2VjcmV0X3Jlc291cmNlc180NTY=
+  DATABASE_PASSWORD: ZGF0YWJhc2VfcGFzc3dvcmRfcmVzb3VyY2VzXzc4OQ==
+---
 apiVersion: batch/v1
 kind: CronJob
 metadata:
@@ -411,6 +425,20 @@ spec:
   type: ClusterIP
   selector:
     app.kubernetes.io/name: data-ingestor
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: data-ingestor-secret
+  namespace: example-dev9
+  labels:
+    app.kubernetes.io/name: data-ingestor
+    app.kubernetes.io/instance: example-dev9
+type: Opaque
+data:
+  INGESTOR_API_KEY: aW5nZXN0b3JfYXBpX2tleV9yZXNvdXJjZXNfbW5vMTIz
+  INGESTOR_PASSWORD: aW5nZXN0b3JfcGFzc3dvcmRfcmVzb3VyY2VzX3BxcjQ1Ng==
+  ELASTICSEARCH_URL: ZWxhc3RpY3NlYXJjaF91cmxfcmVzb3VyY2VzX3N0dTc4OQ==
 ---
 apiVersion: apps/v1
 kind: Deployment

@@ -8,3 +8,5 @@ resources:
   - core-server-deployment.yaml
   - core-server-service.yaml
   - core-server-ingress.yaml
+generators:
+  - secret-generator-ksops.yaml
