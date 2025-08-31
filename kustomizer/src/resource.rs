@@ -5,10 +5,12 @@ mod view;
 use std::{
     fmt,
     ops::{Deref, DerefMut},
+    sync::LazyLock,
 };
 
 use anyhow::{Context, ensure};
 use compact_str::format_compact;
+use dashmap::{DashMap, Entry};
 use indexmap::IndexMap;
 use serde::{Deserialize, Serialize};
 use std::path::Path;
@@ -126,13 +128,22 @@ pub struct Resource {
 
 pub type Object = serde_json::Map<String, serde_json::Value>;
 
+static RES_CACHE: LazyLock<DashMap<PathId, Resource>> = LazyLock::new(Default::default);
+
 impl Resource {
     pub fn load(path: impl AsRef<Path>) -> anyhow::Result<Self> {
         let path = path.as_ref();
-        let id = PathId::make(path)
+        let path = PathId::make(path)
             .with_context(|| format!("loading resource from path {}", path.pretty()))?;
-        let file = std::fs::File::open(id)?;
-        Ok(serde_yaml::from_reader(file)?)
+
+        match RES_CACHE.entry(path) {
+            Entry::Occupied(e) => Ok(e.get().clone()),
+            Entry::Vacant(e) => {
+                let file = std::fs::File::open(path)?;
+                let resource = serde_yaml::from_reader(file)?;
+                Ok(e.insert(resource).value().clone())
+            }
+        }
     }
 
     pub fn dummy() -> Self {
