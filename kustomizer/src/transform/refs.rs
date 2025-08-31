@@ -57,6 +57,7 @@ impl<'a> RenameTransformer<'a> {
 }
 
 impl Transformer for RenameTransformer<'_> {
+    #[tracing::instrument(skip_all)]
     async fn transform(&mut self, resources: &mut ResourceMap) -> anyhow::Result<()> {
         for rename in self.renames {
             self.apply_rename_to_references(rename, resources)?;

@@ -11,6 +11,7 @@ use super::Transformer;
 pub struct NamespaceTransformer(pub Str);
 
 impl Transformer for NamespaceTransformer {
+    #[tracing::instrument(skip_all)]
     async fn transform(&mut self, resources: &mut ResourceMap) -> anyhow::Result<()> {
         let spec = openapi::v2::Spec::load();
         let builtin = &fieldspec::Builtin::load();

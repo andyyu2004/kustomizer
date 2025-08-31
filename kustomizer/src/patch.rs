@@ -24,6 +24,7 @@ pub enum ListType {
     Map,
 }
 
+#[tracing::instrument(skip_all, fields(gvk = %base.gvk()))]
 pub fn patch(base: &mut Resource, patch: Resource) -> anyhow::Result<()> {
     let spec = Spec::load();
     let schema = spec.schema_for(base.gvk());
