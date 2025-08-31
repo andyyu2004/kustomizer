@@ -3605,9 +3605,9 @@ metadata:
   labels:
     app.kubernetes.io/name: example-external-job-integration
 type: Opaque
-stringData:
-  AUDATEX_PASSWORD: notarealpassword
-  AUDATEX_CORE_PASSWORD: notarealpassword
+data:
+  AUDATEX_PASSWORD: bm90YXJlYWxwYXNzd29yZA==
+  AUDATEX_CORE_PASSWORD: bm90YXJlYWxwYXNzd29yZA==
 ---
 apiVersion: v1
 kind: ConfigMap
