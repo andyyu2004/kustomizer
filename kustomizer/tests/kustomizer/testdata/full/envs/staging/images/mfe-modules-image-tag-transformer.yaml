@@ -1,0 +1,8 @@
+apiVersion: builtin
+kind: ImageTagTransformer
+metadata:
+  name: mfe-modules-itt
+imageTag:
+  name: mfe-modules-image
+  newName: docker.io/example/mfe_modules
+  newTag: b52b0a777e9e8fc4a869f1060e692c4950136c4f

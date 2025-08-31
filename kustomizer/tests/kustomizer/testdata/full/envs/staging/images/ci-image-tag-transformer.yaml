@@ -1,0 +1,8 @@
+apiVersion: builtin
+kind: ImageTagTransformer
+metadata:
+  name: ci-itt
+imageTag:
+  name: ci-image
+  newName: docker.io/example/ci
+  newTag: ad7fb9581ca69486519388aeb9341c7b92553826

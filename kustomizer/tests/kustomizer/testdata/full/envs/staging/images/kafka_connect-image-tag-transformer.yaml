@@ -1,0 +1,8 @@
+apiVersion: builtin
+kind: ImageTagTransformer
+metadata:
+  name: kafka_connect-itt
+imageTag:
+  name: kafka_connect-image
+  newName: docker.io/example/kafka_connect
+  newTag: 8ebb67bb106b422278e62caab5a7583a564feabb

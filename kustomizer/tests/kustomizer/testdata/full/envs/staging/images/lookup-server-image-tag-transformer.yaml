@@ -1,0 +1,8 @@
+apiVersion: builtin
+kind: ImageTagTransformer
+metadata:
+  name: lookup-server-itt
+imageTag:
+  name: lookup-server-image
+  newName: docker.io/example/lookup_server
+  newTag: 9c41919e99bb4b295ba065a48da1228ebe7267d3

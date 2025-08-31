@@ -1,0 +1,76 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: example
+
+labels:
+  - pairs:
+      app.kubernetes.io/instance: example-staging-au
+
+resources:
+  - ../../resources/
+
+patches:
+  - path: base-configs-patch.yaml
+  - path: mfe-router-app-versions-patch.yaml
+    target:
+      kind: CloudflareWorker
+      name: mfe-router
+  - target:
+      kind: CloudflareWorker
+      name: mfe-router
+    patch: |
+      - op: replace
+        path: /spec/name
+        value: app-staging-example-pro
+      - op: replace
+        path: /spec/route/pattern
+        value: app.staging.example.pro
+
+replicas:
+  - name: example-node
+    count: 1
+  - name: example-data-ingestor
+    count: 1
+  - name: example-dataqa-api-rs
+    count: 1
+  - name: example-elasticsearch-ingestor-rs
+    count: 1
+  - name: example-ml-server-api
+    count: 1
+  - name: example-pim-web
+    count: 1
+
+components:
+  - ../../resources/components/scylla
+  - images
+
+configMapGenerator:
+  - name: example-monorepo-revision-sync
+    options:
+      annotations:
+        argocd.argoproj.io/sync-wave: "-5"
+    files:
+      - monorepo-revision
+  - name: example-monorepo-revision
+    files:
+      - monorepo-revision
+    options:
+      disableNameSuffixHash: true
+      annotations:
+        argocd.argoproj.io/hook: PostSync
+        argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+  - name: example-monorepo-revision-failed
+    files:
+      - monorepo-revision
+    options:
+      disableNameSuffixHash: true
+      annotations:
+        argocd.argoproj.io/hook: SyncFail
+        argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+
+generators:
+  - secret-generator-ksops.yaml
+
+transformers:
+  - env-transformer.yaml

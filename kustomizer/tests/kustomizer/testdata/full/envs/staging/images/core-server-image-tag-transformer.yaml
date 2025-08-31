@@ -1,0 +1,8 @@
+apiVersion: builtin
+kind: ImageTagTransformer
+metadata:
+  name: core-server-itt
+imageTag:
+  name: core-server-image
+  newName: docker.io/example/core_server
+  newTag: f0493271df9745910c3197b6ccad437b2a068ffe

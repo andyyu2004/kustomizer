@@ -1,0 +1,8 @@
+apiVersion: builtin
+kind: ImageTagTransformer
+metadata:
+  name: mfe-parts-receiving-itt
+imageTag:
+  name: mfe-parts-receiving-image
+  newName: docker.io/example/mfe_parts_receiving
+  newTag: d414dd26316de7af6a2e1561fd7a507fad595587

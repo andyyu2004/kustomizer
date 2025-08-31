@@ -1,0 +1,8 @@
+apiVersion: builtin
+kind: ImageTagTransformer
+metadata:
+  name: elasticsearch-ingestor-rs-itt
+imageTag:
+  name: elasticsearch-ingestor-rs-image
+  newName: docker.io/example/elasticsearch_ingestor_rs
+  newTag: 2f456dbc227292fccbd795d52ff2149dbb34a754

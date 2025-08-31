@@ -1,0 +1,8 @@
+apiVersion: builtin
+kind: ImageTagTransformer
+metadata:
+  name: external-api-proxy-itt
+imageTag:
+  name: external-api-proxy-image
+  newName: docker.io/example/external_api_proxy
+  newTag: 5db4b85cd2047c6d01caccaf6c80e13b43fa3f38

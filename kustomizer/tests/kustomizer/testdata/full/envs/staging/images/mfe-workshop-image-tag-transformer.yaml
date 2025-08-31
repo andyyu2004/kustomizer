@@ -1,0 +1,8 @@
+apiVersion: builtin
+kind: ImageTagTransformer
+metadata:
+  name: mfe-workshop-itt
+imageTag:
+  name: mfe-workshop-image
+  newName: docker.io/example/mfe_workshop
+  newTag: f1a3cd7d0306fa63e353cc45ab2c98c3cef50e00

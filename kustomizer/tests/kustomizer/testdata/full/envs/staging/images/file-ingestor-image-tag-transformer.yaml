@@ -1,0 +1,8 @@
+apiVersion: builtin
+kind: ImageTagTransformer
+metadata:
+  name: file-ingestor-itt
+imageTag:
+  name: file-ingestor-image
+  newName: docker.io/example/file_ingestor
+  newTag: 60c1074e758347c59b325d43167327b5801063ce

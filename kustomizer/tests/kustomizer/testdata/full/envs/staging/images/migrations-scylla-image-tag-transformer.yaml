@@ -1,0 +1,8 @@
+apiVersion: builtin
+kind: ImageTagTransformer
+metadata:
+  name: migrations-scylla-itt
+imageTag:
+  name: migrations-scylla-image
+  newName: docker.io/example/node_migrations_scylla
+  newTag: 96e8f8e4aa8b2602c32ea89cbeb2c84e1c0831fc

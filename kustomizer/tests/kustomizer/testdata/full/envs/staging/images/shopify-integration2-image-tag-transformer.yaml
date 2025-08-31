@@ -1,0 +1,8 @@
+apiVersion: builtin
+kind: ImageTagTransformer
+metadata:
+  name: shopify-integration2-itt
+imageTag:
+  name: shopify-integration2-image
+  newName: docker.io/example/shopify_integration2
+  newTag: 6b90caf2ae1bd85cbbfcf11b1de9617251fb1ceb

@@ -1,0 +1,8 @@
+apiVersion: builtin
+kind: ImageTagTransformer
+metadata:
+  name: tier1-writer-itt
+imageTag:
+  name: tier1-writer-image
+  newName: docker.io/example/tier1_writer
+  newTag: 52abb2d8570c9acc5787e51dcd092f6e5250dbd6

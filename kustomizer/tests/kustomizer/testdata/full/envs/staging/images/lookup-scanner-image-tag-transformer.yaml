@@ -1,0 +1,8 @@
+apiVersion: builtin
+kind: ImageTagTransformer
+metadata:
+  name: lookup-scanner-itt
+imageTag:
+  name: lookup-scanner-image
+  newName: docker.io/example/lookup_scanner
+  newTag: 71748ce3178b8666188daccb18442cf024fa1ce3

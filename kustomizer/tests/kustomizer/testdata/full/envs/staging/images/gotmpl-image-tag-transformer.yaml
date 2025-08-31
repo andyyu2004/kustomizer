@@ -1,0 +1,8 @@
+apiVersion: builtin
+kind: ImageTagTransformer
+metadata:
+  name: gotmpl-itt
+imageTag:
+  name: gotmpl-image
+  newName: docker.io/example/gotmpl
+  newTag: 7f21dddfe68124b436c98bf20d538adbe8355560

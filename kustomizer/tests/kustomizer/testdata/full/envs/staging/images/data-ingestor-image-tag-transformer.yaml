@@ -1,0 +1,8 @@
+apiVersion: builtin
+kind: ImageTagTransformer
+metadata:
+  name: data-ingestor-itt
+imageTag:
+  name: data-ingestor-image
+  newName: docker.io/example/data_ingestor
+  newTag: dfc02e2304c61baf72122f7dd12e404b3dbbf2bd

@@ -1,0 +1,8 @@
+apiVersion: builtin
+kind: ImageTagTransformer
+metadata:
+  name: migrations-background-itt
+imageTag:
+  name: migrations-background-image
+  newName: docker.io/example/node_migrations_background
+  newTag: 5fb59252b5ca39dbe9029627725d0d5090182aac

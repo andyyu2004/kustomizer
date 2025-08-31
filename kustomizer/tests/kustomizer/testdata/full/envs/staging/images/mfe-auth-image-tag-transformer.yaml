@@ -1,0 +1,8 @@
+apiVersion: builtin
+kind: ImageTagTransformer
+metadata:
+  name: mfe-auth-itt
+imageTag:
+  name: mfe-auth-image
+  newName: docker.io/example/mfe_auth
+  newTag: 57c8c17ec54d66e31d71c7e03d6ea278fd7addc1

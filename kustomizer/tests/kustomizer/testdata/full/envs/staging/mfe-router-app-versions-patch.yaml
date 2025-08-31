@@ -1,0 +1,18 @@
+[
+  {
+    "op": "replace",
+    "path": "/spec/vars/APP_VERSIONS",
+    "value": {
+      "mfe-billing": "8ed00d7ae68ebb38d189292abbcd90822d9cc702",
+      "mfe-react-19-template": "85587f5e2c71bb69bbd32977df008b2f0aa6e2c5",
+      "mfe-workshop": "f1a3cd7d0306fa63e353cc45ab2c98c3cef50e00",
+      "mfe-settings": "165c23171048d62e7a1f143b31244c8ef9d62843",
+      "mfe-app-nav": "69382ae50f84a50ce4fbe1f31db5b0c660f0c5eb",
+      "mfe-modules": "b52b0a777e9e8fc4a869f1060e692c4950136c4f",
+      "mfe-app-shell": "ebb38addfefeac43fca6868f362bc8e2afe1907f",
+      "mfe-parts-receiving": "d414dd26316de7af6a2e1561fd7a507fad595587",
+      "mfe-oms": "ea85e9113902abd05bab846e4d86bdf100220b3b",
+      "mfe-auth": "57c8c17ec54d66e31d71c7e03d6ea278fd7addc1"
+    }
+  }
+]

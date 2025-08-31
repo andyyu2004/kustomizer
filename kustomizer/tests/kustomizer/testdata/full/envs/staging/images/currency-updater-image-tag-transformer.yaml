@@ -1,0 +1,8 @@
+apiVersion: builtin
+kind: ImageTagTransformer
+metadata:
+  name: currency-updater-itt
+imageTag:
+  name: currency-updater-image
+  newName: docker.io/example/currency_updater
+  newTag: 218d32371c33efaff38cb681b7849db32924d7a2

@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: base-configs
+data:
+  S3_BUCKET_PRIVATE: example-staging-private
+  S3_BUCKET_PUBLIC: example-staging-cdn
+  CDN_BASE_URL: https://cdn.example.pro/
+  CORE_SERVER__SYSTEM__example_ORG_ID: 60f90ca5-7041-4c1d-9736-2d8f39a249dd
+  HCA_VERTEX_URL: https://europe-west4-aiplatform.googleapis.com
+  PG_DB_BOUNCER_HOST: 10.1.2.3
+  PG_DB_HOST: 10.1.2.3
+  SCYLLA_REPLICATION_FACTOR: "1"
+  GCS_BUCKET_PRIVATE: example-gcp-private-staging
+  CORE_SERVER__JOB__OVERRIDE_ASSESSOR_NOTIFICATION_EMAIL_ADDRESS: example-assessor-notifications@example.com

@@ -1,0 +1,8 @@
+apiVersion: builtin
+kind: ImageTagTransformer
+metadata:
+  name: lookup-server-cdc-itt
+imageTag:
+  name: lookup-server-cdc-image
+  newName: docker.io/example/lookup_server_cdc
+  newTag: 295bd0809eaa286649ecaeb8ca6f738c2b2ae7f8

@@ -1,0 +1,8 @@
+apiVersion: builtin
+kind: ImageTagTransformer
+metadata:
+  name: garbage-collector-itt
+imageTag:
+  name: garbage-collector-image
+  newName: docker.io/example/garbage_collector
+  newTag: 7b0c812c394664373a2453b315e56d0f8883032a

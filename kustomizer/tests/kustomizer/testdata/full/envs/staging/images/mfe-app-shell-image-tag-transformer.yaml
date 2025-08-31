@@ -1,0 +1,8 @@
+apiVersion: builtin
+kind: ImageTagTransformer
+metadata:
+  name: mfe-app-shell-itt
+imageTag:
+  name: mfe-app-shell-image
+  newName: docker.io/example/mfe_app_shell
+  newTag: ebb38addfefeac43fca6868f362bc8e2afe1907f

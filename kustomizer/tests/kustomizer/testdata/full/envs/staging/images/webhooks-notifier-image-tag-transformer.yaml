@@ -1,0 +1,8 @@
+apiVersion: builtin
+kind: ImageTagTransformer
+metadata:
+  name: webhooks-notifier-itt
+imageTag:
+  name: webhooks-notifier-image
+  newName: docker.io/example/webhooks_notifier
+  newTag: 0ade6c259184bcc263234e6d3dec5119c20222b5
