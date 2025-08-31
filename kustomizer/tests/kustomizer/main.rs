@@ -7,7 +7,21 @@ use std::path::Path;
 use anyhow::Context;
 
 datatest_stable::harness! {
-    { test = test, root = "tests/kustomizer/testdata", pattern = r".*/test" },
+    { test = test, root = "tests/kustomizer/testdata", pattern = r".*/test.yaml" },
+}
+
+#[derive(Debug, serde::Deserialize)]
+struct TestManifest {
+    #[serde(default)]
+    kind: TestKind,
+}
+
+#[derive(Debug, Default, serde::Deserialize)]
+#[serde(rename_all = "lowercase")]
+enum TestKind {
+    #[default]
+    Success,
+    Fail,
 }
 
 #[tokio::main]
@@ -16,8 +30,13 @@ async fn test(path: &Path) -> datatest_stable::Result<()> {
     let success_snapshot_path = base_path.join("output").with_extension("yaml");
     let error_snapshot_path = base_path.join("error").with_extension("stderr");
 
-    match kustomizer::build(base_path).await {
-        Ok(resmap) => {
+    let data = std::fs::read_to_string(path).context("reading test manifest")?;
+    let TestManifest { kind } = serde_yaml::from_str(&data).context("parsing test manifest")?;
+
+    let res = kustomizer::build(base_path).await;
+
+    match (res, kind) {
+        (Ok(resmap), TestKind::Success) => {
             let actual = resmap.to_string();
             let res = snapshot(&success_snapshot_path, &actual);
             if error_snapshot_path.exists() {
@@ -35,7 +54,7 @@ async fn test(path: &Path) -> datatest_stable::Result<()> {
 
             diff_reference_impl(base_path, &actual)?;
         }
-        Err(err) => {
+        (Err(err), TestKind::Fail) => {
             show_reference_impl_error(base_path)
                 .with_context(|| format!("kustomizer error {err:?} at {}", path.pretty()))?;
 
@@ -53,6 +72,14 @@ async fn test(path: &Path) -> datatest_stable::Result<()> {
             }
             res?;
         }
+        (Ok(_), TestKind::Fail) => Err(format!(
+            "kustomizer succeeded for {} but expected failure",
+            path.pretty()
+        ))?,
+        (Err(err), TestKind::Success) => Err(format!(
+            "kustomizer failed for {} but expected success: {err:?}",
+            path.pretty()
+        ))?,
     }
     Ok(())
 }
