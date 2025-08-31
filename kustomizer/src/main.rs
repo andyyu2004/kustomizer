@@ -10,6 +10,9 @@ struct Args {
     #[clap(long, short, default_value_t = false)]
     verbose: bool,
 
+    #[clap(long, default_value = "")]
+    trace_file: String,
+
     // Ignored, here for compatibility with kustomize CLI
     #[clap(long, default_value = "")]
     load_restrictor: String,
@@ -38,11 +41,34 @@ enum Debug {
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     let args = Args::parse();
-    if args.verbose {
-        let subscriber =
-            tracing_subscriber::Registry::default().with(tracing_tree::HierarchicalLayer::new(2));
-        tracing::subscriber::set_global_default(subscriber).unwrap();
-    }
+
+    let _guard = match (args.trace_file.as_str(), args.verbose) {
+        ("", false) => None,
+        ("", true) => {
+            let subscriber = tracing_subscriber::Registry::default()
+                .with(tracing_tree::HierarchicalLayer::new(2));
+            tracing::subscriber::set_global_default(subscriber).unwrap();
+            None
+        }
+        (trace_file, false) => {
+            let (chrome_layer, guard) = tracing_chrome::ChromeLayerBuilder::new()
+                .file(trace_file)
+                .build();
+            let subscriber = tracing_subscriber::Registry::default().with(chrome_layer);
+            tracing::subscriber::set_global_default(subscriber).unwrap();
+            Some(guard)
+        }
+        (trace_file, true) => {
+            let (chrome_layer, guard) = tracing_chrome::ChromeLayerBuilder::new()
+                .file(trace_file)
+                .build();
+            let subscriber = tracing_subscriber::Registry::default()
+                .with(chrome_layer)
+                .with(tracing_tree::HierarchicalLayer::new(2));
+            tracing::subscriber::set_global_default(subscriber).unwrap();
+            Some(guard)
+        }
+    };
 
     match args.command {
         Command::Build { dir } => {

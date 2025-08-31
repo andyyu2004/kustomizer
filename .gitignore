@@ -1,2 +1,3 @@
 target/
 .direnv
+trace.json

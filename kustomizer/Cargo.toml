@@ -25,6 +25,7 @@ dissimilar = "1.0.10"
 sha256 = { version = "1.6.0", default-features = false }
 base64 = "0.22.1"
 regex = "1.11.2"
+tracing-chrome = "0.7.2"
 
 [lints]
 workspace = true
