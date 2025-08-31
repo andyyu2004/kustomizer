@@ -125,7 +125,7 @@ impl Spec {
         || !self.definitions.contains_key(&type_meta)
     }
 
-    pub fn schema_for(&self, gvk: &Gvk) -> Option<&ObjectSchema> {
+    pub fn schema_for(&self, gvk: &Gvk) -> Option<&ObjectType> {
         let definition_id = TypeMeta {
             api_version: gvk.version.clone(),
             kind: gvk.kind.clone(),
@@ -140,10 +140,26 @@ impl Spec {
                 ),
             })
     }
+
+    pub(crate) fn resolve<'a>(&'a self, schema: &'a InlineOrRef<Type>) -> Option<&'a Type> {
+        match schema {
+            InlineOrRef::Inline(ty) => Some(ty),
+            InlineOrRef::Ref(r) => {
+                let def_id = TypeMeta::from_str(&r.reference["#/definitions/".len()..])
+                    .expect("spec should have valid $ref");
+                let schema = self
+                    .definitions
+                    .get(&def_id)
+                    .expect("spec should have definition for $ref");
+                schema.ty.as_ref()
+            }
+        }
+    }
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Schema {
+    // For some reason, some schema definitions don't parse as a type and have no `kind` field.
     #[serde(flatten)]
     pub ty: Option<Type>,
 }
@@ -162,14 +178,17 @@ pub struct Ref {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct ObjectSchema {
-    pub properties: IndexMap<String, InlineOrRef<Schema>>,
+pub struct ObjectType {
+    #[serde(default, skip_serializing_if = "IndexMap::is_empty")]
+    pub properties: IndexMap<String, InlineOrRef<Type>>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub additional_properties: Option<Box<InlineOrRef<Type>>>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "camelCase")]
-pub struct Array {
-    pub items: InlineOrRef<Box<Schema>>,
+pub struct ArrayType {
+    pub items: InlineOrRef<Box<Type>>,
     #[serde(
         rename = "x-kubernetes-patch-strategy",
         skip_serializing_if = "Option::is_none"
@@ -195,8 +214,8 @@ pub struct Array {
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "camelCase")]
 pub enum Type {
-    Object(ObjectSchema),
-    Array(Array),
+    Object(ObjectType),
+    Array(ArrayType),
     String,
     Integer,
     Boolean,
