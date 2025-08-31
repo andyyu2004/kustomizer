@@ -3,10 +3,17 @@
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
-    flake-utils.url = "github:numtide/flake-utils";
+    flake-utils = {
+      url = "github:numtide/flake-utils";
+    };
+    gotmpl = {
+      url = "github:andyyu2004/gotmpl";
+      inputs.nixpkgs.follows = "nixpkgs";
+      inputs.flake-utils.follows = "flake-utils";
+    };
   };
 
-  outputs = { self, nixpkgs, flake-utils }:
+  outputs = { self, nixpkgs, flake-utils, gotmpl }:
     flake-utils.lib.eachDefaultSystem (system:
       let
         pkgs = nixpkgs.legacyPackages.${system};
@@ -41,6 +48,8 @@
           kustomizer = kustomizer;
         };
 
+        formatter = pkgs.nixpkgs-fmt;
+
         devShells.default = pkgs.mkShell {
           buildInputs = with pkgs; [
             # Test dependencies
@@ -48,6 +57,7 @@
             kustomize-sops
             sops
             dyff
+            gotmpl.packages.${system}.default
           ];
 
           shellHook = ''
