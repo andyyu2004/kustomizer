@@ -9,7 +9,6 @@ use std::{
 };
 
 use anyhow::{Context, ensure};
-use base64::{Engine as _, prelude::BASE64_STANDARD};
 use compact_str::format_compact;
 use dashmap::{DashMap, Entry};
 use indexmap::IndexMap;
@@ -263,7 +262,14 @@ impl Resource {
     }
 
     // right-biased merge of data fields `data` and `binaryData` and `stringData`
-    pub(crate) fn merge_data_fields(&mut self, other: Self) {
+    pub(crate) fn merge_data_fields(&mut self, other: Self) -> anyhow::Result<()> {
+        ensure!(
+            self.id == other.id,
+            "may only merge resources with the same id, got {} and {}",
+            self.id,
+            other.id
+        );
+
         // TODO merging metadata and annotations, not sure what is correct behavior for this?
 
         // Merge `data` field
@@ -316,81 +322,13 @@ impl Resource {
             (_, None) => {}
         }
 
-        // Merge `stringData` field, merging also with `data` on common keys
-        let left_string_data = self
-            .root_mut()
-            .get_mut("stringData")
-            .and_then(|data| data.as_object_mut());
-
-        let right_string_data = other
-            .root()
-            .get("stringData")
-            .and_then(|data| data.as_object());
-
-        match (left_string_data, right_string_data) {
-            (Some(left), Some(right)) => {
-                for (key, value) in right {
-                    left.insert(key.clone(), value.clone());
-                }
-                *left = right.clone();
-            }
-            (None, Some(right)) => {
-                if !right.is_empty() {
-                    self.root_mut().insert(
-                        "stringData".into(),
-                        serde_json::Value::Object(right.clone()),
-                    );
-                }
-            }
-            (_, None) => {}
-        }
-
-        // If `stringData` conflicts with `data`, `stringData` takes precedence.
-        // This is implemented by copying all `stringData` entries to `data`.
-
-        let root = self.root();
-        let data = root.get("data").and_then(|data| data.as_object());
-        let string_data = root.get("stringData").and_then(|data| data.as_object());
-        let (Some(data), Some(string_data)) = (data, string_data) else {
-            return;
-        };
-
-        let mut data = data.clone();
-        let mut string_data = string_data.clone();
-
-        string_data.retain(|key, value| {
-            if !data.contains_key(key) {
-                // Not a conflict, keep as is
-                return true;
-            }
-
-            // Replace `data[key]` with `base64(stringData[key])` for any conflicting keys
-            assert!(
-                data.insert(
-                    key.clone(),
-                    serde_json::Value::String(
-                        BASE64_STANDARD.encode(
-                            value
-                                .as_str()
-                                .expect("stringData should have string values"),
-                        ),
-                    ),
-                )
-                .is_some()
+        if self.root().get("stringData").is_some() || other.root().get("stringData").is_some() {
+            anyhow::bail!(
+                "merging configmaps with `stringData` is not supported, kustomize has strange behavior for this so this is disallowed, use `data` instead"
             );
-
-            false
-        });
-
-        self.root_mut()
-            .insert("data".into(), serde_json::Value::Object(data));
-
-        if string_data.is_empty() {
-            self.root_mut().remove("stringData");
-        } else {
-            self.root_mut()
-                .insert("stringData".into(), serde_json::Value::Object(string_data));
         }
+
+        Ok(())
     }
 }
 

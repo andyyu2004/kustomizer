@@ -3938,12 +3938,9 @@ metadata:
     app.kubernetes.io/name: example-external-job-integration
     app.kubernetes.io/instance: example-prod-eu
 type: Opaque
-stringData:
-  AUDATEX_PASSWORD: notarealpassword
-  AUDATEX_CORE_PASSWORD: notarealpassword
 data:
-  AUDATEX_API_KEY: cHJvZF9hdWRhdGV4X2FwaV9rZXlfNjA2
-  AUDATEX_SECRET: cHJvZF9hdWRhdGV4X3NlY3JldF81MDU=
+  AUDATEX_PASSWORD: cHJvZF9hdWRhdGV4X2FwaV9rZXlfNjA2
+  AUDATEX_CORE_PASSWORD: cHJvZF9hdWRhdGV4X3NlY3JldF81MDU=
 ---
 apiVersion: v1
 kind: ConfigMap

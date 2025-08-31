@@ -1,7 +1,7 @@
 use core::fmt;
 use std::ops::{Index, IndexMut};
 
-use anyhow::bail;
+use anyhow::{Context, bail};
 use indexmap::{IndexMap, map::Entry};
 
 use crate::{
@@ -74,7 +74,14 @@ impl ResourceMap {
                     "may not add resource with an already registered id `{}`, consider specifying `merge` or `replace` behavior",
                     resource.id()
                 ),
-                Behavior::Merge => entry.get_mut().merge_data_fields(resource),
+                Behavior::Merge => {
+                    entry
+                        .get_mut()
+                        .merge_data_fields(resource)
+                        .with_context(|| {
+                            format!("failed to merge resources with id `{}`", entry.get().id())
+                        })?
+                }
                 Behavior::Replace => todo!("replace"),
             },
             Entry::Vacant(entry) => match behavior {
