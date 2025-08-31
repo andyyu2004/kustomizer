@@ -103,33 +103,37 @@ impl Builder {
             })?;
         }
 
-        let configmaps = ConfigMapGenerator::new(
-            &kustomization.config_map_generators,
-            &kustomization.generator_options,
-        )
-        .generate(&kustomization.parent_path, &ResourceList::new([]))
-        .await?;
-
-        resmap.extend(configmaps).with_context(|| {
-            format!(
-                "failure merging resources from configmap generators in `{}`",
-                kustomization.path.pretty()
+        if !kustomization.config_map_generators.is_empty() {
+            let configmaps = ConfigMapGenerator::new(
+                &kustomization.config_map_generators,
+                &kustomization.generator_options,
             )
-        })?;
+            .generate(&kustomization.parent_path, &ResourceList::new([]))
+            .await?;
 
-        let secrets = SecretGenerator::new(
-            &kustomization.secret_generators,
-            &kustomization.generator_options,
-        )
-        .generate(&kustomization.parent_path, &ResourceList::new([]))
-        .await?;
+            resmap.extend(configmaps).with_context(|| {
+                format!(
+                    "failure merging resources from configmap generators in `{}`",
+                    kustomization.path.pretty()
+                )
+            })?;
+        }
 
-        resmap.extend(secrets).with_context(|| {
-            format!(
-                "failure merging resources from secret generators in `{}`",
-                kustomization.path.pretty()
+        if !kustomization.secret_generators.is_empty() {
+            let secrets = SecretGenerator::new(
+                &kustomization.secret_generators,
+                &kustomization.generator_options,
             )
-        })?;
+            .generate(&kustomization.parent_path, &ResourceList::new([]))
+            .await?;
+
+            resmap.extend(secrets).with_context(|| {
+                format!(
+                    "failure merging resources from secret generators in `{}`",
+                    kustomization.path.pretty()
+                )
+            })?;
+        }
 
         for component in &kustomization.components {
             let component = load_component(kustomization.parent_path.join(component))
@@ -137,12 +141,18 @@ impl Builder {
             resmap = self.build(resmap, &component).await?;
         }
 
-        LabelTransformer(&kustomization.labels)
-            .transform(&mut resmap)
-            .await?;
-        AnnotationTransformer(&kustomization.common_annotations)
-            .transform(&mut resmap)
-            .await?;
+        if !kustomization.labels.is_empty() {
+            LabelTransformer(&kustomization.labels)
+                .transform(&mut resmap)
+                .await?;
+        }
+
+        if !kustomization.common_annotations.is_empty() {
+            AnnotationTransformer(&kustomization.common_annotations)
+                .transform(&mut resmap)
+                .await?;
+        }
+
         if let Some(namespace) = &kustomization.namespace {
             for res in resmap.iter() {
                 if res.namespace() != Some(namespace) {
@@ -158,13 +168,17 @@ impl Builder {
                 .await?;
         }
 
-        PatchTransformer::new(kustomization)
-            .transform(&mut resmap)
-            .await?;
+        if !kustomization.patches.is_empty() {
+            PatchTransformer::new(kustomization)
+                .transform(&mut resmap)
+                .await?;
+        }
 
-        ReplicaTransformer::new(&kustomization.replicas)
-            .transform(&mut resmap)
-            .await?;
+        if !kustomization.replicas.is_empty() {
+            ReplicaTransformer::new(&kustomization.replicas)
+                .transform(&mut resmap)
+                .await?;
+        }
 
         match (&kustomization.name_prefix, &kustomization.name_suffix) {
             (prefix, suffix) if !prefix.is_empty() || !suffix.is_empty() => {
