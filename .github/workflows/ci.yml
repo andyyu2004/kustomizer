@@ -30,6 +30,16 @@ jobs:
       - name: Setup development environment
         run: nix develop --command echo "Development environment ready"
 
+      - name: Install direnv
+        run: |
+          curl -sfL https://direnv.net/install.sh | bash
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+
+      - name: Load environment variables
+        run: |
+          direnv allow .
+          direnv export gha > "$GITHUB_ENV"
+
       - name: Cache cargo registry
         uses: actions/cache@v4
         with:
@@ -60,4 +70,3 @@ jobs:
 
       - name: Run cargo test
         run: nix develop --command cargo test --verbose
-
