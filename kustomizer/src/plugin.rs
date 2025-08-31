@@ -1,4 +1,4 @@
-use std::{path::Path, process::Stdio};
+use std::{path::Path, process::Stdio, time::Instant};
 
 use anyhow::{Context, bail};
 use tokio::io::AsyncWriteExt as _;
@@ -23,7 +23,7 @@ impl FunctionPlugin {
         workdir: &Path,
         input: &ResourceList,
     ) -> anyhow::Result<ResourceList> {
-        let mut proc = match self.spec() {
+        let (mut proc, cmd) = match self.spec() {
             FunctionSpec::Exec(spec) => {
                 let mut cmd = tokio::process::Command::new(&spec.path);
                 cmd.args(&spec.args)
@@ -32,15 +32,19 @@ impl FunctionPlugin {
                     .stdout(Stdio::piped())
                     .stderr(Stdio::piped())
                     .current_dir(workdir);
-                tracing::info!(cmd = ?cmd.as_std(), "spawning function");
-                cmd.spawn().with_context(|| {
-                    format!("spawn function command at `{}`", spec.path.display())
-                })?
+                (
+                    cmd.spawn().with_context(|| {
+                        format!("spawn function command at `{}`", spec.path.display())
+                    })?,
+                    cmd,
+                )
             }
             FunctionSpec::Container(_spec) => {
                 anyhow::bail!("Container functions are not supported yet")
             }
         };
+
+        let now = Instant::now();
 
         let stdin = serde_yaml::to_string(input)?;
         proc.stdin
@@ -61,6 +65,12 @@ impl FunctionPlugin {
                 String::from_utf8_lossy(&output.stderr)
             );
         }
+
+        tracing::info!(
+            duration = ?now.elapsed(),
+            cmd = ?cmd.as_std(),
+            "executed process"
+        );
 
         Ok(serde_yaml::from_slice::<ResourceList>(&output.stdout)?)
     }
