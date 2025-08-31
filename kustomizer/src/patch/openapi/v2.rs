@@ -141,7 +141,7 @@ impl Spec {
             })
     }
 
-    pub(crate) fn resolve<'a>(&'a self, schema: &'a InlineOrRef<Type>) -> &'a Type {
+    pub(crate) fn resolve<'a>(&'a self, schema: &'a InlineOrRef<Box<Type>>) -> &'a Type {
         match schema {
             InlineOrRef::Inline(ty) => ty,
             InlineOrRef::Ref(r) => self
@@ -216,9 +216,9 @@ impl<'de> Deserialize<'de> for Ref {
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct ObjectType {
     #[serde(default, skip_serializing_if = "IndexMap::is_empty")]
-    pub properties: IndexMap<String, InlineOrRef<Type>>,
+    pub properties: IndexMap<String, InlineOrRef<Box<Type>>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub additional_properties: Option<Box<InlineOrRef<Type>>>,
+    pub additional_properties: Option<InlineOrRef<Box<Type>>>,
 }
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
@@ -230,12 +230,6 @@ pub struct ArrayType {
         skip_serializing_if = "Option::is_none"
     )]
     pub patch_strategy: Option<PatchStrategy>,
-
-    #[serde(
-        rename = "x-kubernetes-patch-key",
-        skip_serializing_if = "Option::is_none"
-    )]
-    pub patch_key: Option<Str>,
 
     #[serde(
         rename = "x-kubernetes-list-type",
