@@ -299,7 +299,6 @@ mod tests {
     }
 
     #[test]
-    #[ignore]
     fn minimize_openapi_v2_spec() -> anyhow::Result<()> {
         let reader = flate2::read::GzDecoder::new(
             include_bytes!("./openapi-v2-kubernetes-1.32.json.gz").as_ref(),
