@@ -93,8 +93,10 @@ impl ResourceMap {
                             }
                         }
                         (None, Some(right)) => {
-                            entry.get_mut().root_mut()["data"] =
-                                serde_json::Value::Object(right.clone());
+                            entry
+                                .get_mut()
+                                .root_mut()
+                                .insert("data".into(), serde_json::Value::Object(right.clone()));
                         }
                         (_, None) => {}
                     }

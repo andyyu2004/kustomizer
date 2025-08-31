@@ -27,7 +27,7 @@ pub fn diff_reference_impl(path: &Path, actual: &str) -> anyhow::Result<()> {
     if !output.status.success() {
         let stderr = String::from_utf8_lossy(&output.stderr);
         if !stderr.is_empty() {
-            eprintln!("kustomize build failed with error: {stderr}");
+            eprintln!("reference kustomize build failed with error: {stderr}");
         }
 
         bail!(
@@ -99,7 +99,8 @@ pub fn diff_reference_impl(path: &Path, actual: &str) -> anyhow::Result<()> {
     std::fs::write(&expected_path, &expected)?;
     std::fs::write(&actual_path, &actual)?;
 
-    let output = Command::new("dyff")
+    let mut cmd = Command::new("dyff");
+    let output = cmd
         .arg("between")
         .arg("--color=on")
         .arg("--ignore-order-changes")
@@ -118,6 +119,7 @@ pub fn diff_reference_impl(path: &Path, actual: &str) -> anyhow::Result<()> {
         Some(1) => {
             let diff = String::from_utf8_lossy(&output.stdout);
             eprintln!("dyff found differences for {}:\n{diff}", path.pretty());
+            eprintln!("{cmd:?} && cd -");
             bail!("reference mismatch for test {}", path.pretty())
         }
         _ => {

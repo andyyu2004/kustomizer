@@ -3860,12 +3860,12 @@ spec:
         - configMapRef:
             name: base-configs-k78t7685ht
         - configMapRef:
-            name: external-job-integration-t74684c65d
+            name: external-job-integration-9btb7f5kh2
         - secretRef:
             name: base-secrets-6d952f7kt7
         - secretRef:
             name: audatex-secrets
-        image: docker.io/example/repairer_server:62e956442ceec747e04c59cd7ef01d42dc1b0c6e
+        image: docker.io/example/external_job_integration:57a42f0a99e4214648a0177caaa219ef2d31b6f9
         imagePullPolicy: IfNotPresent
         name: external-job-integration
         ports:
@@ -3901,6 +3901,34 @@ spec:
   selector:
     app.kubernetes.io/name: example-external-job-integration
 ---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: example-external-job-integration
+  namespace: prod-eu
+  labels:
+    app.kubernetes.io/name: example-external-job-integration
+    app.kubernetes.io/instance: example-prod-eu
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: external-job-integration.example.com
+    http:
+      paths:
+      - backend:
+          service:
+            name: example-external-job-integration
+            port:
+              number: 80
+        path: /
+        pathType: ImplementationSpecific
+  tls:
+  - hosts:
+    - external-job-integration.example.com
+    secretName: external-job-integration-ingress-tls
+---
 apiVersion: v1
 kind: Secret
 metadata:
@@ -3913,18 +3941,21 @@ type: Opaque
 stringData:
   AUDATEX_PASSWORD: notarealpassword
   AUDATEX_CORE_PASSWORD: notarealpassword
+data:
+  AUDATEX_API_KEY: cHJvZF9hdWRhdGV4X2FwaV9rZXlfNjA2
+  AUDATEX_SECRET: cHJvZF9hdWRhdGV4X3NlY3JldF81MDU=
 ---
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: external-job-integration-t74684c65d
+  name: external-job-integration-9btb7f5kh2
   namespace: prod-eu
   labels:
     app.kubernetes.io/name: example-external-job-integration
     app.kubernetes.io/instance: example-prod-eu
 data:
-  STEER_ORG_ID: 0caceb05-0b06-6000-811d-6a0e152ff190
-  STEER_REPAIRER_ID: d70fa182-bec6-4494-959b-bc57ffedc191
+  STEER_ORG_ID: 3085ccb6-079b-4bbc-b0bc-f853f2735ea0
+  STEER_REPAIRER_ID: f10751c7-477f-4312-81bf-3c76a26c2ce7
   AUDATEX_CORE_EMAIL: evan+audatexscript@example.com
   AUDATEX_USERNAME: audatex
 ---
@@ -4210,18 +4241,6 @@ spec:
             name: example-core-server
             port:
               number: 80
----
-apiVersion: v1
-kind: Secret
-metadata:
-  name: audatex-secret
-  namespace: prod-eu
-  labels:
-    app.kubernetes.io/instance: example-prod-eu
-type: Opaque
-data:
-  AUDATEX_API_KEY: cHJvZF9hdWRhdGV4X2FwaV9rZXlfNjA2
-  AUDATEX_SECRET: cHJvZF9hdWRhdGV4X3NlY3JldF81MDU=
 ---
 apiVersion: v1
 kind: Secret
