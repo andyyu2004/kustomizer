@@ -1,7 +1,7 @@
 use std::{fs::File, sync::LazyLock};
 
 use anyhow::Context as _;
-use dashmap::{DashMap, Entry};
+use dashmap::DashMap;
 
 use crate::{
     Located, PathExt, PathId,
@@ -13,7 +13,6 @@ use crate::{
 use super::Transformer;
 use json_patch::Patch as JsonPatch;
 
-static RES_CACHE: LazyLock<DashMap<PathId, Resource>> = LazyLock::new(Default::default);
 static PATCH_CACHE: LazyLock<DashMap<PathId, JsonPatch>> = LazyLock::new(Default::default);
 
 pub struct PatchTransformer<'a, A, K> {
@@ -26,17 +25,6 @@ impl<'a, A, K> PatchTransformer<'a, A, K> {
         Self {
             patches: &manifest.patches,
             manifest,
-        }
-    }
-
-    fn load_resource(&mut self, path: PathId) -> anyhow::Result<Resource> {
-        match RES_CACHE.entry(path) {
-            Entry::Occupied(e) => Ok(e.get().clone()),
-            Entry::Vacant(e) => {
-                let resource = Resource::load(path)
-                    .with_context(|| format!("loading resource from path `{}`", path.pretty()))?;
-                Ok(e.insert(resource).value().clone())
-            }
         }
     }
 
@@ -78,7 +66,7 @@ impl<A: Send + Sync, K: Send + Sync> Transformer for PatchTransformer<'_, A, K> 
                     }
                     Patch::OutOfLine { path, target } => {
                         let path = PathId::make(self.manifest.parent_path.join(path))?;
-                        let patch = self.load_resource(path);
+                        let patch = Resource::load(path);
 
                         if let Ok(patch) = patch {
                             let gvk = patch.gvk();
