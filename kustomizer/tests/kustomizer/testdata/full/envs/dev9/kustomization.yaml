@@ -51,7 +51,7 @@ patches:
         value: app-dev9-example-pro
       - op: replace
         path: /spec/route/pattern
-        value: app.dev9.example.pro
+        value: app.dev9.example.com
 
 transformers:
   - env-transformer.yaml

@@ -1340,7 +1340,7 @@ spec:
         - name: LOOKUP_SCANNER__SYSTEM__AWS_OPTIONS__S3_BUCKET_PUBLIC
           value: example-staging-cdn
         - name: LOOKUP_SCANNER__SYSTEM__AWS_OPTIONS__CDN_BASE_URL
-          value: https://cdn.example.pro/
+          value: https://cdn.example.com/
         - name: SOURCE_VERSION
           valueFrom:
             configMapKeyRef:
@@ -1831,7 +1831,7 @@ spec:
       name: mfe-router-worker
       key: worker.js
   route:
-    pattern: app.placeholder.example.pro
+    pattern: app.placeholder.example.com
   vars:
     APP_VERSIONS:
       placeholder: placeholder

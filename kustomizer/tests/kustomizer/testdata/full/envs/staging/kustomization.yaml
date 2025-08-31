@@ -25,7 +25,7 @@ patches:
         value: app-staging-example-pro
       - op: replace
         path: /spec/route/pattern
-        value: app.staging.example.pro
+        value: app.staging.example.com
 
 replicas:
   - name: example-node

@@ -91,7 +91,7 @@ spec:
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: base-configs-8k4d275mm2
+  name: base-configs-kcmctct62f
   namespace: example
   labels:
     app.kubernetes.io/instance: example-staging-au
@@ -105,7 +105,7 @@ data:
   SCYLLA_SERVERS: scylla-client
   S3_BUCKET_PRIVATE: example-staging-private
   S3_BUCKET_PUBLIC: example-staging-cdn
-  CDN_BASE_URL: https://cdn.example.pro/
+  CDN_BASE_URL: https://cdn.example.com/
   CORE_SERVER__SYSTEM__example_ORG_ID: 60f90ca5-7041-4c1d-9736-2d8f39a249dd
   HCA_VERTEX_URL: https://europe-west4-aiplatform.googleapis.com
   PG_DB_BOUNCER_HOST: 10.1.2.3
@@ -156,7 +156,7 @@ spec:
         - secretRef:
             name: base-secrets-bgdcccc7t4
         - configMapRef:
-            name: base-configs-8k4d275mm2
+            name: base-configs-kcmctct62f
         image: docker.io/example/core_server:f0493271df9745910c3197b6ccad437b2a068ffe
         imagePullPolicy: IfNotPresent
         livenessProbe:
@@ -289,7 +289,7 @@ spec:
             - secretRef:
                 name: base-secrets-bgdcccc7t4
             - configMapRef:
-                name: base-configs-8k4d275mm2
+                name: base-configs-kcmctct62f
             image: docker.io/example/currency_updater:218d32371c33efaff38cb681b7849db32924d7a2
             name: example-currency-updater-cron
         metadata:
@@ -326,7 +326,7 @@ spec:
         - secretRef:
             name: base-secrets-bgdcccc7t4
         - configMapRef:
-            name: base-configs-8k4d275mm2
+            name: base-configs-kcmctct62f
         image: docker.io/example/data_ingestor:dfc02e2304c61baf72122f7dd12e404b3dbbf2bd
         imagePullPolicy: IfNotPresent
         livenessProbe:
@@ -432,7 +432,7 @@ spec:
         - secretRef:
             name: base-secrets-bgdcccc7t4
         - configMapRef:
-            name: base-configs-8k4d275mm2
+            name: base-configs-kcmctct62f
         image: docker.io/example/dataqa_api_rs:db2991ff9b9b89501084979002b9f736f975a2ca
         imagePullPolicy: IfNotPresent
         livenessProbe:
@@ -721,7 +721,7 @@ spec:
         - secretRef:
             name: base-secrets-bgdcccc7t4
         - configMapRef:
-            name: base-configs-8k4d275mm2
+            name: base-configs-kcmctct62f
         image: docker.io/example/driftdb_server:002a1b3824705a191b6f61e9177c4697f783bf4e
         imagePullPolicy: IfNotPresent
         name: driftdb-server
@@ -823,7 +823,7 @@ spec:
         - secretRef:
             name: base-secrets-bgdcccc7t4
         - configMapRef:
-            name: base-configs-8k4d275mm2
+            name: base-configs-kcmctct62f
         image: docker.io/example/elasticsearch_ingestor:2753e02a25091d9e7a3795c7aa1584a4c12298c8
         imagePullPolicy: IfNotPresent
         livenessProbe:
@@ -917,7 +917,7 @@ spec:
         - secretRef:
             name: base-secrets-bgdcccc7t4
         - configMapRef:
-            name: base-configs-8k4d275mm2
+            name: base-configs-kcmctct62f
         image: docker.io/example/elasticsearch_ingestor:2753e02a25091d9e7a3795c7aa1584a4c12298c8
         imagePullPolicy: IfNotPresent
         livenessProbe:
@@ -1007,7 +1007,7 @@ spec:
         - secretRef:
             name: base-secrets-bgdcccc7t4
         - configMapRef:
-            name: base-configs-8k4d275mm2
+            name: base-configs-kcmctct62f
         image: docker.io/example/elasticsearch_ingestor_rs:2f456dbc227292fccbd795d52ff2149dbb34a754
         imagePullPolicy: IfNotPresent
         livenessProbe:
@@ -1097,7 +1097,7 @@ spec:
         - secretRef:
             name: base-secrets-bgdcccc7t4
         - configMapRef:
-            name: base-configs-8k4d275mm2
+            name: base-configs-kcmctct62f
         image: docker.io/example/email_integration:79816f2b87308aecdea673c0ad9e83a0677a00a2
         imagePullPolicy: IfNotPresent
         livenessProbe:
@@ -1182,7 +1182,7 @@ spec:
         - secretRef:
             name: base-secrets-bgdcccc7t4
         - configMapRef:
-            name: base-configs-8k4d275mm2
+            name: base-configs-kcmctct62f
         image: docker.io/example/file_ingestor:60c1074e758347c59b325d43167327b5801063ce
         imagePullPolicy: IfNotPresent
         livenessProbe:
@@ -1271,7 +1271,7 @@ spec:
             - secretRef:
                 name: base-secrets-bgdcccc7t4
             - configMapRef:
-                name: base-configs-8k4d275mm2
+                name: base-configs-kcmctct62f
             image: docker.io/example/garbage_collector:7b0c812c394664373a2453b315e56d0f8883032a
             name: garbage-collector
         metadata:
@@ -1312,7 +1312,7 @@ spec:
         - secretRef:
             name: base-secrets-bgdcccc7t4
         - configMapRef:
-            name: base-configs-8k4d275mm2
+            name: base-configs-kcmctct62f
         image: docker.io/example/hca_notion_sync:3699aa48811047f730e0505a6ae855f7a2f9f6fb
         imagePullPolicy: IfNotPresent
         livenessProbe:
@@ -1400,7 +1400,7 @@ spec:
         - name: LOOKUP_SCANNER__SYSTEM__AWS_OPTIONS__S3_BUCKET_PUBLIC
           value: example-staging-cdn
         - name: LOOKUP_SCANNER__SYSTEM__AWS_OPTIONS__CDN_BASE_URL
-          value: https://cdn.example.pro/
+          value: https://cdn.example.com/
         - name: SOURCE_VERSION
           valueFrom:
             configMapKeyRef:
@@ -1410,7 +1410,7 @@ spec:
         - secretRef:
             name: base-secrets-bgdcccc7t4
         - configMapRef:
-            name: base-configs-8k4d275mm2
+            name: base-configs-kcmctct62f
         image: docker.io/example/lookup_scanner:71748ce3178b8666188daccb18442cf024fa1ce3
         imagePullPolicy: IfNotPresent
         livenessProbe:
@@ -1502,7 +1502,7 @@ spec:
         - secretRef:
             name: base-secrets-bgdcccc7t4
         - configMapRef:
-            name: base-configs-8k4d275mm2
+            name: base-configs-kcmctct62f
         image: docker.io/example/lookup_server:9c41919e99bb4b295ba065a48da1228ebe7267d3
         imagePullPolicy: IfNotPresent
         livenessProbe:
@@ -1603,7 +1603,7 @@ spec:
         - secretRef:
             name: base-secrets-bgdcccc7t4
         - configMapRef:
-            name: base-configs-8k4d275mm2
+            name: base-configs-kcmctct62f
         image: docker.io/example/lookup_server_cdc:295bd0809eaa286649ecaeb8ca6f738c2b2ae7f8
         imagePullPolicy: IfNotPresent
         livenessProbe:
@@ -1699,7 +1699,7 @@ spec:
         - secretRef:
             name: base-secrets-bgdcccc7t4
         - configMapRef:
-            name: base-configs-8k4d275mm2
+            name: base-configs-kcmctct62f
         image: docker.io/example/node_migrations_scylla:96e8f8e4aa8b2602c32ea89cbeb2c84e1c0831fc
         imagePullPolicy: IfNotPresent
         name: migrations-scylla
@@ -1751,7 +1751,7 @@ spec:
         - secretRef:
             name: base-secrets-bgdcccc7t4
         - configMapRef:
-            name: base-configs-8k4d275mm2
+            name: base-configs-kcmctct62f
         env:
         - name: NODE_OPTIONS
           value: --max-old-space-size=2048
@@ -1805,7 +1805,7 @@ spec:
         - secretRef:
             name: base-secrets-bgdcccc7t4
         - configMapRef:
-            name: base-configs-8k4d275mm2
+            name: base-configs-kcmctct62f
         env:
         - name: NODE_OPTIONS
           value: --max-old-space-size=2048
@@ -1862,7 +1862,7 @@ spec:
         - secretRef:
             name: base-secrets-bgdcccc7t4
         - configMapRef:
-            name: base-configs-8k4d275mm2
+            name: base-configs-kcmctct62f
         env:
         - name: NODE_OPTIONS
           value: --max-old-space-size=2048
@@ -1904,7 +1904,7 @@ spec:
       name: mfe-router-worker
       key: worker.js
   route:
-    pattern: app.staging.example.pro
+    pattern: app.staging.example.com
   vars:
     APP_VERSIONS:
       mfe-billing: 8ed00d7ae68ebb38d189292abbcd90822d9cc702
@@ -1968,11 +1968,11 @@ spec:
           valueFrom:
             configMapKeyRef:
               key: ML_SERVER_LOG_LEVEL
-              name: base-configs-8k4d275mm2
+              name: base-configs-kcmctct62f
         - name: PYROSCOPE_INGEST_URL
           valueFrom:
             configMapKeyRef:
-              name: base-configs-8k4d275mm2
+              name: base-configs-kcmctct62f
               key: PYROSCOPE_INGEST_URL
         - name: POD_NAME
           valueFrom:
@@ -1982,7 +1982,7 @@ spec:
           valueFrom:
             configMapKeyRef:
               key: example_ENVIRONMENT
-              name: base-configs-8k4d275mm2
+              name: base-configs-kcmctct62f
         - name: GOOGLE_APPLICATION_CREDENTIALS
           value: /var/gcp-credentials/credentials.json
         - name: PG_DB_PASSWORD
@@ -1999,42 +1999,42 @@ spec:
           valueFrom:
             configMapKeyRef:
               key: PG_DB_HOST
-              name: base-configs-8k4d275mm2
+              name: base-configs-kcmctct62f
         - name: PG_DB_PORT
           valueFrom:
             configMapKeyRef:
               key: PG_DB_PORT
-              name: base-configs-8k4d275mm2
+              name: base-configs-kcmctct62f
         - name: PG_DB_USERNAME
           valueFrom:
             configMapKeyRef:
               key: PG_DB_USERNAME_MLSERVER
-              name: base-configs-8k4d275mm2
+              name: base-configs-kcmctct62f
         - name: PG_DB_DATABASE
           valueFrom:
             configMapKeyRef:
               key: PG_DB_DATABASE
-              name: base-configs-8k4d275mm2
+              name: base-configs-kcmctct62f
         - name: OTEL_EXPORTER_OTLP_ENDPOINT
           valueFrom:
             configMapKeyRef:
               key: OTEL_EXPORTER_OTLP_ENDPOINT
-              name: base-configs-8k4d275mm2
+              name: base-configs-kcmctct62f
         - name: KAFKA_BROKER_HOST_LIST
           valueFrom:
             configMapKeyRef:
               key: KAFKA_BROKER_HOST_LIST
-              name: base-configs-8k4d275mm2
+              name: base-configs-kcmctct62f
         - name: S3_BUCKET_PUBLIC
           valueFrom:
             configMapKeyRef:
               key: S3_BUCKET_PUBLIC
-              name: base-configs-8k4d275mm2
+              name: base-configs-kcmctct62f
         - name: S3_REGION
           valueFrom:
             configMapKeyRef:
               key: S3_REGION
-              name: base-configs-8k4d275mm2
+              name: base-configs-kcmctct62f
         - name: S3_KEY
           valueFrom:
             secretKeyRef:
@@ -2156,12 +2156,12 @@ spec:
           valueFrom:
             configMapKeyRef:
               key: ML_SERVER_LOG_LEVEL
-              name: base-configs-8k4d275mm2
+              name: base-configs-kcmctct62f
         - name: example_ENVIRONMENT
           valueFrom:
             configMapKeyRef:
               key: example_ENVIRONMENT
-              name: base-configs-8k4d275mm2
+              name: base-configs-kcmctct62f
         - name: GOOGLE_APPLICATION_CREDENTIALS
           value: /var/gcp-credentials/credentials.json
         - name: PG_DB_PASSWORD
@@ -2178,42 +2178,42 @@ spec:
           valueFrom:
             configMapKeyRef:
               key: PG_DB_HOST
-              name: base-configs-8k4d275mm2
+              name: base-configs-kcmctct62f
         - name: PG_DB_PORT
           valueFrom:
             configMapKeyRef:
               key: PG_DB_PORT
-              name: base-configs-8k4d275mm2
+              name: base-configs-kcmctct62f
         - name: PG_DB_USERNAME
           valueFrom:
             configMapKeyRef:
               key: PG_DB_USERNAME_MLSERVER
-              name: base-configs-8k4d275mm2
+              name: base-configs-kcmctct62f
         - name: PG_DB_DATABASE
           valueFrom:
             configMapKeyRef:
               key: PG_DB_DATABASE
-              name: base-configs-8k4d275mm2
+              name: base-configs-kcmctct62f
         - name: OTEL_EXPORTER_OTLP_ENDPOINT
           valueFrom:
             configMapKeyRef:
               key: OTEL_EXPORTER_OTLP_ENDPOINT
-              name: base-configs-8k4d275mm2
+              name: base-configs-kcmctct62f
         - name: KAFKA_BROKER_HOST_LIST
           valueFrom:
             configMapKeyRef:
               key: KAFKA_BROKER_HOST_LIST
-              name: base-configs-8k4d275mm2
+              name: base-configs-kcmctct62f
         - name: S3_BUCKET_PUBLIC
           valueFrom:
             configMapKeyRef:
               key: S3_BUCKET_PUBLIC
-              name: base-configs-8k4d275mm2
+              name: base-configs-kcmctct62f
         - name: S3_REGION
           valueFrom:
             configMapKeyRef:
               key: S3_REGION
-              name: base-configs-8k4d275mm2
+              name: base-configs-kcmctct62f
         - name: S3_KEY
           valueFrom:
             secretKeyRef:
@@ -2323,32 +2323,32 @@ spec:
               valueFrom:
                 configMapKeyRef:
                   key: OTEL_EXPORTER_OTLP_ENDPOINT
-                  name: base-configs-8k4d275mm2
+                  name: base-configs-kcmctct62f
             - name: example_ENVIRONMENT
               valueFrom:
                 configMapKeyRef:
                   key: example_ENVIRONMENT
-                  name: base-configs-8k4d275mm2
+                  name: base-configs-kcmctct62f
             - name: PG_DB_HOST
               valueFrom:
                 configMapKeyRef:
                   key: PG_DB_HOST
-                  name: base-configs-8k4d275mm2
+                  name: base-configs-kcmctct62f
             - name: PG_DB_PORT
               valueFrom:
                 configMapKeyRef:
                   key: PG_DB_PORT
-                  name: base-configs-8k4d275mm2
+                  name: base-configs-kcmctct62f
             - name: PG_DB_USERNAME
               valueFrom:
                 configMapKeyRef:
                   key: PG_DB_USERNAME_MLSERVER
-                  name: base-configs-8k4d275mm2
+                  name: base-configs-kcmctct62f
             - name: PG_DB_DATABASE
               valueFrom:
                 configMapKeyRef:
                   key: PG_DB_DATABASE
-                  name: base-configs-8k4d275mm2
+                  name: base-configs-kcmctct62f
             - name: PG_DB_PASSWORD
               valueFrom:
                 secretKeyRef:
@@ -2419,7 +2419,7 @@ spec:
           valueFrom:
             configMapKeyRef:
               key: PG_DB_BOUNCER_HOST
-              name: base-configs-8k4d275mm2
+              name: base-configs-kcmctct62f
         - name: PRISMA_DB_URL
           value: postgresql://$(PG_DB_USERNAME_NODE_API):$(PG_DB_PASSWORD_NODE_API)@$(PG_DB_HOST):$(PG_DB_PORT)/$(PG_DB_DATABASE)?schema=example&application_name=node-api&connection_limit=100&pool_timeout=120&pgbouncer=true
         - name: NODE_OPTIONS
@@ -2444,7 +2444,7 @@ spec:
         - secretRef:
             name: base-secrets-bgdcccc7t4
         - configMapRef:
-            name: base-configs-8k4d275mm2
+            name: base-configs-kcmctct62f
         image: docker.io/example/api:174c80d5ccfebab986f4571edc27ab033d41898e
         imagePullPolicy: IfNotPresent
         livenessProbe:
@@ -2812,12 +2812,12 @@ spec:
         - name: POSTGRESQL_HOST
           valueFrom:
             configMapKeyRef:
-              name: base-configs-8k4d275mm2
+              name: base-configs-kcmctct62f
               key: PG_DB_HOST
         - name: POSTGRESQL_USERNAME
           valueFrom:
             configMapKeyRef:
-              name: base-configs-8k4d275mm2
+              name: base-configs-kcmctct62f
               key: PG_DB_USERNAME
         - name: POSTGRESQL_PASSWORD
           valueFrom:
@@ -2896,7 +2896,7 @@ spec:
         - secretRef:
             name: base-secrets-bgdcccc7t4
         - configMapRef:
-            name: base-configs-8k4d275mm2
+            name: base-configs-kcmctct62f
         image: docker.io/example/repair_jobs_feed_integration:8c3e40d2fa03c59753a17a29a198937a8915d618
         imagePullPolicy: IfNotPresent
         name: repair-jobs-feed-integration
@@ -3001,7 +3001,7 @@ spec:
           value: repairer-server
         envFrom:
         - configMapRef:
-            name: base-configs-8k4d275mm2
+            name: base-configs-kcmctct62f
         - secretRef:
             name: base-secrets-bgdcccc7t4
         image: docker.io/example/repairer_server:62e956442ceec747e04c59cd7ef01d42dc1b0c6e
@@ -3128,7 +3128,7 @@ spec:
         - secretRef:
             name: base-secrets-bgdcccc7t4
         - configMapRef:
-            name: base-configs-8k4d275mm2
+            name: base-configs-kcmctct62f
         image: docker.io/example/sample_integration:d40737fa84d2063c883588098667a29a748bf878
         imagePullPolicy: IfNotPresent
         livenessProbe:
@@ -3260,7 +3260,7 @@ spec:
         - secretRef:
             name: base-secrets-bgdcccc7t4
         - configMapRef:
-            name: base-configs-8k4d275mm2
+            name: base-configs-kcmctct62f
         image: docker.io/example/shopify_integration2:6b90caf2ae1bd85cbbfcf11b1de9617251fb1ceb
         imagePullPolicy: IfNotPresent
         name: shopify-integration2
@@ -3381,7 +3381,7 @@ spec:
         - secretRef:
             name: base-secrets-bgdcccc7t4
         - configMapRef:
-            name: base-configs-8k4d275mm2
+            name: base-configs-kcmctct62f
         image: docker.io/example/subscription_updater:18c9229bc91013682f2de1847ecc4788cfd8ce55
         imagePullPolicy: IfNotPresent
         livenessProbe:
@@ -3471,7 +3471,7 @@ spec:
         - secretRef:
             name: base-secrets-bgdcccc7t4
         - configMapRef:
-            name: base-configs-8k4d275mm2
+            name: base-configs-kcmctct62f
         image: docker.io/example/vrm_search:34ccde7452c82f3d7cb3fd3a1fe2853b3c31fcf7
         imagePullPolicy: IfNotPresent
         livenessProbe:
@@ -3563,7 +3563,7 @@ spec:
         - secretRef:
             name: base-secrets-bgdcccc7t4
         - configMapRef:
-            name: base-configs-8k4d275mm2
+            name: base-configs-kcmctct62f
         image: docker.io/example/webhooks_notifier:0ade6c259184bcc263234e6d3dec5119c20222b5
         imagePullPolicy: IfNotPresent
         livenessProbe:
@@ -3652,7 +3652,7 @@ spec:
               key: monorepo-revision
         envFrom:
         - configMapRef:
-            name: base-configs-8k4d275mm2
+            name: base-configs-kcmctct62f
         - configMapRef:
             name: external-job-integration-t74684c65d
         - secretRef:

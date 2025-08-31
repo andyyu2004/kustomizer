@@ -1,4 +1,4 @@
-apiVersion: example.pro/v1
+apiVersion: example.com/v1
 kind: EnvTransformer
 metadata:
   name: env-transformer
