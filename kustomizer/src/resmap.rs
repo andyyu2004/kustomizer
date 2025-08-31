@@ -74,33 +74,7 @@ impl ResourceMap {
                     "may not add resource with an already registered id `{}`, consider specifying `merge` or `replace` behavior",
                     resource.id()
                 ),
-                Behavior::Merge => {
-                    let left = entry
-                        .get_mut()
-                        .root_mut()
-                        .get_mut("data")
-                        .and_then(|data| data.as_object_mut());
-                    let right = resource
-                        .root()
-                        .get("data")
-                        .and_then(|data| data.as_object());
-
-                    // TODO merging metadata and annotations, not sure what is correct behavior for this
-                    match (left, right) {
-                        (Some(left), Some(right)) => {
-                            for (key, value) in right {
-                                left.insert(key.clone(), value.clone());
-                            }
-                        }
-                        (None, Some(right)) => {
-                            entry
-                                .get_mut()
-                                .root_mut()
-                                .insert("data".into(), serde_json::Value::Object(right.clone()));
-                        }
-                        (_, None) => {}
-                    }
-                }
+                Behavior::Merge => entry.get_mut().merge_data_fields(resource),
                 Behavior::Replace => todo!("replace"),
             },
             Entry::Vacant(entry) => match behavior {
