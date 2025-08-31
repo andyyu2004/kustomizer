@@ -2,7 +2,7 @@ use serde_json::{Value, map::Entry};
 
 use crate::resource::{Object, Resource};
 
-use self::openapi::v2::ObjectSchema;
+use self::openapi::v2::{ObjectSchema, Schema};
 
 pub mod openapi;
 
@@ -37,18 +37,21 @@ pub fn patch(base: &mut Resource, patch: Resource) -> anyhow::Result<()> {
 fn merge_obj(
     base: &mut Object,
     patch: Object,
-    _schema: Option<&ObjectSchema>,
+    schema: Option<&ObjectSchema>,
 ) -> anyhow::Result<()> {
     for (key, value) in patch {
         match base.entry(key) {
             Entry::Vacant(entry) => drop(entry.insert(value)),
-            Entry::Occupied(entry) => merge(entry.into_mut(), value)?,
+            Entry::Occupied(entry) => {
+                let subschema = schema.and_then(|s| s.properties.get(entry.key()));
+                merge(entry.into_mut(), value, None)?
+            }
         }
     }
     Ok(())
 }
 
-fn merge(base: &mut Value, patch: Value) -> anyhow::Result<()> {
+fn merge(base: &mut Value, patch: Value, schema: Option<&Schema>) -> anyhow::Result<()> {
     match (base, patch) {
         (Value::Object(base), Value::Object(patch)) => merge_obj(base, patch, None)?,
         (base, patch) => *base = patch,

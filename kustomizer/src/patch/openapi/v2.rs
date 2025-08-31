@@ -146,26 +146,6 @@ impl Spec {
 pub struct Schema {
     #[serde(flatten)]
     pub ty: Option<Type>,
-    #[serde(
-        rename = "x-kubernetes-patch-strategy",
-        skip_serializing_if = "Option::is_none"
-    )]
-    patch_strategy: Option<PatchStrategy>,
-    #[serde(
-        rename = "x-kubernetes-patch-key",
-        skip_serializing_if = "Option::is_none"
-    )]
-    patch_key: Option<Str>,
-    #[serde(
-        rename = "x-kubernetes-list-type",
-        skip_serializing_if = "Option::is_none"
-    )]
-    list_type: Option<ListType>,
-    #[serde(
-        rename = "x-kubernetes-list-map-keys",
-        skip_serializing_if = "Option::is_none"
-    )]
-    list_map_keys: Option<Box<[Str]>>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -183,14 +163,40 @@ pub struct Ref {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ObjectSchema {
-    pub properties: IndexMap<Str, Schema>,
+    pub properties: IndexMap<String, InlineOrRef<Schema>>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(tag = "type", rename_all = "camelCase")]
+pub struct Array {
+    pub items: InlineOrRef<Box<Schema>>,
+    #[serde(
+        rename = "x-kubernetes-patch-strategy",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub patch_strategy: Option<PatchStrategy>,
+    #[serde(
+        rename = "x-kubernetes-patch-key",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub patch_key: Option<Str>,
+    #[serde(
+        rename = "x-kubernetes-list-type",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub list_type: Option<ListType>,
+    #[serde(
+        rename = "x-kubernetes-list-map-keys",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub list_map_keys: Option<Box<[Str]>>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "camelCase")]
 pub enum Type {
     Object(ObjectSchema),
-    Array { items: InlineOrRef<Box<Schema>> },
+    Array(Array),
     String,
     Integer,
     Boolean,

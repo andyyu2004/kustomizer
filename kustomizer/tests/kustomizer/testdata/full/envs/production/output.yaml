@@ -91,7 +91,7 @@ spec:
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: base-configs-dckth9kdb4
+  name: base-configs-k78t7685ht
   namespace: prod-eu
   labels:
     app.kubernetes.io/instance: example-prod-eu
@@ -101,11 +101,11 @@ data:
   ENV: base
   APOLLO_GRAPH_REF: example-core@prod
   APP_URL: https://example.parts/
-  CACHE_REDIS_URL: 10.8.65.4
+  CACHE_REDIS_URL: 10.2.4.5
   CDN_BASE_URL: https://cdn.example.com/
   CORE_SERVER__AUTH__FEDERATED_AUTH__CALLBACK_URL: https://api.example.com/api/v1/users/federated-auth/callback
-  CORE_SERVER__AUTH__FEDERATED_AUTH__PROVIDERS__GOOGLE__CLIENT_ID: 1098297370941-tnlql5fv3lpabcnrf6l7o8gec3mv5u52.apps.googleusercontent.com
-  CORE_SERVER__AUTH__FEDERATED_AUTH__PROVIDERS__MICROSOFT__CLIENT_ID: 297e4688-6796-4bcc-8dd8-c358d70afed6
+  CORE_SERVER__AUTH__FEDERATED_AUTH__PROVIDERS__GOOGLE__CLIENT_ID: 297e4688-6796-4bcc-8dd8-c358d70afed6.apps.googleusercontent.com
+  CORE_SERVER__AUTH__FEDERATED_AUTH__PROVIDERS__MICROSOFT__CLIENT_ID: 0b1f7f1e-4d3e-4d17-8c8a-6f3b2e3f4a5b
   CORE_SERVER__AUTH__ISSUER_V2: https://api.example.com
   CORE_SERVER__AUTH__REFRESH_TOKEN__TTL: '604800'
   CORE_SERVER__OFFER_REQUEST__OFFER_REQUEST_URL: https://pim.example.com/offers/offer/
@@ -123,7 +123,7 @@ data:
   ELASTICSEARCH_MASTER_SERVICE_HOST: elasticsearch-master.elasticsearch
   EMAIL_INTEGRATION__ENVIRONMENT_KEY: prod
   GCP_CLIENT_EMAIL: node-access-sa@prod-eu-6396.iam.gserviceaccount.com
-  GCP_MAPS_API_KEY: '"AIzaSyCycVi2QLTrJtQstJN2wCezjy9OWh5_SXc"'
+  GCP_MAPS_API_KEY: AIzaSyDxxxxxxxxxxxxxxxxxxxxxx
   GCP_PROJECT_ID: prod-eu-6396
   GCS_BUCKET_PRIVATE: example-gcp-private-prod-eu
   HAYNES_BASE_URL: https://uk.haynespro-services.com/
@@ -367,7 +367,7 @@ spec:
             - secretRef:
                 name: base-secrets-6d952f7kt7
             - configMapRef:
-                name: base-configs-dckth9kdb4
+                name: base-configs-k78t7685ht
             image: docker.io/example/currency_updater:218d32371c33efaff38cb681b7849db32924d7a2
             name: example-currency-updater-cron
         metadata:
@@ -960,7 +960,7 @@ spec:
         - secretRef:
             name: base-secrets-6d952f7kt7
         - configMapRef:
-            name: base-configs-dckth9kdb4
+            name: base-configs-k78t7685ht
         image: docker.io/example/email_integration:79816f2b87308aecdea673c0ad9e83a0677a00a2
         imagePullPolicy: IfNotPresent
         livenessProbe:
@@ -1095,7 +1095,7 @@ spec:
             - secretRef:
                 name: base-secrets-6d952f7kt7
             - configMapRef:
-                name: base-configs-dckth9kdb4
+                name: base-configs-k78t7685ht
             image: docker.io/example/garbage_collector:7b0c812c394664373a2453b315e56d0f8883032a
             name: garbage-collector
         metadata:
@@ -1379,7 +1379,7 @@ spec:
         - secretRef:
             name: base-secrets-6d952f7kt7
         - configMapRef:
-            name: base-configs-dckth9kdb4
+            name: base-configs-k78t7685ht
         image: docker.io/example/node_migrations_scylla:96e8f8e4aa8b2602c32ea89cbeb2c84e1c0831fc
         imagePullPolicy: IfNotPresent
         name: migrations-scylla
@@ -1431,7 +1431,7 @@ spec:
         - secretRef:
             name: base-secrets-6d952f7kt7
         - configMapRef:
-            name: base-configs-dckth9kdb4
+            name: base-configs-k78t7685ht
         env:
         - name: NODE_OPTIONS
           value: --max-old-space-size=2048
@@ -1485,7 +1485,7 @@ spec:
         - secretRef:
             name: base-secrets-6d952f7kt7
         - configMapRef:
-            name: base-configs-dckth9kdb4
+            name: base-configs-k78t7685ht
         env:
         - name: NODE_OPTIONS
           value: --max-old-space-size=2048
@@ -1542,7 +1542,7 @@ spec:
         - secretRef:
             name: base-secrets-6d952f7kt7
         - configMapRef:
-            name: base-configs-dckth9kdb4
+            name: base-configs-k78t7685ht
         env:
         - name: NODE_OPTIONS
           value: --max-old-space-size=2048
@@ -1751,32 +1751,32 @@ spec:
               valueFrom:
                 configMapKeyRef:
                   key: OTEL_EXPORTER_OTLP_ENDPOINT
-                  name: base-configs-dckth9kdb4
+                  name: base-configs-k78t7685ht
             - name: example_ENVIRONMENT
               valueFrom:
                 configMapKeyRef:
                   key: example_ENVIRONMENT
-                  name: base-configs-dckth9kdb4
+                  name: base-configs-k78t7685ht
             - name: PG_DB_HOST
               valueFrom:
                 configMapKeyRef:
                   key: PG_DB_HOST
-                  name: base-configs-dckth9kdb4
+                  name: base-configs-k78t7685ht
             - name: PG_DB_PORT
               valueFrom:
                 configMapKeyRef:
                   key: PG_DB_PORT
-                  name: base-configs-dckth9kdb4
+                  name: base-configs-k78t7685ht
             - name: PG_DB_USERNAME
               valueFrom:
                 configMapKeyRef:
                   key: PG_DB_USERNAME_MLSERVER
-                  name: base-configs-dckth9kdb4
+                  name: base-configs-k78t7685ht
             - name: PG_DB_DATABASE
               valueFrom:
                 configMapKeyRef:
                   key: PG_DB_DATABASE
-                  name: base-configs-dckth9kdb4
+                  name: base-configs-k78t7685ht
             - name: PG_DB_PASSWORD
               valueFrom:
                 secretKeyRef:
@@ -2198,12 +2198,12 @@ spec:
         - name: POSTGRESQL_HOST
           valueFrom:
             configMapKeyRef:
-              name: base-configs-dckth9kdb4
+              name: base-configs-k78t7685ht
               key: PG_DB_HOST
         - name: POSTGRESQL_USERNAME
           valueFrom:
             configMapKeyRef:
-              name: base-configs-dckth9kdb4
+              name: base-configs-k78t7685ht
               key: PG_DB_USERNAME
         - name: POSTGRESQL_PASSWORD
           valueFrom:
@@ -2477,7 +2477,7 @@ spec:
         - secretRef:
             name: base-secrets-6d952f7kt7
         - configMapRef:
-            name: base-configs-dckth9kdb4
+            name: base-configs-k78t7685ht
         image: docker.io/example/sample_integration:d40737fa84d2063c883588098667a29a748bf878
         imagePullPolicy: IfNotPresent
         livenessProbe:
@@ -2828,7 +2828,7 @@ spec:
               key: monorepo-revision
         envFrom:
         - configMapRef:
-            name: base-configs-dckth9kdb4
+            name: base-configs-k78t7685ht
         - configMapRef:
             name: external-job-integration-t74684c65d
         - secretRef:

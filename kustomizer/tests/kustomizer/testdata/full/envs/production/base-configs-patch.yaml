@@ -5,11 +5,11 @@ metadata:
 data:
   APOLLO_GRAPH_REF: example-core@prod
   APP_URL: https://example.parts/
-  CACHE_REDIS_URL: 10.8.65.4
+  CACHE_REDIS_URL: 10.2.4.5
   CDN_BASE_URL: https://cdn.example.com/
   CORE_SERVER__AUTH__FEDERATED_AUTH__CALLBACK_URL: https://api.example.com/api/v1/users/federated-auth/callback
-  CORE_SERVER__AUTH__FEDERATED_AUTH__PROVIDERS__GOOGLE__CLIENT_ID: 1098297370941-tnlql5fv3lpabcnrf6l7o8gec3mv5u52.apps.googleusercontent.com
-  CORE_SERVER__AUTH__FEDERATED_AUTH__PROVIDERS__MICROSOFT__CLIENT_ID: 297e4688-6796-4bcc-8dd8-c358d70afed6
+  CORE_SERVER__AUTH__FEDERATED_AUTH__PROVIDERS__GOOGLE__CLIENT_ID: 297e4688-6796-4bcc-8dd8-c358d70afed6.apps.googleusercontent.com
+  CORE_SERVER__AUTH__FEDERATED_AUTH__PROVIDERS__MICROSOFT__CLIENT_ID: 0b1f7f1e-4d3e-4d17-8c8a-6f3b2e3f4a5b
   CORE_SERVER__AUTH__ISSUER_V2: https://api.example.com
   CORE_SERVER__AUTH__REFRESH_TOKEN__TTL: "604800"
   CORE_SERVER__OFFER_REQUEST__OFFER_REQUEST_URL: https://pim.example.com/offers/offer/
@@ -27,7 +27,7 @@ data:
   ELASTICSEARCH_MASTER_SERVICE_HOST: elasticsearch-master.elasticsearch
   EMAIL_INTEGRATION__ENVIRONMENT_KEY: prod
   GCP_CLIENT_EMAIL: node-access-sa@prod-eu-6396.iam.gserviceaccount.com
-  GCP_MAPS_API_KEY: '"AIzaSyCycVi2QLTrJtQstJN2wCezjy9OWh5_SXc"'
+  GCP_MAPS_API_KEY: AIzaSyDxxxxxxxxxxxxxxxxxxxxxx
   GCP_PROJECT_ID: prod-eu-6396
   GCS_BUCKET_PRIVATE: example-gcp-private-prod-eu
   HAYNES_BASE_URL: https://uk.haynespro-services.com/
