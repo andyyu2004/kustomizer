@@ -1,0 +1,8 @@
+apiVersion: builtin
+kind: ImageTagTransformer
+metadata:
+  name: dataqa-api-rs-itt
+imageTag:
+  name: dataqa-api-rs-image
+  newName: docker.io/example/dataqa_api_rs
+  newTag: 39c4dcdd2f6dc661e0ecc1f00b1d8ccf43728354

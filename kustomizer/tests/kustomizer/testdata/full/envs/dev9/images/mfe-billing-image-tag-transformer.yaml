@@ -1,0 +1,8 @@
+apiVersion: builtin
+kind: ImageTagTransformer
+metadata:
+  name: mfe-billing-itt
+imageTag:
+  name: mfe-billing-image
+  newName: docker.io/example/mfe_billing
+  newTag: e8c726aae636c1d5361d94f67f6a7b7bb5902375

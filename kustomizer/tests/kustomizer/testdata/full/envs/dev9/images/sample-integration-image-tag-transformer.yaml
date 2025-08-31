@@ -1,0 +1,8 @@
+apiVersion: builtin
+kind: ImageTagTransformer
+metadata:
+  name: sample-integration-itt
+imageTag:
+  name: sample-integration-image
+  newName: docker.io/example/sample_integration
+  newTag: d1add6dc5302fe16ee458d76512d4c4a3153f355

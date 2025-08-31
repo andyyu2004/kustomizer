@@ -1,0 +1,8 @@
+apiVersion: builtin
+kind: ImageTagTransformer
+metadata:
+  name: buildbox-itt
+imageTag:
+  name: buildbox-image
+  newName: docker.io/example/buildbox
+  newTag: ef2a048cddaa2577aef63c3862a24f2b6f753998

@@ -1,0 +1,57 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: example-dev9
+
+labels:
+  - pairs:
+      app.kubernetes.io/instance: example-dev9
+
+resources:
+  - ../dev/
+
+components:
+  - ./images
+
+configMapGenerator:
+  - name: example-monorepo-revision
+    files:
+      - monorepo-revision
+    options:
+      disableNameSuffixHash: true
+      annotations:
+        argocd.argoproj.io/hook: PostSync
+        argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+  - name: example-monorepo-revision-failed
+    files:
+      - monorepo-revision
+    options:
+      disableNameSuffixHash: true
+      annotations:
+        argocd.argoproj.io/hook: SyncFail
+        argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+  - name: example-monorepo-revision-sync
+    options:
+      annotations:
+        argocd.argoproj.io/sync-wave: "-5"
+    files:
+      - monorepo-revision
+
+patches:
+  - path: mfe-router-app-versions-patch.yaml
+    target:
+      kind: CloudflareWorker
+      name: mfe-router
+  - target:
+      kind: CloudflareWorker
+      name: mfe-router
+    patch: |
+      - op: replace
+        path: /spec/name
+        value: app-dev9-example-pro
+      - op: replace
+        path: /spec/route/pattern
+        value: app.dev9.example.pro
+
+transformers:
+  - env-transformer.yaml

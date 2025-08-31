@@ -1,0 +1,8 @@
+apiVersion: builtin
+kind: ImageTagTransformer
+metadata:
+  name: dataqa-web-itt
+imageTag:
+  name: dataqa-web-image
+  newName: docker.io/example/dataqa_web
+  newTag: caaefe7f2108d76228532ee2c8f80eb8abc60abb

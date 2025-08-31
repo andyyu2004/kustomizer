@@ -1,13 +1,72 @@
-# In the reference implementation create is always true but that doesn't make sense to me.
+# Pod images
 - path: spec/containers[]/image
-  # create: true
+  kind: Pod
 - path: spec/initContainers[]/image
-  # create: true
+  kind: Pod
 - path: spec/volumes[]/image/reference
-  # create: true
+  kind: Pod
+
+# PodTemplate images
 - path: spec/template/spec/containers[]/image
-  # create: true
+  kind: PodTemplate
 - path: spec/template/spec/initContainers[]/image
-  # create: true
+  kind: PodTemplate
 - path: spec/template/spec/volumes[]/image/reference
-  # create: true
+  kind: PodTemplate
+
+# Deployment images
+- path: spec/template/spec/containers[]/image
+  kind: Deployment
+- path: spec/template/spec/initContainers[]/image
+  kind: Deployment
+- path: spec/template/spec/volumes[]/image/reference
+  kind: Deployment
+
+# ReplicaSet images
+- path: spec/template/spec/containers[]/image
+  kind: ReplicaSet
+- path: spec/template/spec/initContainers[]/image
+  kind: ReplicaSet
+- path: spec/template/spec/volumes[]/image/reference
+  kind: ReplicaSet
+
+# DaemonSet images
+- path: spec/template/spec/containers[]/image
+  kind: DaemonSet
+- path: spec/template/spec/initContainers[]/image
+  kind: DaemonSet
+- path: spec/template/spec/volumes[]/image/reference
+  kind: DaemonSet
+
+# StatefulSet images
+- path: spec/template/spec/containers[]/image
+  group: apps
+  kind: StatefulSet
+- path: spec/template/spec/initContainers[]/image
+  group: apps
+  kind: StatefulSet
+- path: spec/template/spec/volumes[]/image/reference
+  group: apps
+  kind: StatefulSet
+
+# Job images
+- path: spec/template/spec/containers[]/image
+  group: batch
+  kind: Job
+- path: spec/template/spec/initContainers[]/image
+  group: batch
+  kind: Job
+- path: spec/template/spec/volumes[]/image/reference
+  group: batch
+  kind: Job
+
+# CronJob images
+- path: spec/jobTemplate/spec/template/spec/containers[]/image
+  group: batch
+  kind: CronJob
+- path: spec/jobTemplate/spec/template/spec/initContainers[]/image
+  group: batch
+  kind: CronJob
+- path: spec/jobTemplate/spec/template/spec/volumes[]/image/reference
+  group: batch
+  kind: CronJob

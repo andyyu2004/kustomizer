@@ -1,0 +1,8 @@
+apiVersion: builtin
+kind: ImageTagTransformer
+metadata:
+  name: mfe-app-nav-itt
+imageTag:
+  name: mfe-app-nav-image
+  newName: docker.io/example/mfe_app_nav
+  newTag: 34f4482e01948a25a6ab030f1af4ac5aa51566dc

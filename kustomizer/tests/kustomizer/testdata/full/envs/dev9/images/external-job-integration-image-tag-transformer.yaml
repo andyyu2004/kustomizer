@@ -1,0 +1,8 @@
+apiVersion: builtin
+kind: ImageTagTransformer
+metadata:
+  name: external-job-integration-itt
+imageTag:
+  name: external-job-integration-image
+  newName: docker.io/example/external_job_integration
+  newTag: 32c6f9185cd0b2ce711a92fdac2ba1fc14856895

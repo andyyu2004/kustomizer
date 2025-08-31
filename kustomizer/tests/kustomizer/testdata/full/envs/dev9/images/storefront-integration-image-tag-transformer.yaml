@@ -1,0 +1,8 @@
+apiVersion: builtin
+kind: ImageTagTransformer
+metadata:
+  name: storefront-integration-itt
+imageTag:
+  name: storefront-integration-image
+  newName: docker.io/example/storefront_integration
+  newTag: 536ea49dc50ae340a3058fb4ece05a9c636fa9d4

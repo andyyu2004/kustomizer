@@ -1,0 +1,8 @@
+apiVersion: builtin
+kind: ImageTagTransformer
+metadata:
+  name: mfe-oms-itt
+imageTag:
+  name: mfe-oms-image
+  newName: docker.io/example/mfe_oms
+  newTag: 19d774aa72cc50561d4d493b962a36668b5f1b58

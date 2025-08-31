@@ -1,5 +1,3 @@
-// TODO anonymous the partly-argocd resources and put them in as a test.
-
 use kustomizer::{
     PathExt,
     dbg::{diff_reference_impl, format_chunks},

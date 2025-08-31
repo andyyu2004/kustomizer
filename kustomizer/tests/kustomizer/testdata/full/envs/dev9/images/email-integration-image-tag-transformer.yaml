@@ -1,0 +1,8 @@
+apiVersion: builtin
+kind: ImageTagTransformer
+metadata:
+  name: email-integration-itt
+imageTag:
+  name: email-integration-image
+  newName: docker.io/example/email_integration
+  newTag: 79816f2b87308aecdea673c0ad9e83a0677a00a2

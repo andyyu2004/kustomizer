@@ -1,9 +1,54 @@
 ---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: core-server-funnel
+  namespace: example-dev9
+  labels:
+    app.kubernetes.io/instance: example-dev9
+  annotations:
+    tailscale.com/funnel: 'true'
+    nginx.ingress.kubernetes.io/enable-cors: 'true'
+    nginx.ingress.kubernetes.io/cors-allow-credentials: 'true'
+    nginx.ingress.kubernetes.io/cors-allow-methods: GET,OPTIONS,POST,PUT,DELETE
+    nginx.ingress.kubernetes.io/cors-allow-origin: '*'
+    nginx.ingress.kubernetes.io/cors-allow-headers: Accept,Authorization,Cache-Control,Content-Type,DNT,If-Modified-Since,Keep-Alive,Origin,User-Agent,X-Requested-With,x-agx-device-type,x-agx-device-id,x-agx-guest-token,x-agx-store-alias,x-api-key,x-ga-client-id,example-store-id,example-graphql-operation,example-accept-currency,example-organization-id,example-storefront-key,example-uvdb-region-id,baggage,Sentry-Trace,traceparent
+spec:
+  ingressClassName: tailscale
+  tls:
+  - hosts:
+    - core-server-dev9
+  defaultBackend:
+    service:
+      name: example-core-server
+      port:
+        number: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: scylla
+  namespace: example-dev9
+  labels:
+    app.kubernetes.io/instance: example-dev9
+spec:
+  type: LoadBalancer
+  loadBalancerClass: tailscale
+  selector:
+    app: scylla
+  ports:
+  - name: cql
+    port: 9042
+    targetPort: cql
+    protocol: TCP
+---
 apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: block-rollout
-  namespace: example
+  namespace: example-dev9
+  labels:
+    app.kubernetes.io/instance: example-dev9
   annotations:
     argocd.argoproj.io/hook: Sync
     argocd.argoproj.io/sync-wave: '-3'
@@ -13,7 +58,9 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
   name: configmap-getter
-  namespace: example
+  namespace: example-dev9
+  labels:
+    app.kubernetes.io/instance: example-dev9
   annotations:
     argocd.argoproj.io/hook: Sync
     argocd.argoproj.io/sync-wave: '-3'
@@ -30,7 +77,9 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
   name: block-rollout-rolebinding
-  namespace: example
+  namespace: example-dev9
+  labels:
+    app.kubernetes.io/instance: example-dev9
   annotations:
     argocd.argoproj.io/hook: Sync
     argocd.argoproj.io/sync-wave: '-3'
@@ -38,7 +87,7 @@ metadata:
 subjects:
 - kind: ServiceAccount
   name: block-rollout
-  namespace: example
+  namespace: example-dev9
 roleRef:
   kind: Role
   name: configmap-getter
@@ -48,7 +97,9 @@ apiVersion: batch/v1
 kind: Job
 metadata:
   name: block-rollout
-  namespace: example
+  namespace: example-dev9
+  labels:
+    app.kubernetes.io/instance: example-dev9
   annotations:
     argocd.argoproj.io/hook: Sync
     argocd.argoproj.io/sync-wave: '-3'
@@ -83,31 +134,41 @@ spec:
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: base-configs-tg98dfhhkg
-  namespace: example
+  name: base-configs-m228kf585k
+  namespace: example-dev9
+  labels:
+    app.kubernetes.io/instance: example-dev9
   annotations:
     argocd.argoproj.io/sync-wave: '-5'
 data:
-  ENV: base
+  ENV: dev
+  SCYLLA_ADDRESSES: scylla-client:9042
+  SCYLLA_LOCAL_DATA_CENTER: dc1
+  SCYLLA_REPLICATION_FACTOR: '1'
+  SCYLLA_SERVERS: scylla-client
+  LOG_LEVEL: debug
 ---
 apiVersion: v1
 kind: Secret
 metadata:
-  name: base-secrets-56cb2c6hhd
-  namespace: example
+  name: base-secrets-62htgm2m82
+  namespace: example-dev9
+  labels:
+    app.kubernetes.io/instance: example-dev9
   annotations:
     argocd.argoproj.io/sync-wave: '-5'
 data:
-  POSTGRESQL_URL: dXNlcm5hbWU=
+  POSTGRESQL_URL: Ym9icGF0Y2g=
 type: Opaque
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: example-core-server
-  namespace: example
+  namespace: example-dev9
   labels:
     app.kubernetes.io/name: core-server
+    app.kubernetes.io/instance: example-dev9
 spec:
   progressDeadlineSeconds: 600
   replicas: 1
@@ -121,14 +182,14 @@ spec:
         - name: SOURCE_VERSION
           valueFrom:
             configMapKeyRef:
-              name: example-monorepo-revision-sync
+              name: example-monorepo-revision-sync-cctt5gbdbd
               key: monorepo-revision
         envFrom:
         - secretRef:
-            name: base-secrets-56cb2c6hhd
+            name: base-secrets-62htgm2m82
         - configMapRef:
-            name: base-configs-tg98dfhhkg
-        image: core-server-image
+            name: base-configs-m228kf585k
+        image: docker.io/example/core_server:a88b69fcf78aa0a0123842345448c257c204c63e
         imagePullPolicy: IfNotPresent
         livenessProbe:
           failureThreshold: 3
@@ -173,9 +234,10 @@ apiVersion: v1
 kind: Service
 metadata:
   name: example-core-server
-  namespace: example
+  namespace: example-dev9
   labels:
     app.kubernetes.io/name: core-server
+    app.kubernetes.io/instance: example-dev9
 spec:
   ipFamilies:
   - IPv4
@@ -193,17 +255,23 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: example-core-server
-  namespace: example
+  namespace: example-dev9
   labels:
     app.kubernetes.io/name: core-server
+    app.kubernetes.io/instance: example-dev9
   annotations:
     cert-manager.io/cluster-issuer: letsencrypt-prod
     nginx.ingress.kubernetes.io/proxy-body-size: 128m
     nginx.ingress.kubernetes.io/proxy-read-timeout: '90'
+    nginx.ingress.kubernetes.io/enable-cors: 'true'
+    nginx.ingress.kubernetes.io/cors-allow-credentials: 'true'
+    nginx.ingress.kubernetes.io/cors-allow-methods: GET,OPTIONS,POST,PUT,DELETE
+    nginx.ingress.kubernetes.io/cors-allow-origin: '*'
+    nginx.ingress.kubernetes.io/cors-allow-headers: Accept,Authorization,Cache-Control,Content-Type,DNT,If-Modified-Since,Keep-Alive,Origin,User-Agent,X-Requested-With,x-agx-device-type,x-agx-device-id,x-agx-guest-token,x-agx-store-alias,x-api-key,x-ga-client-id,example-store-id,example-graphql-operation,example-accept-currency,example-organization-id,example-storefront-key,example-uvdb-region-id,baggage,Sentry-Trace,traceparent
 spec:
   ingressClassName: nginx
   rules:
-  - host: api.{{ .SUBDOMAIN }}example.{{ .TLD }}
+  - host: api.dev9.example.pro
     http:
       paths:
       - backend:
@@ -216,15 +284,16 @@ spec:
   tls:
   - secretName: core-server-ingress-tls
     hosts:
-    - api.{{ .SUBDOMAIN }}example.{{ .TLD }}
+    - api.dev9.example.pro
 ---
 apiVersion: batch/v1
 kind: CronJob
 metadata:
   name: example-currency-updater-cron
-  namespace: example
+  namespace: example-dev9
   labels:
     app.kubernetes.io/name: currency-updater
+    app.kubernetes.io/instance: example-dev9
 spec:
   concurrencyPolicy: Replace
   failedJobsHistoryLimit: 1
@@ -241,10 +310,10 @@ spec:
               value: currency-updater-cron
             envFrom:
             - secretRef:
-                name: base-secrets-56cb2c6hhd
+                name: base-secrets-62htgm2m82
             - configMapRef:
-                name: base-configs-tg98dfhhkg
-            image: currency-updater-image
+                name: base-configs-m228kf585k
+            image: docker.io/example/currency_updater:38341896a99fc05b0150896dff84a0be396c2e7d
             name: example-currency-updater-cron
         metadata:
           labels:
@@ -257,12 +326,13 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: example-data-ingestor
-  namespace: example
+  namespace: example-dev9
   labels:
     app.kubernetes.io/name: data-ingestor
+    app.kubernetes.io/instance: example-dev9
 spec:
   progressDeadlineSeconds: 600
-  replicas: 3
+  replicas: 1
   revisionHistoryLimit: 10
   template:
     spec:
@@ -273,14 +343,14 @@ spec:
         - name: SOURCE_VERSION
           valueFrom:
             configMapKeyRef:
-              name: example-monorepo-revision-sync
+              name: example-monorepo-revision-sync-cctt5gbdbd
               key: monorepo-revision
         envFrom:
         - secretRef:
-            name: base-secrets-56cb2c6hhd
+            name: base-secrets-62htgm2m82
         - configMapRef:
-            name: base-configs-tg98dfhhkg
-        image: data-ingestor-image
+            name: base-configs-m228kf585k
+        image: docker.io/example/data_ingestor:5fdffed9bd84c0ac7d4ba20a88698fa8b25f286a
         imagePullPolicy: IfNotPresent
         livenessProbe:
           failureThreshold: 3
@@ -325,9 +395,10 @@ apiVersion: v1
 kind: Service
 metadata:
   name: example-data-ingestor
-  namespace: example
+  namespace: example-dev9
   labels:
     app.kubernetes.io/name: data-ingestor
+    app.kubernetes.io/instance: example-dev9
 spec:
   ipFamilies:
   - IPv4
@@ -345,12 +416,13 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: example-dataqa-api-rs
-  namespace: example
+  namespace: example-dev9
   labels:
     app.kubernetes.io/name: dataqa-api-rs
+    app.kubernetes.io/instance: example-dev9
 spec:
   progressDeadlineSeconds: 600
-  replicas: 2
+  replicas: 1
   revisionHistoryLimit: 10
   template:
     spec:
@@ -363,14 +435,14 @@ spec:
         - name: SOURCE_VERSION
           valueFrom:
             configMapKeyRef:
-              name: example-monorepo-revision-sync
+              name: example-monorepo-revision-sync-cctt5gbdbd
               key: monorepo-revision
         envFrom:
         - secretRef:
-            name: base-secrets-56cb2c6hhd
+            name: base-secrets-62htgm2m82
         - configMapRef:
-            name: base-configs-tg98dfhhkg
-        image: dataqa-api-rs-image
+            name: base-configs-m228kf585k
+        image: docker.io/example/dataqa_api_rs:39c4dcdd2f6dc661e0ecc1f00b1d8ccf43728354
         imagePullPolicy: IfNotPresent
         livenessProbe:
           failureThreshold: 3
@@ -415,9 +487,10 @@ apiVersion: v1
 kind: Service
 metadata:
   name: example-dataqa-api-rs
-  namespace: example
+  namespace: example-dev9
   labels:
     app.kubernetes.io/name: dataqa-api-rs
+    app.kubernetes.io/instance: example-dev9
 spec:
   ipFamilies:
   - IPv4
@@ -435,15 +508,21 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: example-dataqa-api-rs
-  namespace: example
+  namespace: example-dev9
   labels:
     app.kubernetes.io/name: dataqa-api-rs
+    app.kubernetes.io/instance: example-dev9
   annotations:
     cert-manager.io/cluster-issuer: letsencrypt-prod
+    nginx.ingress.kubernetes.io/enable-cors: 'true'
+    nginx.ingress.kubernetes.io/cors-allow-credentials: 'true'
+    nginx.ingress.kubernetes.io/cors-allow-methods: GET,OPTIONS,POST,PUT,DELETE
+    nginx.ingress.kubernetes.io/cors-allow-origin: '*'
+    nginx.ingress.kubernetes.io/cors-allow-headers: Accept,Authorization,Cache-Control,Content-Type,DNT,If-Modified-Since,Keep-Alive,Origin,User-Agent,X-Requested-With,x-agx-device-type,x-agx-device-id,x-agx-guest-token,x-agx-store-alias,x-api-key,x-ga-client-id,example-store-id,example-graphql-operation,example-accept-currency,example-organization-id,example-storefront-key,example-uvdb-region-id,baggage,Sentry-Trace,traceparent
 spec:
   ingressClassName: nginx
   rules:
-  - host: dataqa-api-rs.{{ .SUBDOMAIN }}example.{{ .TLD }}
+  - host: dataqa-api-rs.dev9.example.pro
     http:
       paths:
       - backend:
@@ -455,16 +534,17 @@ spec:
         pathType: ImplementationSpecific
   tls:
   - hosts:
-    - dataqa-api-rs.{{ .SUBDOMAIN }}example.{{ .TLD }}
+    - dataqa-api-rs.dev9.example.pro
     secretName: dataqa-api-rs-ingress-tls
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: example-dataqa-web
-  namespace: example
+  namespace: example-dev9
   labels:
     app.kubernetes.io/name: dataqa-web
+    app.kubernetes.io/instance: example-dev9
 spec:
   progressDeadlineSeconds: 600
   replicas: 1
@@ -478,7 +558,7 @@ spec:
         - name: SOURCE_VERSION
           valueFrom:
             configMapKeyRef:
-              name: example-monorepo-revision-sync
+              name: example-monorepo-revision-sync-cctt5gbdbd
               key: monorepo-revision
         livenessProbe:
           failureThreshold: 3
@@ -511,11 +591,11 @@ spec:
       initContainers:
       - env:
         - name: API_URL
-          value: https://api.{{ .SUBDOMAIN }}example.{{ .TLD }}
+          value: https://api.dev9.example.pro
         - name: APP_URL
-          value: https://dataqa.{{ .SUBDOMAIN }}example.{{ .TLD }}
+          value: https://dataqa.dev9.example.pro
         - name: DATAQA_API_RS_URL
-          value: https://dataqa-api-rs.{{ .SUBDOMAIN }}example.{{ .TLD }}
+          value: https://dataqa-api-rs.dev9.example.pro
         - name: SOURCE_PATH
           value: /app/dist/
         - name: ASSET_URL
@@ -523,7 +603,7 @@ spec:
         - name: DEST_PATH
           value: /tmp/www/dataqa-web
         - name: DATAQA_API_URL
-        image: dataqa-web-image
+        image: docker.io/example/dataqa_web:caaefe7f2108d76228532ee2c8f80eb8abc60abb
         imagePullPolicy: IfNotPresent
         name: dataqa-web-init
         volumeMounts:
@@ -550,9 +630,10 @@ apiVersion: v1
 kind: Service
 metadata:
   name: example-dataqa-web
-  namespace: example
+  namespace: example-dev9
   labels:
     app.kubernetes.io/name: dataqa-web
+    app.kubernetes.io/instance: example-dev9
 spec:
   ipFamilies:
   - IPv4
@@ -570,9 +651,10 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: dataqa-web-nginx-conf
-  namespace: example
+  namespace: example-dev9
   labels:
     app.kubernetes.io/name: dataqa-web
+    app.kubernetes.io/instance: example-dev9
 data:
   default.conf: |
     server {
@@ -602,15 +684,21 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: example-dataqa-web
-  namespace: example
+  namespace: example-dev9
   labels:
     app.kubernetes.io/name: dataqa-web
+    app.kubernetes.io/instance: example-dev9
   annotations:
     cert-manager.io/cluster-issuer: letsencrypt-prod
+    nginx.ingress.kubernetes.io/enable-cors: 'true'
+    nginx.ingress.kubernetes.io/cors-allow-credentials: 'true'
+    nginx.ingress.kubernetes.io/cors-allow-methods: GET,OPTIONS,POST,PUT,DELETE
+    nginx.ingress.kubernetes.io/cors-allow-origin: '*'
+    nginx.ingress.kubernetes.io/cors-allow-headers: Accept,Authorization,Cache-Control,Content-Type,DNT,If-Modified-Since,Keep-Alive,Origin,User-Agent,X-Requested-With,x-agx-device-type,x-agx-device-id,x-agx-guest-token,x-agx-store-alias,x-api-key,x-ga-client-id,example-store-id,example-graphql-operation,example-accept-currency,example-organization-id,example-storefront-key,example-uvdb-region-id,baggage,Sentry-Trace,traceparent
 spec:
   ingressClassName: nginx
   rules:
-  - host: dataqa.{{ .SUBDOMAIN }}example.{{ .TLD }}
+  - host: dataqa.dev9.example.pro
     http:
       paths:
       - backend:
@@ -622,16 +710,17 @@ spec:
         pathType: ImplementationSpecific
   tls:
   - hosts:
-    - dataqa.{{ .SUBDOMAIN }}example.{{ .TLD }}
+    - dataqa.dev9.example.pro
     secretName: dataqa-web-ingress-tls
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: example-driftdb-server
-  namespace: example
+  namespace: example-dev9
   labels:
     app.kubernetes.io/name: driftdb-server
+    app.kubernetes.io/instance: example-dev9
 spec:
   progressDeadlineSeconds: 600
   replicas: 1
@@ -645,14 +734,14 @@ spec:
         - name: SOURCE_VERSION
           valueFrom:
             configMapKeyRef:
-              name: example-monorepo-revision-sync
+              name: example-monorepo-revision-sync-cctt5gbdbd
               key: monorepo-revision
         envFrom:
         - secretRef:
-            name: base-secrets-56cb2c6hhd
+            name: base-secrets-62htgm2m82
         - configMapRef:
-            name: base-configs-tg98dfhhkg
-        image: driftdb-server-image
+            name: base-configs-m228kf585k
+        image: docker.io/example/driftdb_server:002a1b3824705a191b6f61e9177c4697f783bf4e
         imagePullPolicy: IfNotPresent
         name: driftdb-server
         ports:
@@ -677,9 +766,10 @@ apiVersion: v1
 kind: Service
 metadata:
   name: example-driftdb-server
-  namespace: example
+  namespace: example-dev9
   labels:
     app.kubernetes.io/name: driftdb-server
+    app.kubernetes.io/instance: example-dev9
 spec:
   ipFamilies:
   - IPv4
@@ -697,15 +787,21 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: example-driftdb-server
-  namespace: example
+  namespace: example-dev9
   labels:
     app.kubernetes.io/name: driftdb-server
+    app.kubernetes.io/instance: example-dev9
   annotations:
     cert-manager.io/cluster-issuer: letsencrypt-prod
+    nginx.ingress.kubernetes.io/enable-cors: 'true'
+    nginx.ingress.kubernetes.io/cors-allow-credentials: 'true'
+    nginx.ingress.kubernetes.io/cors-allow-methods: GET,OPTIONS,POST,PUT,DELETE
+    nginx.ingress.kubernetes.io/cors-allow-origin: '*'
+    nginx.ingress.kubernetes.io/cors-allow-headers: Accept,Authorization,Cache-Control,Content-Type,DNT,If-Modified-Since,Keep-Alive,Origin,User-Agent,X-Requested-With,x-agx-device-type,x-agx-device-id,x-agx-guest-token,x-agx-store-alias,x-api-key,x-ga-client-id,example-store-id,example-graphql-operation,example-accept-currency,example-organization-id,example-storefront-key,example-uvdb-region-id,baggage,Sentry-Trace,traceparent
 spec:
   ingressClassName: nginx
   rules:
-  - host: api.{{ .SUBDOMAIN }}example.{{ .TLD }}
+  - host: api.dev9.example.pro
     http:
       paths:
       - backend:
@@ -717,16 +813,17 @@ spec:
         pathType: ImplementationSpecific
   tls:
   - hosts:
-    - api.{{ .SUBDOMAIN }}example.{{ .TLD }}
+    - api.dev9.example.pro
     secretName: driftdb-server-ingress-tls
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: example-elasticsearch-ingestor-high
-  namespace: example
+  namespace: example-dev9
   labels:
     app.kubernetes.io/name: elasticsearch-ingestor-high
+    app.kubernetes.io/instance: example-dev9
 spec:
   progressDeadlineSeconds: 600
   replicas: 1
@@ -744,14 +841,14 @@ spec:
         - name: SOURCE_VERSION
           valueFrom:
             configMapKeyRef:
-              name: example-monorepo-revision-sync
+              name: example-monorepo-revision-sync-cctt5gbdbd
               key: monorepo-revision
         envFrom:
         - secretRef:
-            name: base-secrets-56cb2c6hhd
+            name: base-secrets-62htgm2m82
         - configMapRef:
-            name: base-configs-tg98dfhhkg
-        image: elasticsearch-ingestor-image
+            name: base-configs-m228kf585k
+        image: docker.io/example/elasticsearch_ingestor:2753e02a25091d9e7a3795c7aa1584a4c12298c8
         imagePullPolicy: IfNotPresent
         livenessProbe:
           failureThreshold: 3
@@ -796,9 +893,10 @@ apiVersion: v1
 kind: Service
 metadata:
   name: example-elasticsearch-ingestor-high
-  namespace: example
+  namespace: example-dev9
   labels:
     app.kubernetes.io/name: elasticsearch-ingestor-high
+    app.kubernetes.io/instance: example-dev9
 spec:
   ipFamilies:
   - IPv4
@@ -816,9 +914,10 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: example-elasticsearch-ingestor-low
-  namespace: example
+  namespace: example-dev9
   labels:
     app.kubernetes.io/name: elasticsearch-ingestor-low
+    app.kubernetes.io/instance: example-dev9
 spec:
   progressDeadlineSeconds: 600
   replicas: 1
@@ -836,14 +935,14 @@ spec:
         - name: SOURCE_VERSION
           valueFrom:
             configMapKeyRef:
-              name: example-monorepo-revision-sync
+              name: example-monorepo-revision-sync-cctt5gbdbd
               key: monorepo-revision
         envFrom:
         - secretRef:
-            name: base-secrets-56cb2c6hhd
+            name: base-secrets-62htgm2m82
         - configMapRef:
-            name: base-configs-tg98dfhhkg
-        image: elasticsearch-ingestor-image
+            name: base-configs-m228kf585k
+        image: docker.io/example/elasticsearch_ingestor:2753e02a25091d9e7a3795c7aa1584a4c12298c8
         imagePullPolicy: IfNotPresent
         livenessProbe:
           failureThreshold: 3
@@ -888,9 +987,10 @@ apiVersion: v1
 kind: Service
 metadata:
   name: example-elasticsearch-ingestor-low
-  namespace: example
+  namespace: example-dev9
   labels:
     app.kubernetes.io/name: elasticsearch-ingestor-low
+    app.kubernetes.io/instance: example-dev9
 spec:
   ipFamilies:
   - IPv4
@@ -908,12 +1008,13 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: example-elasticsearch-ingestor-rs
-  namespace: example
+  namespace: example-dev9
   labels:
     app.kubernetes.io/name: elasticsearch-ingestor-rs
+    app.kubernetes.io/instance: example-dev9
 spec:
   progressDeadlineSeconds: 600
-  replicas: 2
+  replicas: 1
   revisionHistoryLimit: 10
   template:
     spec:
@@ -924,14 +1025,14 @@ spec:
         - name: SOURCE_VERSION
           valueFrom:
             configMapKeyRef:
-              name: example-monorepo-revision-sync
+              name: example-monorepo-revision-sync-cctt5gbdbd
               key: monorepo-revision
         envFrom:
         - secretRef:
-            name: base-secrets-56cb2c6hhd
+            name: base-secrets-62htgm2m82
         - configMapRef:
-            name: base-configs-tg98dfhhkg
-        image: elasticsearch-ingestor-rs-image
+            name: base-configs-m228kf585k
+        image: docker.io/example/elasticsearch_ingestor_rs:ad7746cbb033a03fc0d4852134d631c2fdc77b72
         imagePullPolicy: IfNotPresent
         livenessProbe:
           failureThreshold: 3
@@ -976,9 +1077,10 @@ apiVersion: v1
 kind: Service
 metadata:
   name: example-elasticsearch-ingestor-rs
-  namespace: example
+  namespace: example-dev9
   labels:
     app.kubernetes.io/name: elasticsearch-ingestor-rs
+    app.kubernetes.io/instance: example-dev9
 spec:
   ipFamilies:
   - IPv4
@@ -996,9 +1098,10 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: example-email-integration
-  namespace: example
+  namespace: example-dev9
   labels:
     app.kubernetes.io/name: email-integration
+    app.kubernetes.io/instance: example-dev9
 spec:
   progressDeadlineSeconds: 600
   replicas: 1
@@ -1012,14 +1115,14 @@ spec:
         - name: SOURCE_VERSION
           valueFrom:
             configMapKeyRef:
-              name: example-monorepo-revision-sync
+              name: example-monorepo-revision-sync-cctt5gbdbd
               key: monorepo-revision
         envFrom:
         - secretRef:
-            name: base-secrets-56cb2c6hhd
+            name: base-secrets-62htgm2m82
         - configMapRef:
-            name: base-configs-tg98dfhhkg
-        image: email-integration-image
+            name: base-configs-m228kf585k
+        image: docker.io/example/email_integration:79816f2b87308aecdea673c0ad9e83a0677a00a2
         imagePullPolicy: IfNotPresent
         livenessProbe:
           failureThreshold: 3
@@ -1059,9 +1162,10 @@ apiVersion: v1
 kind: Service
 metadata:
   name: example-email-integration
-  namespace: example
+  namespace: example-dev9
   labels:
     app.kubernetes.io/name: email-integration
+    app.kubernetes.io/instance: example-dev9
 spec:
   ipFamilies:
   - IPv4
@@ -1079,9 +1183,10 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: example-file-ingestor
-  namespace: example
+  namespace: example-dev9
   labels:
     app.kubernetes.io/name: file-ingestor
+    app.kubernetes.io/instance: example-dev9
 spec:
   progressDeadlineSeconds: 600
   replicas: 1
@@ -1095,14 +1200,14 @@ spec:
         - name: SOURCE_VERSION
           valueFrom:
             configMapKeyRef:
-              name: example-monorepo-revision-sync
+              name: example-monorepo-revision-sync-cctt5gbdbd
               key: monorepo-revision
         envFrom:
         - secretRef:
-            name: base-secrets-56cb2c6hhd
+            name: base-secrets-62htgm2m82
         - configMapRef:
-            name: base-configs-tg98dfhhkg
-        image: file-ingestor-image
+            name: base-configs-m228kf585k
+        image: docker.io/example/file_ingestor:df77da5674fefcd4980f48112fc1f3b609d5ff94
         imagePullPolicy: IfNotPresent
         livenessProbe:
           failureThreshold: 3
@@ -1147,9 +1252,10 @@ apiVersion: v1
 kind: Service
 metadata:
   name: example-file-ingestor
-  namespace: example
+  namespace: example-dev9
   labels:
     app.kubernetes.io/name: file-ingestor
+    app.kubernetes.io/instance: example-dev9
 spec:
   ipFamilies:
   - IPv4
@@ -1167,9 +1273,10 @@ apiVersion: batch/v1
 kind: CronJob
 metadata:
   name: example-garbage-collector-cron
-  namespace: example
+  namespace: example-dev9
   labels:
     app.kubernetes.io/name: garbage-collector
+    app.kubernetes.io/instance: example-dev9
 spec:
   concurrencyPolicy: Forbid
   failedJobsHistoryLimit: 1
@@ -1186,10 +1293,10 @@ spec:
               value: garbage-collector
             envFrom:
             - secretRef:
-                name: base-secrets-56cb2c6hhd
+                name: base-secrets-62htgm2m82
             - configMapRef:
-                name: base-configs-tg98dfhhkg
-            image: garbage-collector-image
+                name: base-configs-m228kf585k
+            image: docker.io/example/garbage_collector:fd0af36bedeb34860e7ef48e86374cfdee670792
             name: garbage-collector
         metadata:
           labels:
@@ -1202,9 +1309,10 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: example-hca-notion-sync
-  namespace: example
+  namespace: example-dev9
   labels:
     app.kubernetes.io/name: hca-notion-sync
+    app.kubernetes.io/instance: example-dev9
 spec:
   progressDeadlineSeconds: 600
   replicas: 1
@@ -1222,14 +1330,14 @@ spec:
         - name: SOURCE_VERSION
           valueFrom:
             configMapKeyRef:
-              name: example-monorepo-revision-sync
+              name: example-monorepo-revision-sync-cctt5gbdbd
               key: monorepo-revision
         envFrom:
         - secretRef:
-            name: base-secrets-56cb2c6hhd
+            name: base-secrets-62htgm2m82
         - configMapRef:
-            name: base-configs-tg98dfhhkg
-        image: hca-notion-sync-image
+            name: base-configs-m228kf585k
+        image: docker.io/example/hca_notion_sync:3699aa48811047f730e0505a6ae855f7a2f9f6fb
         imagePullPolicy: IfNotPresent
         livenessProbe:
           failureThreshold: 3
@@ -1274,9 +1382,10 @@ apiVersion: v1
 kind: Service
 metadata:
   name: example-hca-notion-sync
-  namespace: example
+  namespace: example-dev9
   labels:
     app.kubernetes.io/name: hca-notion-sync
+    app.kubernetes.io/instance: example-dev9
 spec:
   ipFamilies:
   - IPv4
@@ -1294,9 +1403,10 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: example-lookup-scanner
-  namespace: example
+  namespace: example-dev9
   labels:
     app.kubernetes.io/name: lookup-scanner
+    app.kubernetes.io/instance: example-dev9
 spec:
   progressDeadlineSeconds: 600
   replicas: 1
@@ -1318,14 +1428,14 @@ spec:
         - name: SOURCE_VERSION
           valueFrom:
             configMapKeyRef:
-              name: example-monorepo-revision-sync
+              name: example-monorepo-revision-sync-cctt5gbdbd
               key: monorepo-revision
         envFrom:
         - secretRef:
-            name: base-secrets-56cb2c6hhd
+            name: base-secrets-62htgm2m82
         - configMapRef:
-            name: base-configs-tg98dfhhkg
-        image: lookup-scanner-image
+            name: base-configs-m228kf585k
+        image: docker.io/example/lookup_scanner:8e70d5b329dac731237b9708ae51bc9da7390b0b
         imagePullPolicy: IfNotPresent
         livenessProbe:
           failureThreshold: 3
@@ -1370,9 +1480,10 @@ apiVersion: v1
 kind: Service
 metadata:
   name: example-lookup-scanner
-  namespace: example
+  namespace: example-dev9
   labels:
     app.kubernetes.io/name: lookup-scanner
+    app.kubernetes.io/instance: example-dev9
 spec:
   ipFamilies:
   - IPv4
@@ -1390,9 +1501,10 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: example-lookup-server
-  namespace: example
+  namespace: example-dev9
   labels:
     app.kubernetes.io/name: lookup-server
+    app.kubernetes.io/instance: example-dev9
 spec:
   progressDeadlineSeconds: 600
   replicas: 1
@@ -1408,14 +1520,14 @@ spec:
         - name: SOURCE_VERSION
           valueFrom:
             configMapKeyRef:
-              name: example-monorepo-revision-sync
+              name: example-monorepo-revision-sync-cctt5gbdbd
               key: monorepo-revision
         envFrom:
         - secretRef:
-            name: base-secrets-56cb2c6hhd
+            name: base-secrets-62htgm2m82
         - configMapRef:
-            name: base-configs-tg98dfhhkg
-        image: lookup-server-image
+            name: base-configs-m228kf585k
+        image: docker.io/example/lookup_server:92af3475be71a7f7b8c8416d3789d575635ac58d
         imagePullPolicy: IfNotPresent
         livenessProbe:
           failureThreshold: 3
@@ -1471,9 +1583,10 @@ apiVersion: v1
 kind: Service
 metadata:
   name: example-lookup-server
-  namespace: example
+  namespace: example-dev9
   labels:
     app.kubernetes.io/name: lookup-server
+    app.kubernetes.io/instance: example-dev9
 spec:
   ipFamilies:
   - IPv4
@@ -1491,9 +1604,10 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: example-lookup-server-cdc
-  namespace: example
+  namespace: example-dev9
   labels:
     app.kubernetes.io/name: lookup-server-cdc
+    app.kubernetes.io/instance: example-dev9
 spec:
   progressDeadlineSeconds: 600
   replicas: 1
@@ -1507,14 +1621,14 @@ spec:
         - name: SOURCE_VERSION
           valueFrom:
             configMapKeyRef:
-              name: example-monorepo-revision-sync
+              name: example-monorepo-revision-sync-cctt5gbdbd
               key: monorepo-revision
         envFrom:
         - secretRef:
-            name: base-secrets-56cb2c6hhd
+            name: base-secrets-62htgm2m82
         - configMapRef:
-            name: base-configs-tg98dfhhkg
-        image: lookup-server-cdc-image
+            name: base-configs-m228kf585k
+        image: docker.io/example/lookup_server_cdc:e5e5c2f4fd23b77f7edaf8952679932138b5e705
         imagePullPolicy: IfNotPresent
         livenessProbe:
           failureThreshold: 3
@@ -1559,9 +1673,10 @@ apiVersion: v1
 kind: Service
 metadata:
   name: example-lookup-server-cdc
-  namespace: example
+  namespace: example-dev9
   labels:
     app.kubernetes.io/name: lookup-server-cdc
+    app.kubernetes.io/instance: example-dev9
 spec:
   ipFamilies:
   - IPv4
@@ -1579,9 +1694,10 @@ apiVersion: batch/v1
 kind: Job
 metadata:
   name: example-migrations-scylla
-  namespace: example
+  namespace: example-dev9
   labels:
     app.kubernetes.io/name: migrations-scylla
+    app.kubernetes.io/instance: example-dev9
   annotations:
     argocd.argoproj.io/hook: Sync
     argocd.argoproj.io/sync-wave: '-2'
@@ -1605,10 +1721,10 @@ spec:
       containers:
       - envFrom:
         - secretRef:
-            name: base-secrets-56cb2c6hhd
+            name: base-secrets-62htgm2m82
         - configMapRef:
-            name: base-configs-tg98dfhhkg
-        image: migrations-scylla-image
+            name: base-configs-m228kf585k
+        image: docker.io/example/node_migrations_scylla:96e8f8e4aa8b2602c32ea89cbeb2c84e1c0831fc
         imagePullPolicy: IfNotPresent
         name: migrations-scylla
         resources:
@@ -1632,9 +1748,10 @@ apiVersion: batch/v1
 kind: Job
 metadata:
   name: example-migrations-elastic
-  namespace: example
+  namespace: example-dev9
   labels:
     app.kubernetes.io/name: migrations-elastic
+    app.kubernetes.io/instance: example-dev9
   annotations:
     argocd.argoproj.io/hook: Sync
     argocd.argoproj.io/sync-wave: '-2'
@@ -1652,13 +1769,13 @@ spec:
     spec:
       containers:
       - name: migrations-elastic
-        image: migrations-image
+        image: docker.io/example/node_migrations:a6cd269160a111eb1811cf95df836735a43281ad
         imagePullPolicy: null
         envFrom:
         - secretRef:
-            name: base-secrets-56cb2c6hhd
+            name: base-secrets-62htgm2m82
         - configMapRef:
-            name: base-configs-tg98dfhhkg
+            name: base-configs-m228kf585k
         env:
         - name: NODE_OPTIONS
           value: --max-old-space-size=2048
@@ -1685,9 +1802,10 @@ apiVersion: batch/v1
 kind: Job
 metadata:
   name: example-migrations-postgres
-  namespace: example
+  namespace: example-dev9
   labels:
     app.kubernetes.io/name: migrations-postgres
+    app.kubernetes.io/instance: example-dev9
   annotations:
     argocd.argoproj.io/hook: Sync
     argocd.argoproj.io/sync-wave: '-2'
@@ -1705,13 +1823,13 @@ spec:
     spec:
       containers:
       - name: migrations-postgres
-        image: migrations-image
+        image: docker.io/example/node_migrations:a6cd269160a111eb1811cf95df836735a43281ad
         imagePullPolicy: null
         envFrom:
         - secretRef:
-            name: base-secrets-56cb2c6hhd
+            name: base-secrets-62htgm2m82
         - configMapRef:
-            name: base-configs-tg98dfhhkg
+            name: base-configs-m228kf585k
         env:
         - name: NODE_OPTIONS
           value: --max-old-space-size=2048
@@ -1738,9 +1856,10 @@ apiVersion: batch/v1
 kind: Job
 metadata:
   name: example-migrations-background
-  namespace: example
+  namespace: example-dev9
   labels:
     app.kubernetes.io/name: migrations-background
+    app.kubernetes.io/instance: example-dev9
   annotations:
     argocd.argoproj.io/hook: PostSync
     argocd.argoproj.io/sync-wave: '1'
@@ -1761,13 +1880,13 @@ spec:
       restartPolicy: Never
       containers:
       - name: migrations-background
-        image: migrations-background-image
+        image: docker.io/example/node_migrations_background:5fb59252b5ca39dbe9029627725d0d5090182aac
         imagePullPolicy: Always
         envFrom:
         - secretRef:
-            name: base-secrets-56cb2c6hhd
+            name: base-secrets-62htgm2m82
         - configMapRef:
-            name: base-configs-tg98dfhhkg
+            name: base-configs-m228kf585k
         env:
         - name: NODE_OPTIONS
           value: --max-old-space-size=2048
@@ -1785,30 +1904,43 @@ apiVersion: v1
 kind: Secret
 metadata:
   name: mfe-router-secrets
-  namespace: example
+  namespace: example-dev9
+  labels:
+    app.kubernetes.io/instance: example-dev9
 type: Opaque
 stringData:
-  ENVIRONMENT: '{{ .ENV }}'
-  CORE_API_URL: https://api.{{ .SUBDOMAIN }}example.{{ .TLD }}
-  REPAIRER_API_URL: https://api.{{ .SUBDOMAIN }}repairer.example.{{ .TLD }}
+  ENVIRONMENT: dev9
+  CORE_API_URL: https://api.dev9.example.pro
+  REPAIRER_API_URL: https://api.dev9.repairer.example.pro
 ---
 apiVersion: cloudflare.example.com/v1
 kind: CloudflareWorker
 metadata:
   name: mfe-router
-  namespace: example
+  namespace: example-dev9
+  labels:
+    app.kubernetes.io/instance: example-dev9
 spec:
-  name: app-placeholder-example-pro
+  name: app-dev9-example-pro
   compatibilityDate: 2025-06-11
   scriptFrom:
     configMapKeyRef:
       name: mfe-router-worker
       key: worker.js
   route:
-    pattern: app.placeholder.example.pro
+    pattern: app.dev9.example.pro
   vars:
     APP_VERSIONS:
-      placeholder: placeholder
+      mfe-billing: e8c726aae636c1d5361d94f67f6a7b7bb5902375
+      mfe-react-19-template: 8a8b1be1d13bd8aacda7b213ddbeb8a4d4f75560
+      mfe-workshop: 3dbb138a61cfeb9fe1baedbdbdc03c01fbe21a10
+      mfe-settings: 67781c19c786cfad24b78d55df955d0eea3129cb
+      mfe-app-nav: 34f4482e01948a25a6ab030f1af4ac5aa51566dc
+      mfe-modules: c6751920b8adf4ac9d27c9cd5014049b9c1ece20
+      mfe-app-shell: 724f52e8ec6c8a2a2cc9d06cd990106e13612204
+      mfe-parts-receiving: dde97b003b72153403bfa731ff22cb5b5550fe34
+      mfe-oms: 19d774aa72cc50561d4d493b962a36668b5f1b58
+      mfe-auth: 914d23358eb6380bfea9782476ce94a1f0b1251b
   secretsFrom:
   - secretRef:
       name: mfe-router-secrets
@@ -1821,7 +1953,9 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: mfe-router-worker
-  namespace: example
+  namespace: example-dev9
+  labels:
+    app.kubernetes.io/instance: example-dev9
 data:
   worker.js: |
     export default {
@@ -1834,11 +1968,12 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: example-ml-server-api
-  namespace: example
+  namespace: example-dev9
   labels:
     app.kubernetes.io/name: ml-server-api
+    app.kubernetes.io/instance: example-dev9
 spec:
-  replicas: 2
+  replicas: 1
   template:
     spec:
       containers:
@@ -1857,11 +1992,11 @@ spec:
           valueFrom:
             configMapKeyRef:
               key: ML_SERVER_LOG_LEVEL
-              name: base-configs-tg98dfhhkg
+              name: base-configs-m228kf585k
         - name: PYROSCOPE_INGEST_URL
           valueFrom:
             configMapKeyRef:
-              name: base-configs-tg98dfhhkg
+              name: base-configs-m228kf585k
               key: PYROSCOPE_INGEST_URL
         - name: POD_NAME
           valueFrom:
@@ -1871,75 +2006,75 @@ spec:
           valueFrom:
             configMapKeyRef:
               key: example_ENVIRONMENT
-              name: base-configs-tg98dfhhkg
+              name: base-configs-m228kf585k
         - name: GOOGLE_APPLICATION_CREDENTIALS
           value: /var/gcp-credentials/credentials.json
         - name: PG_DB_PASSWORD
           valueFrom:
             secretKeyRef:
               key: PG_DB_PASSWORD_MLSERVER
-              name: base-secrets-56cb2c6hhd
+              name: base-secrets-62htgm2m82
         - name: OPENAI_API_KEY
           valueFrom:
             secretKeyRef:
               key: OPENAI_API_KEY
-              name: base-secrets-56cb2c6hhd
+              name: base-secrets-62htgm2m82
         - name: PG_DB_HOST
           valueFrom:
             configMapKeyRef:
               key: PG_DB_HOST
-              name: base-configs-tg98dfhhkg
+              name: base-configs-m228kf585k
         - name: PG_DB_PORT
           valueFrom:
             configMapKeyRef:
               key: PG_DB_PORT
-              name: base-configs-tg98dfhhkg
+              name: base-configs-m228kf585k
         - name: PG_DB_USERNAME
           valueFrom:
             configMapKeyRef:
               key: PG_DB_USERNAME_MLSERVER
-              name: base-configs-tg98dfhhkg
+              name: base-configs-m228kf585k
         - name: PG_DB_DATABASE
           valueFrom:
             configMapKeyRef:
               key: PG_DB_DATABASE
-              name: base-configs-tg98dfhhkg
+              name: base-configs-m228kf585k
         - name: OTEL_EXPORTER_OTLP_ENDPOINT
           valueFrom:
             configMapKeyRef:
               key: OTEL_EXPORTER_OTLP_ENDPOINT
-              name: base-configs-tg98dfhhkg
+              name: base-configs-m228kf585k
         - name: KAFKA_BROKER_HOST_LIST
           valueFrom:
             configMapKeyRef:
               key: KAFKA_BROKER_HOST_LIST
-              name: base-configs-tg98dfhhkg
+              name: base-configs-m228kf585k
         - name: S3_BUCKET_PUBLIC
           valueFrom:
             configMapKeyRef:
               key: S3_BUCKET_PUBLIC
-              name: base-configs-tg98dfhhkg
+              name: base-configs-m228kf585k
         - name: S3_REGION
           valueFrom:
             configMapKeyRef:
               key: S3_REGION
-              name: base-configs-tg98dfhhkg
+              name: base-configs-m228kf585k
         - name: S3_KEY
           valueFrom:
             secretKeyRef:
               key: S3_KEY
-              name: base-secrets-56cb2c6hhd
+              name: base-secrets-62htgm2m82
         - name: S3_SECRET
           valueFrom:
             secretKeyRef:
               key: S3_SECRET
-              name: base-secrets-56cb2c6hhd
+              name: base-secrets-62htgm2m82
         - name: SOURCE_VERSION
           valueFrom:
             configMapKeyRef:
-              name: example-monorepo-revision-sync
+              name: example-monorepo-revision-sync-cctt5gbdbd
               key: monorepo-revision
-        image: ml-server-image
+        image: docker.io/example/ml_server:ba060059cf9deb90160eaad8ee2e8a898b839780
         livenessProbe:
           failureThreshold: 5
           httpGet:
@@ -1995,9 +2130,10 @@ apiVersion: v1
 kind: Service
 metadata:
   name: example-ml-server
-  namespace: example
+  namespace: example-dev9
   labels:
     app.kubernetes.io/name: ml-server-api
+    app.kubernetes.io/instance: example-dev9
 spec:
   ipFamilies:
   - IPv4
@@ -2018,9 +2154,10 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: example-ml-server-workers
-  namespace: example
+  namespace: example-dev9
   labels:
     app.kubernetes.io/name: ml-server-workers
+    app.kubernetes.io/instance: example-dev9
 spec:
   replicas: 1
   template:
@@ -2043,82 +2180,82 @@ spec:
           valueFrom:
             configMapKeyRef:
               key: ML_SERVER_LOG_LEVEL
-              name: base-configs-tg98dfhhkg
+              name: base-configs-m228kf585k
         - name: example_ENVIRONMENT
           valueFrom:
             configMapKeyRef:
               key: example_ENVIRONMENT
-              name: base-configs-tg98dfhhkg
+              name: base-configs-m228kf585k
         - name: GOOGLE_APPLICATION_CREDENTIALS
           value: /var/gcp-credentials/credentials.json
         - name: PG_DB_PASSWORD
           valueFrom:
             secretKeyRef:
               key: PG_DB_PASSWORD_MLSERVER
-              name: base-secrets-56cb2c6hhd
+              name: base-secrets-62htgm2m82
         - name: OPENAI_API_KEY
           valueFrom:
             secretKeyRef:
               key: OPENAI_API_KEY
-              name: base-secrets-56cb2c6hhd
+              name: base-secrets-62htgm2m82
         - name: PG_DB_HOST
           valueFrom:
             configMapKeyRef:
               key: PG_DB_HOST
-              name: base-configs-tg98dfhhkg
+              name: base-configs-m228kf585k
         - name: PG_DB_PORT
           valueFrom:
             configMapKeyRef:
               key: PG_DB_PORT
-              name: base-configs-tg98dfhhkg
+              name: base-configs-m228kf585k
         - name: PG_DB_USERNAME
           valueFrom:
             configMapKeyRef:
               key: PG_DB_USERNAME_MLSERVER
-              name: base-configs-tg98dfhhkg
+              name: base-configs-m228kf585k
         - name: PG_DB_DATABASE
           valueFrom:
             configMapKeyRef:
               key: PG_DB_DATABASE
-              name: base-configs-tg98dfhhkg
+              name: base-configs-m228kf585k
         - name: OTEL_EXPORTER_OTLP_ENDPOINT
           valueFrom:
             configMapKeyRef:
               key: OTEL_EXPORTER_OTLP_ENDPOINT
-              name: base-configs-tg98dfhhkg
+              name: base-configs-m228kf585k
         - name: KAFKA_BROKER_HOST_LIST
           valueFrom:
             configMapKeyRef:
               key: KAFKA_BROKER_HOST_LIST
-              name: base-configs-tg98dfhhkg
+              name: base-configs-m228kf585k
         - name: S3_BUCKET_PUBLIC
           valueFrom:
             configMapKeyRef:
               key: S3_BUCKET_PUBLIC
-              name: base-configs-tg98dfhhkg
+              name: base-configs-m228kf585k
         - name: S3_REGION
           valueFrom:
             configMapKeyRef:
               key: S3_REGION
-              name: base-configs-tg98dfhhkg
+              name: base-configs-m228kf585k
         - name: S3_KEY
           valueFrom:
             secretKeyRef:
               key: S3_KEY
-              name: base-secrets-56cb2c6hhd
+              name: base-secrets-62htgm2m82
         - name: S3_SECRET
           valueFrom:
             secretKeyRef:
               key: S3_SECRET
-              name: base-secrets-56cb2c6hhd
+              name: base-secrets-62htgm2m82
         - name: SENTRY_DSN
           value: https://ebdb64e290de0a72169b60e82d725c31@o4507103828049920.ingest.de.sentry.io/4507103831392336
         - name: SOURCE_VERSION
           valueFrom:
             configMapKeyRef:
-              name: example-monorepo-revision-sync
+              name: example-monorepo-revision-sync-cctt5gbdbd
               key: monorepo-revision
-        image: ml-server-image
+        image: docker.io/example/ml_server:ba060059cf9deb90160eaad8ee2e8a898b839780
         livenessProbe:
           failureThreshold: 3
           httpGet:
@@ -2174,9 +2311,10 @@ apiVersion: batch/v1
 kind: CronJob
 metadata:
   name: example-ml-server-cron
-  namespace: example
+  namespace: example-dev9
   labels:
     app.kubernetes.io/name: ml-server-cron
+    app.kubernetes.io/instance: example-dev9
 spec:
   concurrencyPolicy: Allow
   failedJobsHistoryLimit: 1
@@ -2209,40 +2347,40 @@ spec:
               valueFrom:
                 configMapKeyRef:
                   key: OTEL_EXPORTER_OTLP_ENDPOINT
-                  name: base-configs-tg98dfhhkg
+                  name: base-configs-m228kf585k
             - name: example_ENVIRONMENT
               valueFrom:
                 configMapKeyRef:
                   key: example_ENVIRONMENT
-                  name: base-configs-tg98dfhhkg
+                  name: base-configs-m228kf585k
             - name: PG_DB_HOST
               valueFrom:
                 configMapKeyRef:
                   key: PG_DB_HOST
-                  name: base-configs-tg98dfhhkg
+                  name: base-configs-m228kf585k
             - name: PG_DB_PORT
               valueFrom:
                 configMapKeyRef:
                   key: PG_DB_PORT
-                  name: base-configs-tg98dfhhkg
+                  name: base-configs-m228kf585k
             - name: PG_DB_USERNAME
               valueFrom:
                 configMapKeyRef:
                   key: PG_DB_USERNAME_MLSERVER
-                  name: base-configs-tg98dfhhkg
+                  name: base-configs-m228kf585k
             - name: PG_DB_DATABASE
               valueFrom:
                 configMapKeyRef:
                   key: PG_DB_DATABASE
-                  name: base-configs-tg98dfhhkg
+                  name: base-configs-m228kf585k
             - name: PG_DB_PASSWORD
               valueFrom:
                 secretKeyRef:
                   key: PG_DB_PASSWORD_MLSERVER
-                  name: base-secrets-56cb2c6hhd
+                  name: base-secrets-62htgm2m82
             - name: GOOGLE_APPLICATION_CREDENTIALS
               value: /var/gcp-credentials/credentials.json
-            image: ml-server-image
+            image: docker.io/example/ml_server:ba060059cf9deb90160eaad8ee2e8a898b839780
             name: example-ml-server-cron
             volumeMounts:
             - mountPath: /var/gcp-credentials
@@ -2260,13 +2398,20 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: example-ml-server
-  namespace: example
+  namespace: example-dev9
+  labels:
+    app.kubernetes.io/instance: example-dev9
   annotations:
     cert-manager.io/cluster-issuer: letsencrypt-prod
+    nginx.ingress.kubernetes.io/enable-cors: 'true'
+    nginx.ingress.kubernetes.io/cors-allow-credentials: 'true'
+    nginx.ingress.kubernetes.io/cors-allow-methods: GET,OPTIONS,POST,PUT,DELETE
+    nginx.ingress.kubernetes.io/cors-allow-origin: '*'
+    nginx.ingress.kubernetes.io/cors-allow-headers: Accept,Authorization,Cache-Control,Content-Type,DNT,If-Modified-Since,Keep-Alive,Origin,User-Agent,X-Requested-With,x-agx-device-type,x-agx-device-id,x-agx-guest-token,x-agx-store-alias,x-api-key,x-ga-client-id,example-store-id,example-graphql-operation,example-accept-currency,example-organization-id,example-storefront-key,example-uvdb-region-id,baggage,Sentry-Trace,traceparent
 spec:
   ingressClassName: nginx
   rules:
-  - host: mls.{{ .SUBDOMAIN }}example.{{ .TLD }}
+  - host: mls.dev9.example.pro
     http:
       paths:
       - backend:
@@ -2278,19 +2423,20 @@ spec:
         pathType: ImplementationSpecific
   tls:
   - hosts:
-    - mls.{{ .SUBDOMAIN }}example.{{ .TLD }}
+    - mls.dev9.example.pro
     secretName: ml-server-ingress-tls
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: example-node
-  namespace: example
+  namespace: example-dev9
   labels:
     app.kubernetes.io/name: node
+    app.kubernetes.io/instance: example-dev9
 spec:
   progressDeadlineSeconds: 600
-  replicas: 4
+  replicas: 1
   revisionHistoryLimit: 10
   template:
     spec:
@@ -2302,7 +2448,7 @@ spec:
           valueFrom:
             configMapKeyRef:
               key: PG_DB_BOUNCER_HOST
-              name: base-configs-tg98dfhhkg
+              name: base-configs-m228kf585k
         - name: PRISMA_DB_URL
           value: postgresql://$(PG_DB_USERNAME_NODE_API):$(PG_DB_PASSWORD_NODE_API)@$(PG_DB_HOST):$(PG_DB_PORT)/$(PG_DB_DATABASE)?schema=example&application_name=node-api&connection_limit=100&pool_timeout=120&pgbouncer=true
         - name: NODE_OPTIONS
@@ -2321,14 +2467,14 @@ spec:
         - name: SOURCE_VERSION
           valueFrom:
             configMapKeyRef:
-              name: example-monorepo-revision-sync
+              name: example-monorepo-revision-sync-cctt5gbdbd
               key: monorepo-revision
         envFrom:
         - secretRef:
-            name: base-secrets-56cb2c6hhd
+            name: base-secrets-62htgm2m82
         - configMapRef:
-            name: base-configs-tg98dfhhkg
-        image: api-image
+            name: base-configs-m228kf585k
+        image: docker.io/example/api:174c80d5ccfebab986f4571edc27ab033d41898e
         imagePullPolicy: IfNotPresent
         livenessProbe:
           failureThreshold: 3
@@ -2375,9 +2521,10 @@ apiVersion: v1
 kind: Service
 metadata:
   name: example-node
-  namespace: example
+  namespace: example-dev9
   labels:
     app.kubernetes.io/name: node
+    app.kubernetes.io/instance: example-dev9
 spec:
   ipFamilies:
   - IPv4
@@ -2395,18 +2542,24 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: example-node
-  namespace: example
+  namespace: example-dev9
   labels:
     app.kubernetes.io/name: node
+    app.kubernetes.io/instance: example-dev9
   annotations:
     cert-manager.io/cluster-issuer: letsencrypt-prod
     nginx.ingress.kubernetes.io/limit-rpm: '100'
     nginx.ingress.kubernetes.io/limit-rps: '15'
     nginx.ingress.kubernetes.io/proxy-body-size: 1024m
+    nginx.ingress.kubernetes.io/enable-cors: 'true'
+    nginx.ingress.kubernetes.io/cors-allow-credentials: 'true'
+    nginx.ingress.kubernetes.io/cors-allow-methods: GET,OPTIONS,POST,PUT,DELETE
+    nginx.ingress.kubernetes.io/cors-allow-origin: '*'
+    nginx.ingress.kubernetes.io/cors-allow-headers: Accept,Authorization,Cache-Control,Content-Type,DNT,If-Modified-Since,Keep-Alive,Origin,User-Agent,X-Requested-With,x-agx-device-type,x-agx-device-id,x-agx-guest-token,x-agx-store-alias,x-api-key,x-ga-client-id,example-store-id,example-graphql-operation,example-accept-currency,example-organization-id,example-storefront-key,example-uvdb-region-id,baggage,Sentry-Trace,traceparent
 spec:
   ingressClassName: nginx
   rules:
-  - host: api.{{ .SUBDOMAIN }}example.{{ .TLD }}
+  - host: api.dev9.example.pro
     http:
       paths:
       - backend:
@@ -2425,23 +2578,29 @@ spec:
         pathType: ImplementationSpecific
   tls:
   - hosts:
-    - api.{{ .SUBDOMAIN }}example.{{ .TLD }}
+    - api.dev9.example.pro
     secretName: node-ingress-tls
 ---
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: example-node-internal
-  namespace: example
+  namespace: example-dev9
   labels:
     app.kubernetes.io/name: node
+    app.kubernetes.io/instance: example-dev9
   annotations:
     cert-manager.io/cluster-issuer: letsencrypt-prod
     nginx.ingress.kubernetes.io/proxy-body-size: 1024m
+    nginx.ingress.kubernetes.io/enable-cors: 'true'
+    nginx.ingress.kubernetes.io/cors-allow-credentials: 'true'
+    nginx.ingress.kubernetes.io/cors-allow-methods: GET,OPTIONS,POST,PUT,DELETE
+    nginx.ingress.kubernetes.io/cors-allow-origin: '*'
+    nginx.ingress.kubernetes.io/cors-allow-headers: Accept,Authorization,Cache-Control,Content-Type,DNT,If-Modified-Since,Keep-Alive,Origin,User-Agent,X-Requested-With,x-agx-device-type,x-agx-device-id,x-agx-guest-token,x-agx-store-alias,x-api-key,x-ga-client-id,example-store-id,example-graphql-operation,example-accept-currency,example-organization-id,example-storefront-key,example-uvdb-region-id,baggage,Sentry-Trace,traceparent
 spec:
   ingressClassName: nginx
   rules:
-  - host: api.{{ .SUBDOMAIN }}example.{{ .TLD }}
+  - host: api.dev9.example.pro
     http:
       paths:
       - backend:
@@ -2453,19 +2612,20 @@ spec:
         pathType: ImplementationSpecific
   tls:
   - hosts:
-    - api.{{ .SUBDOMAIN }}example.{{ .TLD }}
+    - api.dev9.example.pro
     secretName: node-internal-ingress-tls
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: example-pim-web
-  namespace: example
+  namespace: example-dev9
   labels:
     app.kubernetes.io/name: pim-web
+    app.kubernetes.io/instance: example-dev9
 spec:
   progressDeadlineSeconds: 600
-  replicas: 2
+  replicas: 1
   revisionHistoryLimit: 10
   template:
     metadata:
@@ -2484,7 +2644,7 @@ spec:
         - name: SOURCE_VERSION
           valueFrom:
             configMapKeyRef:
-              name: example-monorepo-revision-sync
+              name: example-monorepo-revision-sync-cctt5gbdbd
               key: monorepo-revision
         livenessProbe:
           failureThreshold: 3
@@ -2522,18 +2682,18 @@ spec:
       initContainers:
       - env:
         - name: API_URL
-          value: https://api.{{ .SUBDOMAIN }}example.{{ .TLD }}
+          value: https://api.dev9.example.pro
         - name: APP_URL
-          value: https://pim.{{ .SUBDOMAIN }}example.{{ .TLD }}
+          value: https://pim.dev9.example.pro
         - name: SOCKET_URL
-          value: https://api.{{ .SUBDOMAIN }}example.{{ .TLD }}
+          value: https://api.dev9.example.pro
         - name: SOURCE_PATH
           value: /app/dist/
         - name: ASSET_URL
           value: https://cdn.example.parts/assets/pim-web/
         - name: DEST_PATH
           value: /tmp/www/pim-web
-        image: pim-web-image
+        image: docker.io/example/pim_web:ea668837d65a5bae6dec0fb71f4061872a861133
         imagePullPolicy: IfNotPresent
         name: pim-web-init
         volumeMounts:
@@ -2557,9 +2717,10 @@ apiVersion: v1
 kind: Service
 metadata:
   name: example-pim-web
-  namespace: example
+  namespace: example-dev9
   labels:
     app.kubernetes.io/name: pim-web
+    app.kubernetes.io/instance: example-dev9
 spec:
   ipFamilies:
   - IPv4
@@ -2577,9 +2738,10 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: pim-web-nginx-conf
-  namespace: example
+  namespace: example-dev9
   labels:
     app.kubernetes.io/name: pim-web
+    app.kubernetes.io/instance: example-dev9
 data:
   default.conf: |-
     server {
@@ -2609,15 +2771,21 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: example-pim-web
-  namespace: example
+  namespace: example-dev9
   labels:
     app.kubernetes.io/name: pim-web
+    app.kubernetes.io/instance: example-dev9
   annotations:
     cert-manager.io/cluster-issuer: letsencrypt-prod
+    nginx.ingress.kubernetes.io/enable-cors: 'true'
+    nginx.ingress.kubernetes.io/cors-allow-credentials: 'true'
+    nginx.ingress.kubernetes.io/cors-allow-methods: GET,OPTIONS,POST,PUT,DELETE
+    nginx.ingress.kubernetes.io/cors-allow-origin: '*'
+    nginx.ingress.kubernetes.io/cors-allow-headers: Accept,Authorization,Cache-Control,Content-Type,DNT,If-Modified-Since,Keep-Alive,Origin,User-Agent,X-Requested-With,x-agx-device-type,x-agx-device-id,x-agx-guest-token,x-agx-store-alias,x-api-key,x-ga-client-id,example-store-id,example-graphql-operation,example-accept-currency,example-organization-id,example-storefront-key,example-uvdb-region-id,baggage,Sentry-Trace,traceparent
 spec:
   ingressClassName: nginx
   rules:
-  - host: pim.{{ .SUBDOMAIN }}example.{{ .TLD }}
+  - host: pim.dev9.example.pro
     http:
       paths:
       - backend:
@@ -2629,14 +2797,16 @@ spec:
         pathType: ImplementationSpecific
   tls:
   - hosts:
-    - pim.{{ .SUBDOMAIN }}example.{{ .TLD }}
+    - pim.dev9.example.pro
     secretName: pim-web-ingress-tls
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: pgbouncer
-  namespace: example
+  namespace: example-dev9
+  labels:
+    app.kubernetes.io/instance: example-dev9
 spec:
   selector:
     matchLabels:
@@ -2686,17 +2856,17 @@ spec:
         - name: POSTGRESQL_HOST
           valueFrom:
             configMapKeyRef:
-              name: base-configs-tg98dfhhkg
+              name: base-configs-m228kf585k
               key: PG_DB_HOST
         - name: POSTGRESQL_USERNAME
           valueFrom:
             configMapKeyRef:
-              name: base-configs-tg98dfhhkg
+              name: base-configs-m228kf585k
               key: PG_DB_USERNAME
         - name: POSTGRESQL_PASSWORD
           valueFrom:
             secretKeyRef:
-              name: base-secrets-56cb2c6hhd
+              name: base-secrets-62htgm2m82
               key: PG_DB_PASSWORD
         - name: PGBOUNCER_SERVER_TLS_SSLMODE
           value: prefer
@@ -2716,9 +2886,10 @@ apiVersion: v1
 kind: Service
 metadata:
   name: pgbouncer
-  namespace: example
+  namespace: example-dev9
   labels:
     app.kubernetes.io/name: pgbouncer
+    app.kubernetes.io/instance: example-dev9
 spec:
   ports:
   - port: 5432
@@ -2731,7 +2902,9 @@ apiVersion: v1
 kind: Secret
 metadata:
   name: redis-secrets
-  namespace: example
+  namespace: example-dev9
+  labels:
+    app.kubernetes.io/instance: example-dev9
   annotations:
     argocd.argoproj.io/sync-wave: '-5'
 type: Opaque
@@ -2742,9 +2915,10 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: example-repair-jobs-feed-integration
-  namespace: example
+  namespace: example-dev9
   labels:
     app.kubernetes.io/name: repair-jobs-feed-integration
+    app.kubernetes.io/instance: example-dev9
 spec:
   progressDeadlineSeconds: 600
   replicas: 1
@@ -2760,14 +2934,14 @@ spec:
         - name: SOURCE_VERSION
           valueFrom:
             configMapKeyRef:
-              name: example-monorepo-revision-sync
+              name: example-monorepo-revision-sync-cctt5gbdbd
               key: monorepo-revision
         envFrom:
         - secretRef:
-            name: base-secrets-56cb2c6hhd
+            name: base-secrets-62htgm2m82
         - configMapRef:
-            name: base-configs-tg98dfhhkg
-        image: repair-jobs-feed-integration-image
+            name: base-configs-m228kf585k
+        image: docker.io/example/repair_jobs_feed_integration:946d760aa6eaf28c1675457a9036e83904f54977
         imagePullPolicy: IfNotPresent
         name: repair-jobs-feed-integration
         ports:
@@ -2803,9 +2977,10 @@ apiVersion: v1
 kind: Service
 metadata:
   name: example-repair-jobs-feed-integration
-  namespace: example
+  namespace: example-dev9
   labels:
     app.kubernetes.io/name: repair-jobs-feed-integration
+    app.kubernetes.io/instance: example-dev9
 spec:
   ipFamilies:
   - IPv4
@@ -2823,15 +2998,21 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: example-repair-jobs-feed-integration
-  namespace: example
+  namespace: example-dev9
   labels:
     app.kubernetes.io/name: repair-jobs-feed-integration
+    app.kubernetes.io/instance: example-dev9
   annotations:
     cert-manager.io/cluster-issuer: letsencrypt-prod
+    nginx.ingress.kubernetes.io/enable-cors: 'true'
+    nginx.ingress.kubernetes.io/cors-allow-credentials: 'true'
+    nginx.ingress.kubernetes.io/cors-allow-methods: GET,OPTIONS,POST,PUT,DELETE
+    nginx.ingress.kubernetes.io/cors-allow-origin: '*'
+    nginx.ingress.kubernetes.io/cors-allow-headers: Accept,Authorization,Cache-Control,Content-Type,DNT,If-Modified-Since,Keep-Alive,Origin,User-Agent,X-Requested-With,x-agx-device-type,x-agx-device-id,x-agx-guest-token,x-agx-store-alias,x-api-key,x-ga-client-id,example-store-id,example-graphql-operation,example-accept-currency,example-organization-id,example-storefront-key,example-uvdb-region-id,baggage,Sentry-Trace,traceparent
 spec:
   ingressClassName: nginx
   rules:
-  - host: repair-jobs-feed-integration.{{ .SUBDOMAIN }}example.{{ .TLD }}
+  - host: repair-jobs-feed-integration.dev9.example.pro
     http:
       paths:
       - backend:
@@ -2843,16 +3024,17 @@ spec:
         pathType: ImplementationSpecific
   tls:
   - hosts:
-    - repair-jobs-feed-integration.{{ .SUBDOMAIN }}example.{{ .TLD }}
+    - repair-jobs-feed-integration.dev9.example.pro
     secretName: repair-jobs-feed-integration-ingress-tls
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: storefront-repairer-server
-  namespace: example
+  namespace: example-dev9
   labels:
     app.kubernetes.io/name: repairer-server
+    app.kubernetes.io/instance: example-dev9
 spec:
   progressDeadlineSeconds: 600
   replicas: 1
@@ -2868,10 +3050,10 @@ spec:
           value: repairer-server
         envFrom:
         - configMapRef:
-            name: base-configs-tg98dfhhkg
+            name: base-configs-m228kf585k
         - secretRef:
-            name: base-secrets-56cb2c6hhd
-        image: repairer-server-image
+            name: base-secrets-62htgm2m82
+        image: docker.io/example/repairer_server:188c51171c179f2fb55e30b0a369697e175c499e
         imagePullPolicy: IfNotPresent
         livenessProbe:
           failureThreshold: 3
@@ -2919,9 +3101,10 @@ apiVersion: v1
 kind: Service
 metadata:
   name: storefront-repairer-server
-  namespace: example
+  namespace: example-dev9
   labels:
     app.kubernetes.io/name: repairer-server
+    app.kubernetes.io/instance: example-dev9
 spec:
   ipFamilies:
   - IPv4
@@ -2939,15 +3122,21 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: storefront-repairer-server
-  namespace: example
+  namespace: example-dev9
   labels:
     app.kubernetes.io/name: repairer-server
+    app.kubernetes.io/instance: example-dev9
   annotations:
     cert-manager.io/cluster-issuer: letsencrypt-prod
+    nginx.ingress.kubernetes.io/enable-cors: 'true'
+    nginx.ingress.kubernetes.io/cors-allow-credentials: 'true'
+    nginx.ingress.kubernetes.io/cors-allow-methods: GET,OPTIONS,POST,PUT,DELETE
+    nginx.ingress.kubernetes.io/cors-allow-origin: '*'
+    nginx.ingress.kubernetes.io/cors-allow-headers: Accept,Authorization,Cache-Control,Content-Type,DNT,If-Modified-Since,Keep-Alive,Origin,User-Agent,X-Requested-With,x-agx-device-type,x-agx-device-id,x-agx-guest-token,x-agx-store-alias,x-api-key,x-ga-client-id,example-store-id,example-graphql-operation,example-accept-currency,example-organization-id,example-storefront-key,example-uvdb-region-id,baggage,Sentry-Trace,traceparent
 spec:
   ingressClassName: nginx
   rules:
-  - host: api.repairer.{{ .SUBDOMAIN }}example.{{ .TLD }}
+  - host: api.repairer.dev9.example.pro
     http:
       paths:
       - backend:
@@ -2959,16 +3148,17 @@ spec:
         pathType: ImplementationSpecific
   tls:
   - hosts:
-    - api.repairer.{{ .SUBDOMAIN }}example.{{ .TLD }}
+    - api.repairer.dev9.example.pro
     secretName: repairer-server-ingress-tls
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: example-sample-integration
-  namespace: example
+  namespace: example-dev9
   labels:
     app.kubernetes.io/name: sample-integration
+    app.kubernetes.io/instance: example-dev9
 spec:
   progressDeadlineSeconds: 600
   replicas: 1
@@ -2986,14 +3176,14 @@ spec:
         - name: SOURCE_VERSION
           valueFrom:
             configMapKeyRef:
-              name: example-monorepo-revision-sync
+              name: example-monorepo-revision-sync-cctt5gbdbd
               key: monorepo-revision
         envFrom:
         - secretRef:
-            name: base-secrets-56cb2c6hhd
+            name: base-secrets-62htgm2m82
         - configMapRef:
-            name: base-configs-tg98dfhhkg
-        image: sample-integration-image
+            name: base-configs-m228kf585k
+        image: docker.io/example/sample_integration:d1add6dc5302fe16ee458d76512d4c4a3153f355
         imagePullPolicy: IfNotPresent
         livenessProbe:
           failureThreshold: 3
@@ -3038,9 +3228,10 @@ apiVersion: v1
 kind: Service
 metadata:
   name: example-sample-integration
-  namespace: example
+  namespace: example-dev9
   labels:
     app.kubernetes.io/name: sample-integration
+    app.kubernetes.io/instance: example-dev9
 spec:
   ipFamilies:
   - IPv4
@@ -3058,15 +3249,21 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: example-sample-integration
-  namespace: example
+  namespace: example-dev9
   labels:
     app.kubernetes.io/name: sample-integration
+    app.kubernetes.io/instance: example-dev9
   annotations:
     cert-manager.io/cluster-issuer: letsencrypt-prod
+    nginx.ingress.kubernetes.io/enable-cors: 'true'
+    nginx.ingress.kubernetes.io/cors-allow-credentials: 'true'
+    nginx.ingress.kubernetes.io/cors-allow-methods: GET,OPTIONS,POST,PUT,DELETE
+    nginx.ingress.kubernetes.io/cors-allow-origin: '*'
+    nginx.ingress.kubernetes.io/cors-allow-headers: Accept,Authorization,Cache-Control,Content-Type,DNT,If-Modified-Since,Keep-Alive,Origin,User-Agent,X-Requested-With,x-agx-device-type,x-agx-device-id,x-agx-guest-token,x-agx-store-alias,x-api-key,x-ga-client-id,example-store-id,example-graphql-operation,example-accept-currency,example-organization-id,example-storefront-key,example-uvdb-region-id,baggage,Sentry-Trace,traceparent
 spec:
   ingressClassName: nginx
   rules:
-  - host: sample-integration.{{ .SUBDOMAIN }}example.{{ .TLD }}
+  - host: sample-integration.dev9.example.pro
     http:
       paths:
       - backend:
@@ -3078,16 +3275,17 @@ spec:
         pathType: ImplementationSpecific
   tls:
   - hosts:
-    - sample-integration.{{ .SUBDOMAIN }}example.{{ .TLD }}
+    - sample-integration.dev9.example.pro
     secretName: sample-integration-ingress-tls
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: example-shopify-integration2
-  namespace: example
+  namespace: example-dev9
   labels:
     app.kubernetes.io/name: shopify-integration2
+    app.kubernetes.io/instance: example-dev9
 spec:
   progressDeadlineSeconds: 600
   replicas: 1
@@ -3115,14 +3313,14 @@ spec:
         - name: SOURCE_VERSION
           valueFrom:
             configMapKeyRef:
-              name: example-monorepo-revision-sync
+              name: example-monorepo-revision-sync-cctt5gbdbd
               key: monorepo-revision
         envFrom:
         - secretRef:
-            name: base-secrets-56cb2c6hhd
+            name: base-secrets-62htgm2m82
         - configMapRef:
-            name: base-configs-tg98dfhhkg
-        image: shopify-integration2-image
+            name: base-configs-m228kf585k
+        image: docker.io/example/shopify_integration2:b9a46d2b55a6bcc4b1b84087c901a8e7f5d10383
         imagePullPolicy: IfNotPresent
         name: shopify-integration2
         ports:
@@ -3159,9 +3357,10 @@ apiVersion: v1
 kind: Service
 metadata:
   name: example-shopify-integration2
-  namespace: example
+  namespace: example-dev9
   labels:
     app.kubernetes.io/name: shopify-integration2
+    app.kubernetes.io/instance: example-dev9
 spec:
   ipFamilies:
   - IPv4
@@ -3179,15 +3378,21 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: example-shopify-integration2
-  namespace: example
+  namespace: example-dev9
   labels:
     app.kubernetes.io/name: shopify-integration2
+    app.kubernetes.io/instance: example-dev9
   annotations:
     cert-manager.io/cluster-issuer: letsencrypt-prod
+    nginx.ingress.kubernetes.io/enable-cors: 'true'
+    nginx.ingress.kubernetes.io/cors-allow-credentials: 'true'
+    nginx.ingress.kubernetes.io/cors-allow-methods: GET,OPTIONS,POST,PUT,DELETE
+    nginx.ingress.kubernetes.io/cors-allow-origin: '*'
+    nginx.ingress.kubernetes.io/cors-allow-headers: Accept,Authorization,Cache-Control,Content-Type,DNT,If-Modified-Since,Keep-Alive,Origin,User-Agent,X-Requested-With,x-agx-device-type,x-agx-device-id,x-agx-guest-token,x-agx-store-alias,x-api-key,x-ga-client-id,example-store-id,example-graphql-operation,example-accept-currency,example-organization-id,example-storefront-key,example-uvdb-region-id,baggage,Sentry-Trace,traceparent
 spec:
   ingressClassName: nginx
   rules:
-  - host: shopify-integration2.{{ .SUBDOMAIN }}example.{{ .TLD }}
+  - host: shopify-integration2.dev9.example.pro
     http:
       paths:
       - backend:
@@ -3199,16 +3404,17 @@ spec:
         pathType: ImplementationSpecific
   tls:
   - hosts:
-    - shopify-integration2.{{ .SUBDOMAIN }}example.{{ .TLD }}
+    - shopify-integration2.dev9.example.pro
     secretName: shopify-integration2-ingress-tls
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: example-subscription-updater
-  namespace: example
+  namespace: example-dev9
   labels:
     app.kubernetes.io/name: subscription-updater
+    app.kubernetes.io/instance: example-dev9
 spec:
   progressDeadlineSeconds: 600
   replicas: 1
@@ -3233,14 +3439,14 @@ spec:
         - name: SOURCE_VERSION
           valueFrom:
             configMapKeyRef:
-              name: example-monorepo-revision-sync
+              name: example-monorepo-revision-sync-cctt5gbdbd
               key: monorepo-revision
         envFrom:
         - secretRef:
-            name: base-secrets-56cb2c6hhd
+            name: base-secrets-62htgm2m82
         - configMapRef:
-            name: base-configs-tg98dfhhkg
-        image: subscription-updater-image
+            name: base-configs-m228kf585k
+        image: docker.io/example/subscription_updater:18c9229bc91013682f2de1847ecc4788cfd8ce55
         imagePullPolicy: IfNotPresent
         livenessProbe:
           failureThreshold: 3
@@ -3283,9 +3489,10 @@ apiVersion: v1
 kind: Service
 metadata:
   name: example-subscription-updater
-  namespace: example
+  namespace: example-dev9
   labels:
     app.kubernetes.io/name: subscription-updater
+    app.kubernetes.io/instance: example-dev9
 spec:
   ipFamilies:
   - IPv4
@@ -3303,9 +3510,10 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: example-vrm-search
-  namespace: example
+  namespace: example-dev9
   labels:
     app.kubernetes.io/name: vrm-search
+    app.kubernetes.io/instance: example-dev9
 spec:
   progressDeadlineSeconds: 600
   replicas: 1
@@ -3321,14 +3529,14 @@ spec:
         - name: SOURCE_VERSION
           valueFrom:
             configMapKeyRef:
-              name: example-monorepo-revision-sync
+              name: example-monorepo-revision-sync-cctt5gbdbd
               key: monorepo-revision
         envFrom:
         - secretRef:
-            name: base-secrets-56cb2c6hhd
+            name: base-secrets-62htgm2m82
         - configMapRef:
-            name: base-configs-tg98dfhhkg
-        image: vrm-search-image
+            name: base-configs-m228kf585k
+        image: docker.io/example/vrm_search:34ccde7452c82f3d7cb3fd3a1fe2853b3c31fcf7
         imagePullPolicy: IfNotPresent
         livenessProbe:
           failureThreshold: 3
@@ -3373,9 +3581,10 @@ apiVersion: v1
 kind: Service
 metadata:
   name: example-vrm-search
-  namespace: example
+  namespace: example-dev9
   labels:
     app.kubernetes.io/name: vrm-search
+    app.kubernetes.io/instance: example-dev9
 spec:
   ipFamilies:
   - IPv4
@@ -3393,9 +3602,10 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: example-webhooks-notifier
-  namespace: example
+  namespace: example-dev9
   labels:
     app.kubernetes.io/name: webhooks-notifier
+    app.kubernetes.io/instance: example-dev9
 spec:
   progressDeadlineSeconds: 600
   replicas: 1
@@ -3411,14 +3621,14 @@ spec:
         - name: SOURCE_VERSION
           valueFrom:
             configMapKeyRef:
-              name: example-monorepo-revision-sync
+              name: example-monorepo-revision-sync-cctt5gbdbd
               key: monorepo-revision
         envFrom:
         - secretRef:
-            name: base-secrets-56cb2c6hhd
+            name: base-secrets-62htgm2m82
         - configMapRef:
-            name: base-configs-tg98dfhhkg
-        image: webhooks-notifier-image
+            name: base-configs-m228kf585k
+        image: docker.io/example/webhooks_notifier:4e328530749a20bcc50f0d3ec7b7713ad2fa49c3
         imagePullPolicy: IfNotPresent
         livenessProbe:
           failureThreshold: 3
@@ -3463,9 +3673,10 @@ apiVersion: v1
 kind: Service
 metadata:
   name: example-webhooks-notifier
-  namespace: example
+  namespace: example-dev9
   labels:
     app.kubernetes.io/name: webhooks-notifier
+    app.kubernetes.io/instance: example-dev9
 spec:
   ipFamilies:
   - IPv4
@@ -3483,9 +3694,10 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: example-external-job-integration
-  namespace: example
+  namespace: example-dev9
   labels:
     app.kubernetes.io/name: example-external-job-integration
+    app.kubernetes.io/instance: example-dev9
 spec:
   progressDeadlineSeconds: 600
   replicas: 1
@@ -3500,18 +3712,18 @@ spec:
         - name: SOURCE_VERSION
           valueFrom:
             configMapKeyRef:
-              name: example-monorepo-revision-sync
+              name: example-monorepo-revision-sync-cctt5gbdbd
               key: monorepo-revision
         envFrom:
         - configMapRef:
-            name: base-configs-tg98dfhhkg
+            name: base-configs-m228kf585k
         - configMapRef:
             name: external-job-integration-t74684c65d
         - secretRef:
-            name: base-secrets-56cb2c6hhd
+            name: base-secrets-62htgm2m82
         - secretRef:
             name: audatex-secrets
-        image: repairer-server-image
+        image: docker.io/example/repairer_server:188c51171c179f2fb55e30b0a369697e175c499e
         imagePullPolicy: IfNotPresent
         name: external-job-integration
         ports:
@@ -3530,9 +3742,10 @@ apiVersion: v1
 kind: Service
 metadata:
   name: example-external-job-integration
-  namespace: example
+  namespace: example-dev9
   labels:
     app.kubernetes.io/name: example-external-job-integration
+    app.kubernetes.io/instance: example-dev9
 spec:
   ipFamilies:
   - IPv4
@@ -3550,9 +3763,10 @@ apiVersion: v1
 kind: Secret
 metadata:
   name: audatex-secrets
-  namespace: example
+  namespace: example-dev9
   labels:
     app.kubernetes.io/name: example-external-job-integration
+    app.kubernetes.io/instance: example-dev9
 type: Opaque
 stringData:
   AUDATEX_PASSWORD: notarealpassword
@@ -3562,11 +3776,121 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: external-job-integration-t74684c65d
-  namespace: example
+  namespace: example-dev9
   labels:
     app.kubernetes.io/name: example-external-job-integration
+    app.kubernetes.io/instance: example-dev9
 data:
   STEER_ORG_ID: 0caceb05-0b06-6000-811d-6a0e152ff190
   STEER_REPAIRER_ID: d70fa182-bec6-4494-959b-bc57ffedc191
   AUDATEX_CORE_EMAIL: evan+audatexscript@example.com
   AUDATEX_USERNAME: audatex
+---
+apiVersion: scylla.scylladb.com/v1
+kind: ScyllaCluster
+metadata:
+  name: scylla
+  namespace: example-dev9
+  labels:
+    app.kubernetes.io/instance: example-dev9
+  annotations:
+    argocd.argoproj.io/sync-wave: '-4'
+spec:
+  repository: docker.io/scylladb/scylla
+  version: 6.2.3
+  agentVersion: 3.4.2
+  developerMode: false
+  automaticOrphanedNodeCleanup: true
+  sysctls:
+  - fs.aio-max-nr=30000000
+  datacenter:
+    name: dc1
+    racks:
+    - name: rack1
+      members: 1
+      storage:
+        capacity: 50Gi
+        storageClassName: longhorn
+      resources:
+        requests:
+          cpu: 1
+          memory: 4Gi
+        limits:
+          cpu: 1
+          memory: 4Gi
+      placement:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - scylla
+              topologyKey: kubernetes.io/hostname
+              namespaceSelector: {}
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: kubernetes.io/os
+                operator: In
+                values:
+                - linux
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: scylladb-config
+  namespace: example-dev9
+  labels:
+    app.kubernetes.io/instance: example-dev9
+  annotations:
+    argocd.argoproj.io/sync-wave: '-4'
+data:
+  scylla.yaml: |
+    authenticator: PasswordAuthenticator
+    authorizer: CassandraAuthorizer
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: example-monorepo-revision
+  namespace: example-dev9
+  labels:
+    app.kubernetes.io/instance: example-dev9
+  annotations:
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+    argocd.argoproj.io/hook: PostSync
+data:
+  monorepo-revision: |
+    22258e2c
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: example-monorepo-revision-failed
+  namespace: example-dev9
+  labels:
+    app.kubernetes.io/instance: example-dev9
+  annotations:
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+    argocd.argoproj.io/hook: SyncFail
+data:
+  monorepo-revision: |
+    22258e2c
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: example-monorepo-revision-sync-cctt5gbdbd
+  namespace: example-dev9
+  labels:
+    app.kubernetes.io/instance: example-dev9
+  annotations:
+    argocd.argoproj.io/sync-wave: '-5'
+data:
+  monorepo-revision: |
+    22258e2c

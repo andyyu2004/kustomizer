@@ -1,0 +1,8 @@
+apiVersion: builtin
+kind: ImageTagTransformer
+metadata:
+  name: repair-jobs-feed-integration-itt
+imageTag:
+  name: repair-jobs-feed-integration-image
+  newName: docker.io/example/repair_jobs_feed_integration
+  newTag: 946d760aa6eaf28c1675457a9036e83904f54977

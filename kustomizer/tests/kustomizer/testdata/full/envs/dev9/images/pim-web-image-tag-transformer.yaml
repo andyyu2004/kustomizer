@@ -1,0 +1,8 @@
+apiVersion: builtin
+kind: ImageTagTransformer
+metadata:
+  name: pim-web-itt
+imageTag:
+  name: pim-web-image
+  newName: docker.io/example/pim_web
+  newTag: ea668837d65a5bae6dec0fb71f4061872a861133

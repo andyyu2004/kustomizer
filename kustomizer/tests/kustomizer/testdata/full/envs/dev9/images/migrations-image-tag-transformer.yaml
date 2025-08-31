@@ -1,0 +1,8 @@
+apiVersion: builtin
+kind: ImageTagTransformer
+metadata:
+  name: migrations-itt
+imageTag:
+  name: migrations-image
+  newName: docker.io/example/node_migrations
+  newTag: a6cd269160a111eb1811cf95df836735a43281ad

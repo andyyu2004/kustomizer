@@ -1,0 +1,8 @@
+apiVersion: builtin
+kind: ImageTagTransformer
+metadata:
+  name: mfe-settings-itt
+imageTag:
+  name: mfe-settings-image
+  newName: docker.io/example/mfe_settings
+  newTag: 67781c19c786cfad24b78d55df955d0eea3129cb
