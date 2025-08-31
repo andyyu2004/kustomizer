@@ -25,6 +25,7 @@ impl<'a> SecretGenerator<'a> {
 }
 
 impl Generator for SecretGenerator<'_> {
+    #[tracing::instrument(skip_all, name = "generate_secret", fields(workdir = %workdir.display()))]
     async fn generate(
         &mut self,
         workdir: &Path,

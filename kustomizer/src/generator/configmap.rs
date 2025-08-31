@@ -25,6 +25,7 @@ impl<'a> ConfigMapGenerator<'a> {
 }
 
 impl Generator for ConfigMapGenerator<'_> {
+    #[tracing::instrument(skip_all, name = "generate_configmap", fields(workdir = %workdir.display()))]
     async fn generate(
         &mut self,
         workdir: &Path,
