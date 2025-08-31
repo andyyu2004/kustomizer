@@ -18,11 +18,9 @@ use std::{ffi::OsStr, ops::Deref, path::Path};
 use anyhow::Context;
 
 pub use self::intern::PathId;
+pub use self::resmap::ResourceMap;
 
-use self::{
-    manifest::{Component, Kustomization, Manifest, Symbol},
-    resmap::ResourceMap,
-};
+use self::manifest::{Component, Kustomization, Manifest, Symbol};
 
 pub async fn build(path: impl AsRef<Path>) -> anyhow::Result<ResourceMap> {
     let kustomization = load_kustomization(path)?;

@@ -31,8 +31,13 @@ workspace = true
 
 [dev-dependencies]
 datatest-stable = "0.3.2"
+divan = "0.1.21"
 
 [[test]]
+name = "kustomizer"
+harness = false
+
+[[bench]]
 name = "kustomizer"
 harness = false
 
