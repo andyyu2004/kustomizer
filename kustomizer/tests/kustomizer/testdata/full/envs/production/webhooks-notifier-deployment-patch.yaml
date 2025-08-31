@@ -1,0 +1,14 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: example-webhooks-notifier
+spec:
+  template:
+    spec:
+      containers:
+        - name: webhooks-notifier
+          resources:
+            requests:
+              memory: 2Gi
+            limits:
+              memory: 6Gi

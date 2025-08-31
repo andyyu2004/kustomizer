@@ -1,0 +1,9 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: example-dataqa-web
+spec:
+  tls:
+  - hosts:
+    - dataqa.example.com
+    secretName: dataqa.example.com

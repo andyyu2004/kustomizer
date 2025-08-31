@@ -1,0 +1,20 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: example-lookup-server
+spec:
+  template:
+    spec:
+      terminationGracePeriodSeconds: 180
+      containers:
+        - name: lookup-server
+          env:
+            - name: OTEL_BSP_MAX_QUEUE_SIZE
+              value: "8096"
+            - name: OTEL_BSP_MAX_CONCURRENT_EXPORTS
+              value: "8"
+          resources:
+            limits:
+              memory: 16Gi
+            requests:
+              memory: 10Gi

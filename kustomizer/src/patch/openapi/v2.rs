@@ -17,12 +17,16 @@ pub struct Spec {
 
 #[derive(Debug, Serialize, Deserialize)]
 struct Path {
+    #[serde(skip_serializing_if = "Option::is_none")]
     get: Option<Operation>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 struct Operation {
-    #[serde(rename = "x-kubernetes-group-version-kind")]
+    #[serde(
+        rename = "x-kubernetes-group-version-kind",
+        skip_serializing_if = "Option::is_none"
+    )]
     kubernetes_gvk: Option<Gvk>,
 }
 

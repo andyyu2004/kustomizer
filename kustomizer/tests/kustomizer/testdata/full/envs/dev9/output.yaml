@@ -2276,8 +2276,6 @@ spec:
             secretKeyRef:
               key: S3_SECRET
               name: base-secrets-62htgm2m82
-        - name: SENTRY_DSN
-          value: https://ebdb64e290de0a72169b60e82d725c31@o4507103828049920.ingest.de.sentry.io/4507103831392336
         - name: SOURCE_VERSION
           valueFrom:
             configMapKeyRef:

@@ -1,0 +1,14 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: example-file-ingestor
+spec:
+  template:
+    spec:
+      containers:
+        - name: file-ingestor
+          resources:
+            limits:
+              memory: 4Gi
+            requests:
+              memory: 1Gi

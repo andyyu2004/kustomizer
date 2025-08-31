@@ -1,0 +1,14 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: example-dataqa-api-rs
+spec:
+  template:
+    spec:
+      containers:
+        - name: dataqa-api-rs
+          resources:
+            limits:
+              memory: 20Gi
+            requests:
+              memory: 12Gi

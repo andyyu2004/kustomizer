@@ -1,0 +1,9 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: storefront-repairer-server
+spec:
+  tls:
+  - hosts:
+    - api.repairer.example.com
+    secretName: api.repairer.example.com-tls

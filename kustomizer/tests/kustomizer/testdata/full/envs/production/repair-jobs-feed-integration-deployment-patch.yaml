@@ -1,0 +1,14 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: example-repair-jobs-feed-integration
+spec:
+  template:
+    spec:
+      containers:
+        - name: repair-jobs-feed-integration
+          resources:
+            limits:
+              memory: 4Gi
+            requests:
+              memory: 2Gi

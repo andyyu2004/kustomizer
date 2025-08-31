@@ -1,0 +1,9 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: example-ml-server
+spec:
+  tls:
+  - hosts:
+    - mls.prod.example.pro
+    secretName: mls.prod.example.pro

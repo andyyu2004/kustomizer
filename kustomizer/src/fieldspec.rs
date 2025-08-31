@@ -11,6 +11,7 @@ use crate::{
 };
 use anyhow::{Context as _, bail};
 use serde::{Deserialize, Serialize};
+use serde_json::Value;
 
 // See kustomize/internal/konfig/builtinpluginconsts
 
@@ -207,7 +208,7 @@ impl FieldSpec {
         }
 
         fn go<T>(
-            mut curr: &mut serde_json::Value,
+            mut curr: &mut Value,
             mut path: PathRef<'_>,
             f: &mut impl FnMut(&mut T) -> anyhow::Result<()>,
             create: bool,
@@ -241,24 +242,25 @@ impl FieldSpec {
 
                         curr = val;
                     }
-                    FieldPathSegment::Array(field) => {
-                        match curr.get_mut(field.as_str()) {
-                            Some(v) => match v.as_array_mut() {
-                                Some(seq) => {
-                                    for item in seq {
-                                        go(item, &path[1..], f, create)?;
-                                    }
-
-                                    return Ok(());
+                    FieldPathSegment::Array(field) => match curr.get_mut(field.as_str()) {
+                        Some(v) => match v {
+                            Value::Null => return Ok(()),
+                            Value::Array(seq) => {
+                                for item in seq {
+                                    go(item, &path[1..], f, create)?;
                                 }
-                                None => bail!(
-                                    "expected a sequence at `{field}[]` but found a different type",
-                                ),
-                            },
-                            // No point creating an empty array, so `create` has no effect here.
-                            None => return Ok(()),
-                        }
-                    }
+
+                                return Ok(());
+                            }
+                            _ => {
+                                return Err(anyhow::anyhow!(
+                                    "expected a sequence at `{}` but found a value of different type",
+                                    field
+                                ));
+                            }
+                        },
+                        None => return Ok(()),
+                    },
                 }
                 path = &path[1..];
             }
@@ -280,84 +282,84 @@ impl FieldSpec {
 }
 
 pub trait JsonValue: Default {
-    fn try_as_mut(value: &mut serde_json::Value) -> anyhow::Result<&mut Self>;
+    fn try_as_mut(value: &mut Value) -> anyhow::Result<&mut Self>;
 
-    fn into_value(self) -> serde_json::Value
+    fn into_value(self) -> Value
     where
         Self: Sized;
 }
 
-impl JsonValue for serde_json::Value {
-    fn try_as_mut(value: &mut serde_json::Value) -> anyhow::Result<&mut Self> {
+impl JsonValue for Value {
+    fn try_as_mut(value: &mut Value) -> anyhow::Result<&mut Self> {
         Ok(value)
     }
 
-    fn into_value(self) -> serde_json::Value {
+    fn into_value(self) -> Value {
         self
     }
 }
 
 impl JsonValue for Object {
-    fn try_as_mut(value: &mut serde_json::Value) -> anyhow::Result<&mut Self> {
+    fn try_as_mut(value: &mut Value) -> anyhow::Result<&mut Self> {
         match value {
-            serde_json::Value::Object(obj) => Ok(obj),
+            Value::Object(obj) => Ok(obj),
             _ => bail!("expected an object but found a different type"),
         }
     }
 
-    fn into_value(self) -> serde_json::Value {
-        serde_json::Value::Object(self)
+    fn into_value(self) -> Value {
+        Value::Object(self)
     }
 }
 
-impl JsonValue for Vec<serde_json::Value> {
-    fn try_as_mut(value: &mut serde_json::Value) -> anyhow::Result<&mut Self> {
+impl JsonValue for Vec<Value> {
+    fn try_as_mut(value: &mut Value) -> anyhow::Result<&mut Self> {
         match value {
-            serde_json::Value::Array(arr) => Ok(arr),
+            Value::Array(arr) => Ok(arr),
             _ => bail!("expected a sequence but found a different type"),
         }
     }
 
-    fn into_value(self) -> serde_json::Value {
-        serde_json::Value::Array(self)
+    fn into_value(self) -> Value {
+        Value::Array(self)
     }
 }
 
 impl JsonValue for String {
-    fn try_as_mut(value: &mut serde_json::Value) -> anyhow::Result<&mut Self> {
+    fn try_as_mut(value: &mut Value) -> anyhow::Result<&mut Self> {
         match value {
-            serde_json::Value::String(s) => Ok(s),
+            Value::String(s) => Ok(s),
             _ => bail!("expected a string but found a different type"),
         }
     }
 
-    fn into_value(self) -> serde_json::Value {
-        serde_json::Value::String(self)
+    fn into_value(self) -> Value {
+        Value::String(self)
     }
 }
 
 impl JsonValue for bool {
-    fn try_as_mut(value: &mut serde_json::Value) -> anyhow::Result<&mut Self> {
+    fn try_as_mut(value: &mut Value) -> anyhow::Result<&mut Self> {
         match value {
-            serde_json::Value::Bool(b) => Ok(b),
+            Value::Bool(b) => Ok(b),
             _ => bail!("expected a boolean but found a different type"),
         }
     }
 
-    fn into_value(self) -> serde_json::Value {
-        serde_json::Value::Bool(self)
+    fn into_value(self) -> Value {
+        Value::Bool(self)
     }
 }
 
 impl JsonValue for u64 {
-    fn try_as_mut(value: &mut serde_json::Value) -> anyhow::Result<&mut Self> {
+    fn try_as_mut(value: &mut Value) -> anyhow::Result<&mut Self> {
         match value {
-            serde_json::Value::Number(num) if num.is_u64() => Ok(num.as_u64_mut().unwrap()),
+            Value::Number(num) if num.is_u64() => Ok(num.as_u64_mut().unwrap()),
             _ => bail!("expected a unsigned number but found a different type"),
         }
     }
 
-    fn into_value(self) -> serde_json::Value {
-        serde_json::Value::Number(serde_json::Number::from(self))
+    fn into_value(self) -> Value {
+        Value::Number(serde_json::Number::from(self))
     }
 }

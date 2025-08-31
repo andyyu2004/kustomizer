@@ -1,0 +1,23 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: example-data-ingestor
+spec:
+  template:
+    spec:
+      containers:
+        - name: data-ingestor
+          env:
+            - name: DATA_INGESTOR__SYSTEM__AWS_OPTIONS__S3_REGION
+              value: "eu-central-1"
+            - name: DATA_INGESTOR__SYSTEM__AWS_OPTIONS__S3_BUCKET_PUBLIC
+              value: "example-cdn"
+            - name: DATA_INGESTOR__INGEST__MAX_POOL_SIZE
+              value: "10"
+            - name: DATA_INGESTOR__SYSTEM__AWS_OPTIONS__CDN_BASE_URL
+              value: "https://cdn.example.com/"
+          resources:
+            limits:
+              memory: 4Gi
+            requests:
+              memory: 1Gi

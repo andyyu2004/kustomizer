@@ -1,0 +1,14 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: example-elasticsearch-ingestor-low
+spec:
+  template:
+    spec:
+      containers:
+        - name: elasticsearch-ingestor-low
+          resources:
+            limits:
+              memory: 2Gi
+            requests:
+              memory: 1Gi

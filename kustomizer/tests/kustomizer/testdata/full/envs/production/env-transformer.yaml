@@ -1,0 +1,12 @@
+apiVersion: example.pro/v1
+kind: EnvTransformer
+metadata:
+  name: env-transformer
+  annotations:
+    config.kubernetes.io/function: |
+      exec:
+        path: gotmpl
+        args:
+          - ENV=production
+          - SUBDOMAIN=""
+          - TLD=com

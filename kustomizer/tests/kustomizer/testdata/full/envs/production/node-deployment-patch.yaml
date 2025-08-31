@@ -1,0 +1,9 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: example-node
+spec:
+  template:
+    spec:
+      containers:
+        - name: node

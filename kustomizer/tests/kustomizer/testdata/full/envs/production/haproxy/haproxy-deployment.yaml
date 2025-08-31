@@ -1,0 +1,93 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app.kubernetes.io/part-of: haproxy
+  name: haproxy
+spec:
+  progressDeadlineSeconds: 600
+  replicas: 1
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      app.kubernetes.io/part-of: haproxy
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/part-of: haproxy
+    spec:
+      containers:
+      - args:
+        - -f
+        - /usr/local/etc/haproxy/haproxy.cfg
+        image: haproxytech/haproxy-alpine:3.1.5
+        imagePullPolicy: IfNotPresent
+        name: haproxy
+        ports:
+        - containerPort: 80
+          name: http
+          protocol: TCP
+        - containerPort: 443
+          name: https
+          protocol: TCP
+        - containerPort: 10001
+          name: p10001
+          protocol: TCP
+        - containerPort: 19042
+          name: p19042
+          protocol: TCP
+        - containerPort: 19142
+          name: p19142
+          protocol: TCP
+        - containerPort: 5090
+          name: p5090
+          protocol: TCP
+        - containerPort: 7000
+          name: p7000
+          protocol: TCP
+        - containerPort: 7001
+          name: p7001
+          protocol: TCP
+        - containerPort: 7199
+          name: p7199
+          protocol: TCP
+        - containerPort: 9042
+          name: p9042
+          protocol: TCP
+        - containerPort: 9100
+          name: p9100
+          protocol: TCP
+        - containerPort: 9142
+          name: p9142
+          protocol: TCP
+        - containerPort: 9160
+          name: p9160
+          protocol: TCP
+        - containerPort: 9180
+          name: p9180
+          protocol: TCP
+        - containerPort: 1024
+          name: stat
+          protocol: TCP
+        resources:
+          requests:
+            cpu: 250m
+            memory: 128Mi
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        volumeMounts:
+        - mountPath: /usr/local/etc/haproxy/haproxy.cfg
+          name: haproxy-config
+          subPath: haproxy.cfg
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}
+      serviceAccount: haproxy
+      serviceAccountName: haproxy
+      terminationGracePeriodSeconds: 60
+      volumes:
+      - configMap:
+          defaultMode: 420
+          name: haproxy
+        name: haproxy-config

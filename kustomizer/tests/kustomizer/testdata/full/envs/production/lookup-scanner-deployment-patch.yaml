@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: example-lookup-scanner
+spec:
+  template:
+    spec:
+      containers:
+        - name: lookup-scanner
+          env:
+            - name: LOOKUP_SCANNER__AUTO_INHERITANCE__ENABLE
+              value: "true"
+            - name: LOOKUP_SCANNER__STYLE_TRANSFER_KAFKA_CONSUMER__NUM_OF_CONSUMERS
+              value: "1"
+            - name: LOOKUP_SCANNER__SYSTEM__GCP_OPTIONS__PROJECT_ID
+              value: "prod-eu-6396"
+            - name: LOOKUP_SCANNER__LOGGING__LEVEL
+              value: "info"
+            - name: LOOKUP_SCANNER__SYSTEM__POSTGRESQL_POOL_SIZE
+              value: "50"
+            - name: LOOKUP_SCANNER__INGEST_OEM_IMAGE_WORKER__KAFKA_CONSUMER_MAX_POLL_INTERVAL_S
+              value: "3000"
+            - name: LOOKUP_SCANNER__STYLE_TRANSFER_WORKER__KAFKA_CONSUMER_CHUNK_SIZE
+              value: "2"
+            - name: LOOKUP_SCANNER__SYSTEM__GCP_OPTIONS__GCP_CLIENT_EMAIL
+              value: "node-access-sa@prod-eu-6396.iam.gserviceaccount.com"
+            - name: LOOKUP_SCANNER__INGEST_OEM_IMAGE_WORKER__KAFKA_CONSUMER_SESSION_TIMEOUT_S
+              value: "60"
+            - name: LOOKUP_SCANNER__INGEST_OEM_IMAGE_WORKER__NUM_OF_WORKERS
+              value: "0"
+            - name: LOOKUP_SCANNER__INGEST_OEM_IMAGE_WORKER__KAFKA_CONSUMER_CHUNK_SIZE
+              value: "30"
+            - name: LOOKUP_SCANNER__SYSTEM__MINIO_OPTIONS__ENABLE_MINIO
+              value: "false"
+            - name: LOOKUP_SCANNER__SYSTEM__AWS_OPTIONS__S3_REGION
+              value: eu-central-1
+            - name: LOOKUP_SCANNER__SYSTEM__AWS_OPTIONS__S3_BUCKET_PUBLIC
+              value: example-cdn
+            - name: LOOKUP_SCANNER__SYSTEM__AWS_OPTIONS__CDN_BASE_URL
+              value: https://cdn.example.com/
+          resources:
+            limits:
+              memory: 3Gi
+            requests:
+              memory: 2Gi

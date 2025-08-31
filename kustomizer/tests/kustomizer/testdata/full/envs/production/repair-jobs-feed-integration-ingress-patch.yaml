@@ -1,0 +1,9 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: example-repair-jobs-feed-integration
+spec:
+  tls:
+  - hosts:
+    - repair-jobs-feed-integration.integrations.example.com
+    secretName: repair-jobs-feed-integration.integrations.example.com

@@ -1,0 +1,18 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: example-shopify-integration2
+spec:
+  template:
+    spec:
+      containers:
+        - name: shopify-integration2
+          env:
+            - name: SHOPIFY_INTEGRATION__KAFKA__RETRY_DELAY_SECONDS
+              value: "3600"
+          resources:
+            limits:
+              memory: 4Gi
+            requests:
+              cpu: 50m
+              memory: 2Gi

@@ -1,0 +1,71 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: example-core-server
+spec:
+  template:
+    spec:
+      containers:
+        - name: core-server
+          env:
+            - name: CORE_SERVER__LOGGING__LEVEL_MODULES
+              value: info
+            - name: CORE_SERVER__LOGGING__LEVEL
+              value: info
+            - name: CORE_SERVER__UPLOAD__AWS_OPTIONS__S3_REGION
+              value: eu-central-1
+            - name: CORE_SERVER__UPLOAD__AWS_OPTIONS__S3_BUCKET_PUBLIC
+              value: example-cdn
+            - name: CORE_SERVER__UPLOAD__AWS_OPTIONS__CDN_BASE_URL
+              value: https://cdn.example.com/
+            - name: CORE_SERVER__UPLOAD__AWS_OPTIONS__MAX_CONCURRENT_UPLOADS
+              value: "10"
+            - name: CORE_SERVER__UPLOAD__GCP_OPTIONS__MAX_CONCURRENT_UPLOADS
+              value: "10"
+            - name: CORE_SERVER__INGEST__LOOKUP_SERVER_ENDPOINT
+              value: example-lookup-server:80
+            - name: CORE_SERVER__INGEST__KAFKA_FILE_IMPORT_PARTITION_COUNT
+              value: "32"
+            - name: CORE_SERVER__INGEST_ASYNC__KAFKA_FILE_IMPORT_PARTITION_COUNT
+              value: "32"
+            - name: CORE_SERVER__INGEST_ASYNC__POSTGRESQL_POOL_SIZE
+              value: "10"
+            - name: CORE_SERVER__JOB__MAX_POOL_SIZE
+              value: "50"
+            - name: CORE_SERVER__ORDER__PIM_JOB_CHECK_LINK_BASE_URL
+              value: "https://pim.example.com/orders/"
+            - name: CORE_SERVER__OFFER_REQUEST__REPAIR_JOB_BASE_URL
+              value: "https://repair.example.com/job/"
+            - name: CORE_SERVER__SYSTEM__POSTGRESQL_DEFAULT_CRATE_MAX_POOL_SIZE
+              value: "10"
+            - name: CORE_SERVER__OFFER_REQUEST__OFFER_REQUEST_BASE_URL
+              value: "https://pim.example.com/offers/offer/"
+            - name: CORE_SERVER__OFFER_SEARCH__ENABLE_OFFERS_RULES
+              value: "true"
+            - name: OTEL_BSP_MAX_QUEUE_SIZE
+              value: "4096"
+            - name: CORE_SERVER__EMAIL__BASE_URLS__LOGIN_URL
+              value: "https://pim.example.com/auth/sign-in"
+            - name: OTEL_BSP_MAX_CONCURRENT_EXPORTS
+              value: "4"
+            - name: WEBHOOKS_NOTIFIER_REPAIRER_INTEGRATION_URL_ENV
+              value: "http://example-repairer-integration/api/webhook"
+            - name: WEBHOOKS_NOTIFIER_SAMPLE_INTEGRATION_URL_ENV
+              value: "http://example-sample-integration/api/v1/example_webhooks"
+            - name: CORE_SERVER__LOGGING__OTEL_FILTER
+              value: "info,billing=debug"
+            - name: WEBHOOKS_NOTIFIER_SHOPIFY_INTEGRATION_URL_ENV
+              value: "http://example-shopify-integration/api/v1/sellables.publish"
+            - name: WEBHOOKS_NOTIFIER_SHOPIFY_INTEGRATION_2_URL_ENV
+              value: "https://shopify-integration.integrations.example.com/api/v1/example-webhooks.accept"
+            - name: CORE_SERVER__EMAIL__BASE_URLS__REDIRECT_URL
+              value: "https://pim.example.com/auth/confirm"
+            - name: CORE_SERVER__EMAIL__BASE_URLS__SUPPORT_URL
+              value: "https://pim.example.com/support"
+            - name: CORE_SERVER__ORDER__REPAIRER_JOB_CHECK_LINK_BASE_URL
+              value: "https://repair.example.com/job/"
+          resources:
+            limits:
+              memory: 5Gi
+            requests:
+              memory: 1Gi

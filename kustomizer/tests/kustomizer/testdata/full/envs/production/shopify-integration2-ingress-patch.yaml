@@ -1,0 +1,9 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: example-shopify-integration2
+spec:
+  tls:
+  - hosts:
+    - shopify-integration.integrations.example.com
+    secretName: shopify-integration.integrations.example.com

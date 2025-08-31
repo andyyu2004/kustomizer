@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: storefront-repairer-server
+spec:
+  template:
+    spec:
+      containers:
+        - name: repairer-server
+          envFrom:
+            - configMapRef:
+                name: repairer-base-configs
+            - secretRef:
+                name: repairer-base-secrets
+            - secretRef:
+                name: body-secret
+          env:
+            - name: OTEL_SERVICE_NAME
+              value: repairer-server
+            - name: OTEL_TRACES_SAMPLER_ARG
+              value: "1.0"
+            - name: OTEL_BSP_MAX_QUEUE_SIZE
+              value: "10000"
+            - name: OTEL_BSP_MAX_CONCURRENT_EXPORTS
+              value: "2"
+            - name: CORE_SERVER__SYSTEM__POSTGRESQL_DEFAULT_CRATE_MAX_POOL_SIZE
+              value: "5"
+            - name: REPAIRER_SERVER__ORDER__PIM_JOB_CHECK_LINK_BASE_URL
+              value: https://pim.example.com/orders/
+            - name: REPAIRER_SERVER__ORDER__REPAIRER_JOB_CHECK_LINK_BASE_URL
+              value: https://repair.example.com/job/
+            - name: REPAIRER_SERVER__OFFER_REQUEST__OFFER_REQUEST_BASE_URL
+              value: https://pim.example.com/offers/offer/
+            - name: REPAIRER_SERVER__OFFER_REQUEST__REPAIR_JOB_BASE_URL
+              value: https://repair.example.com/job/
+            - name: REPAIRER_SERVER__SYSTEM__CORE_SCYLLA_ADDRESSES
+              value: scylla-2-3,scylla-2-4,scylla-2-5
+            - name: REPAIRER_SERVER__AUTH__SCYLLA_ADDRESSES
+              value: scylla-2-3,scylla-2-4,scylla-2-5
+            - name: REPAIRER_SERVER_SHARED_POSTGRES_MAX_POOL_SIZE
+              value: "50"
+            - name: REPAIRER_SERVER__EMAIL__BASE_URLS__SUPPORT_URL
+              value: https://pim.example.com/support
+            - name: REPAIRER_SERVER__EMAIL__BASE_URLS__REDIRECT_URL
+              value: https://app.example.com/auth/confirm
+            - name: REPAIRER_SERVER__EMAIL__BASE_URLS__LOGIN_URL
+              value: https://pim.example.com/auth/sign-in

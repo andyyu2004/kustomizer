@@ -1,0 +1,98 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  labels:
+    app.kubernetes.io/part-of: haproxy
+  name: haproxy
+data:
+  haproxy.cfg: |2
+
+    global
+      log stdout format raw local0
+      maxconn 1024
+
+    defaults
+      log global
+      timeout client 60s
+      timeout connect 60s
+      timeout server 60s
+      mode tcp
+
+    frontend fe_7000
+      bind :7000
+      default_backend be_7000
+    frontend fe_7001
+      bind :7001
+      default_backend be_7001
+    frontend fe_7199
+      bind :7199
+      default_backend be_7199
+    frontend fe_10001
+      bind :10001
+      default_backend be_10001
+    frontend fe_9180
+      bind :9180
+      default_backend be_9180
+    frontend fe_5090
+      bind :5090
+      default_backend be_5090
+    frontend fe_9100
+      bind :9100
+      default_backend be_9100
+    frontend fe_9042
+      bind :9042
+      default_backend be_9042
+    frontend fe_9142
+      bind :9142
+      default_backend be_9142
+    frontend fe_19042
+      bind :19042
+      default_backend be_19042
+    frontend fe_9160
+      bind :9160
+      default_backend be_9160
+
+    backend be_7000
+      server scylla-2-3 10.8.16.123:7000
+      server scylla-2-4 10.8.16.125:7000
+      server scylla-2-5 10.8.16.124:7000
+    backend be_7001
+      server scylla-2-3 10.8.16.123:7001
+      server scylla-2-4 10.8.16.125:7001
+      server scylla-2-5 10.8.16.124:7001
+    backend be_7199
+      server scylla-2-3 10.8.16.123:7199
+      server scylla-2-4 10.8.16.125:7199
+      server scylla-2-5 10.8.16.124:7199
+    backend be_10001
+      server scylla-2-3 10.8.16.123:10001
+      server scylla-2-4 10.8.16.125:10001
+      server scylla-2-5 10.8.16.124:10001
+    backend be_9180
+      server scylla-2-3 10.8.16.123:9180
+      server scylla-2-4 10.8.16.125:9180
+      server scylla-2-5 10.8.16.124:9180
+    backend be_5090
+      server scylla-2-3 10.8.16.123:5090
+      server scylla-2-4 10.8.16.125:5090
+      server scylla-2-5 10.8.16.124:5090
+    backend be_9100
+      server scylla-2-3 10.8.16.123:9100
+      server scylla-2-4 10.8.16.125:9100
+      server scylla-2-5 10.8.16.124:9100
+    backend be_9042
+      server scylla-2-3 10.8.16.123:9042
+      server scylla-2-4 10.8.16.125:9042
+      server scylla-2-5 10.8.16.124:9042
+    backend be_9142
+      server scylla-2-3 10.8.16.123:9142
+      server scylla-2-4 10.8.16.125:9142
+      server scylla-2-5 10.8.16.124:9142
+    backend be_19042
+      server scylla-2-3 10.8.16.123:19042
+      server scylla-2-4 10.8.16.125:19042
+      server scylla-2-5 10.8.16.124:19042
+    backend be_9160
+      server scylla-2-3 10.8.16.123:9160
+      server scylla-2-4 10.8.16.125:9160
+      server scylla-2-5 10.8.16.124:9160

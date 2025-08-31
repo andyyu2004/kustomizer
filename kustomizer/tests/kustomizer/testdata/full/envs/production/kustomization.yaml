@@ -1,0 +1,143 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: prod-eu
+
+labels:
+  - pairs:
+      app.kubernetes.io/instance: example-prod-eu
+
+resources:
+  - ../../resources/
+  - haproxy
+  - repairer-base-configs.yaml
+  - core-server-internal-ingress.yaml
+
+patches:
+  - path: base-configs-patch.yaml
+  - path: ../staging/mfe-router-app-versions-patch.yaml
+    target:
+      kind: CloudflareWorker
+      name: mfe-router
+  - target:
+      kind: CloudflareWorker
+      name: mfe-router
+    patch: |
+      - op: replace
+        path: /spec/name
+        value: app-example-com
+      - op: replace
+        path: /spec/route/pattern
+        value: app.example.com
+  - path: core-server-deployment-patch.yaml
+  - path: data-ingestor-deployment-patch.yaml
+  - path: dataqa-api-rs-deployment-patch.yaml
+  - path: driftdb-server-deployment-patch.yaml
+  - path: elasticsearch-ingestor-high-deployment-patch.yaml
+  - path: elasticsearch-ingestor-low-deployment-patch.yaml
+  - path: elasticsearch-ingestor-rs-deployment-patch.yaml
+  - path: file-ingestor-deployment-patch.yaml
+  - path: hca-notion-sync-deployment-patch.yaml
+  - path: lookup-scanner-deployment-patch.yaml
+  - path: lookup-server-cdc-deployment-patch.yaml
+  - path: lookup-server-deployment-patch.yaml
+  - path: mfe-router-secrets-patch.yaml
+  - path: ml-server-api-deployment-patch.yaml
+  - path: ml-server-workers-deployment-patch.yaml
+  - path: repair-jobs-feed-integration-deployment-patch.yaml
+  - path: repairer-server-deployment-patch.yaml
+  - path: shopify-integration2-deployment-patch.yaml
+  - path: subscription-updater-deployment-patch.yaml
+  - path: vrm-search-deployment-patch.yaml
+  - path: webhooks-notifier-deployment-patch.yaml
+  - path: node-deployment-patch.yaml
+  - path: core-server-ingress-patch.yaml
+  - path: dataqa-api-rs-ingress-patch.yaml
+  - path: dataqa-web-ingress-patch.yaml
+  - path: driftdb-server-ingress-patch.yaml
+  - path: ml-server-ingress-patch.yaml
+  - path: node-ingress-patch.yaml
+  - path: node-internal-ingress-patch.yaml
+  - path: pim-web-ingress-patch.yaml
+  - path: repair-jobs-feed-integration-ingress-patch.yaml
+  - path: shopify-integration2-ingress-patch.yaml
+  - path: storefront-repairer-server-ingress-patch.yaml
+
+  - target:
+      kind: Ingress
+      name: example-ml-server
+    patch: |
+      - op: replace
+        path: /spec/rules/0/host
+        value: mls.prod.example.pro
+      - op: replace
+        path: /spec/tls/0/hosts/0
+        value: mls.prod.example.pro
+
+  - target:
+      kind: Ingress
+      name: example-sample-integration
+    patch: |
+      - op: replace
+        path: /spec/rules/0/host
+        value: sample.integrations.example.com
+      - op: replace
+        path: /spec/tls/0/hosts/0
+        value: sample.integrations.example.com
+
+    # Ideally we drop the redundant -integration suffix
+  - target:
+      kind: Ingress
+      name: example-shopify-integration2
+    patch: |
+      - op: replace
+        path: /spec/rules/0/host
+        value: shopify-integration.integrations.example.com
+      - op: replace
+        path: /spec/tls/0/hosts/0
+        value: shopify-integration.integrations.example.com
+
+  - target:
+      kind: Ingress
+      name: example-repair-jobs-feed-integration
+    patch: |
+      - op: replace
+        path: /spec/rules/0/host
+        value: repair-jobs-feed-integration.integrations.example.com
+      - op: replace
+        path: /spec/tls/0/hosts/0
+        value: repair-jobs-feed-integration.integrations.example.com
+
+# Prod uses staging image set because we want to run the exact same code as was tested in staging.
+components:
+  - ../staging/images
+
+configMapGenerator:
+  - name: example-monorepo-revision-sync
+    options:
+      annotations:
+        argocd.argoproj.io/sync-wave: "-5"
+    files:
+      - ../staging/monorepo-revision
+  - name: example-monorepo-revision
+    files:
+      - ../staging/monorepo-revision
+    options:
+      disableNameSuffixHash: true
+      annotations:
+        argocd.argoproj.io/hook: PostSync
+        argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+  - name: example-monorepo-revision-failed
+    files:
+      - ../staging/monorepo-revision
+    options:
+      disableNameSuffixHash: true
+      annotations:
+        argocd.argoproj.io/hook: SyncFail
+        argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+
+generators:
+  - secret-generator-ksops.yaml
+
+transformers:
+  - env-transformer.yaml
