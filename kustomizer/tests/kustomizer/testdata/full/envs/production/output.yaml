@@ -203,8 +203,14 @@ spec:
   template:
     spec:
       containers:
-      - name: core-server
-        env:
+      - env:
+        - name: OTEL_SERVICE_NAME
+          value: core-server
+        - name: SOURCE_VERSION
+          valueFrom:
+            configMapKeyRef:
+              name: example-monorepo-revision-sync-968cb4dfd2
+              key: monorepo-revision
         - name: CORE_SERVER__LOGGING__LEVEL_MODULES
           value: info
         - name: CORE_SERVER__LOGGING__LEVEL
@@ -261,6 +267,38 @@ spec:
           value: https://pim.example.com/support
         - name: CORE_SERVER__ORDER__REPAIRER_JOB_CHECK_LINK_BASE_URL
           value: https://repair.example.com/job/
+        envFrom:
+        - secretRef:
+            name: base-secrets-6d952f7kt7
+        - configMapRef:
+            name: base-configs-k78t7685ht
+        image: docker.io/example/core_server:f0493271df9745910c3197b6ccad437b2a068ffe
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /api/internal/system.readiness.get
+            port: http
+            scheme: HTTP
+          initialDelaySeconds: 60
+          periodSeconds: 5
+          successThreshold: 1
+          timeoutSeconds: 3
+        name: core-server
+        ports:
+        - containerPort: 7000
+          name: http
+          protocol: TCP
+        readinessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /api/internal/system.readiness.get
+            port: http
+            scheme: HTTP
+          initialDelaySeconds: 5
+          periodSeconds: 5
+          successThreshold: 1
+          timeoutSeconds: 3
         resources:
           limits:
             memory: 5Gi
@@ -392,8 +430,14 @@ spec:
   template:
     spec:
       containers:
-      - name: data-ingestor
-        env:
+      - env:
+        - name: OTEL_SERVICE_NAME
+          value: data-ingestor
+        - name: SOURCE_VERSION
+          valueFrom:
+            configMapKeyRef:
+              name: example-monorepo-revision-sync-968cb4dfd2
+              key: monorepo-revision
         - name: DATA_INGESTOR__SYSTEM__AWS_OPTIONS__S3_REGION
           value: eu-central-1
         - name: DATA_INGESTOR__SYSTEM__AWS_OPTIONS__S3_BUCKET_PUBLIC
@@ -402,6 +446,38 @@ spec:
           value: '10'
         - name: DATA_INGESTOR__SYSTEM__AWS_OPTIONS__CDN_BASE_URL
           value: https://cdn.example.com/
+        envFrom:
+        - secretRef:
+            name: base-secrets-6d952f7kt7
+        - configMapRef:
+            name: base-configs-k78t7685ht
+        image: docker.io/example/data_ingestor:dfc02e2304c61baf72122f7dd12e404b3dbbf2bd
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /api/internal/system.readiness.get
+            port: http
+            scheme: HTTP
+          initialDelaySeconds: 60
+          periodSeconds: 5
+          successThreshold: 1
+          timeoutSeconds: 3
+        name: data-ingestor
+        ports:
+        - containerPort: 7060
+          name: http
+          protocol: TCP
+        readinessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /api/internal/system.readiness.get
+            port: http
+            scheme: HTTP
+          initialDelaySeconds: 5
+          periodSeconds: 5
+          successThreshold: 1
+          timeoutSeconds: 3
         resources:
           limits:
             memory: 4Gi
@@ -466,7 +542,48 @@ spec:
   template:
     spec:
       containers:
-      - name: dataqa-api-rs
+      - env:
+        - name: OTEL_SERVICE_NAME
+          value: dataqa-api-rs
+        - name: DATAQA_API_RS__UPLOAD__AWS_OPTIONS__CDN_BASE_URL
+          value: https://cdn.example.com/
+        - name: SOURCE_VERSION
+          valueFrom:
+            configMapKeyRef:
+              name: example-monorepo-revision-sync-968cb4dfd2
+              key: monorepo-revision
+        envFrom:
+        - secretRef:
+            name: base-secrets-6d952f7kt7
+        - configMapRef:
+            name: base-configs-k78t7685ht
+        image: docker.io/example/dataqa_api_rs:db2991ff9b9b89501084979002b9f736f975a2ca
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /healthy-check
+            port: http
+            scheme: HTTP
+          initialDelaySeconds: 600
+          periodSeconds: 3
+          successThreshold: 1
+          timeoutSeconds: 1
+        name: dataqa-api-rs
+        ports:
+        - containerPort: 17575
+          name: http
+          protocol: TCP
+        readinessProbe:
+          failureThreshold: 30
+          httpGet:
+            path: /healthy-check
+            port: http
+            scheme: HTTP
+          initialDelaySeconds: 1
+          periodSeconds: 3
+          successThreshold: 1
+          timeoutSeconds: 1
         resources:
           limits:
             memory: 20Gi
@@ -716,7 +833,26 @@ spec:
   template:
     spec:
       containers:
-      - name: driftdb-server
+      - env:
+        - name: OTEL_SERVICE_NAME
+          value: driftdb-server
+        - name: SOURCE_VERSION
+          valueFrom:
+            configMapKeyRef:
+              name: example-monorepo-revision-sync-968cb4dfd2
+              key: monorepo-revision
+        envFrom:
+        - secretRef:
+            name: base-secrets-6d952f7kt7
+        - configMapRef:
+            name: base-configs-k78t7685ht
+        image: docker.io/example/driftdb_server:002a1b3824705a191b6f61e9177c4697f783bf4e
+        imagePullPolicy: IfNotPresent
+        name: driftdb-server
+        ports:
+        - containerPort: 6540
+          name: http
+          protocol: TCP
         resources:
           limits:
             memory: 4Gi
@@ -795,7 +931,50 @@ spec:
   template:
     spec:
       containers:
-      - name: elasticsearch-ingestor-high
+      - env:
+        - name: OTEL_SERVICE_NAME
+          value: elasticsearch-ingestor
+        - name: NODE_OPTIONS
+          value: --max-old-space-size=3072
+        - name: ELASTICSEARCH_INGESTOR_HIGH_PRIORITY
+          value: '1'
+        - name: SOURCE_VERSION
+          valueFrom:
+            configMapKeyRef:
+              name: example-monorepo-revision-sync-968cb4dfd2
+              key: monorepo-revision
+        envFrom:
+        - secretRef:
+            name: base-secrets-6d952f7kt7
+        - configMapRef:
+            name: base-configs-k78t7685ht
+        image: docker.io/example/elasticsearch_ingestor:2753e02a25091d9e7a3795c7aa1584a4c12298c8
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /healthy-check
+            port: http
+            scheme: HTTP
+          initialDelaySeconds: 120
+          periodSeconds: 60
+          successThreshold: 1
+          timeoutSeconds: 60
+        name: elasticsearch-ingestor-high
+        ports:
+        - containerPort: 3333
+          name: http
+          protocol: TCP
+        readinessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /healthy-check
+            port: http
+            scheme: HTTP
+          initialDelaySeconds: 120
+          periodSeconds: 60
+          successThreshold: 1
+          timeoutSeconds: 60
         resources:
           limits:
             memory: 4Gi
@@ -846,7 +1025,50 @@ spec:
   template:
     spec:
       containers:
-      - name: elasticsearch-ingestor-low
+      - env:
+        - name: OTEL_SERVICE_NAME
+          value: elasticsearch-ingestor
+        - name: NODE_OPTIONS
+          value: --max-old-space-size=1024
+        - name: ELASTICSEARCH_INGESTOR_LOW_PRIORITY
+          value: '1'
+        - name: SOURCE_VERSION
+          valueFrom:
+            configMapKeyRef:
+              name: example-monorepo-revision-sync-968cb4dfd2
+              key: monorepo-revision
+        envFrom:
+        - secretRef:
+            name: base-secrets-6d952f7kt7
+        - configMapRef:
+            name: base-configs-k78t7685ht
+        image: docker.io/example/elasticsearch_ingestor:2753e02a25091d9e7a3795c7aa1584a4c12298c8
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /healthy-check
+            port: http
+            scheme: HTTP
+          initialDelaySeconds: 120
+          periodSeconds: 60
+          successThreshold: 1
+          timeoutSeconds: 60
+        name: elasticsearch-ingestor-low
+        ports:
+        - containerPort: 3333
+          name: http
+          protocol: TCP
+        readinessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /healthy-check
+            port: http
+            scheme: HTTP
+          initialDelaySeconds: 120
+          periodSeconds: 60
+          successThreshold: 1
+          timeoutSeconds: 60
         resources:
           limits:
             memory: 2Gi
@@ -897,7 +1119,46 @@ spec:
   template:
     spec:
       containers:
-      - name: elasticsearch-ingestor-rs
+      - env:
+        - name: OTEL_SERVICE_NAME
+          value: elasticsearch-ingestor-rs
+        - name: SOURCE_VERSION
+          valueFrom:
+            configMapKeyRef:
+              name: example-monorepo-revision-sync-968cb4dfd2
+              key: monorepo-revision
+        envFrom:
+        - secretRef:
+            name: base-secrets-6d952f7kt7
+        - configMapRef:
+            name: base-configs-k78t7685ht
+        image: docker.io/example/elasticsearch_ingestor_rs:2f456dbc227292fccbd795d52ff2149dbb34a754
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /api/internal/system.liveness.get
+            port: http
+            scheme: HTTP
+          initialDelaySeconds: 6
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 5
+        name: elasticsearch-ingestor-rs
+        ports:
+        - containerPort: 4050
+          name: http
+          protocol: TCP
+        readinessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /api/internal/system.readiness.get
+            port: http
+            scheme: HTTP
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          successThreshold: 1
+          timeoutSeconds: 3
         resources:
           limits:
             memory: 4Gi
@@ -1033,7 +1294,46 @@ spec:
   template:
     spec:
       containers:
-      - name: file-ingestor
+      - env:
+        - name: OTEL_SERVICE_NAME
+          value: file-ingestor
+        - name: SOURCE_VERSION
+          valueFrom:
+            configMapKeyRef:
+              name: example-monorepo-revision-sync-968cb4dfd2
+              key: monorepo-revision
+        envFrom:
+        - secretRef:
+            name: base-secrets-6d952f7kt7
+        - configMapRef:
+            name: base-configs-k78t7685ht
+        image: docker.io/example/file_ingestor:60c1074e758347c59b325d43167327b5801063ce
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /api/internal/system.readiness.get
+            port: http
+            scheme: HTTP
+          initialDelaySeconds: 60
+          periodSeconds: 5
+          successThreshold: 1
+          timeoutSeconds: 3
+        name: file-ingestor
+        ports:
+        - containerPort: 7050
+          name: http
+          protocol: TCP
+        readinessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /api/internal/system.readiness.get
+            port: http
+            scheme: HTTP
+          initialDelaySeconds: 5
+          periodSeconds: 5
+          successThreshold: 1
+          timeoutSeconds: 3
         resources:
           limits:
             memory: 4Gi
@@ -1120,7 +1420,50 @@ spec:
   template:
     spec:
       containers:
-      - name: hca-notion-sync
+      - env:
+        - name: PORT
+          value: '9394'
+        - name: OTEL_SERVICE_NAME
+          value: hca-notion-sync
+        - name: NODE_OPTIONS
+          value: --max-old-space-size=1500
+        - name: SOURCE_VERSION
+          valueFrom:
+            configMapKeyRef:
+              name: example-monorepo-revision-sync-968cb4dfd2
+              key: monorepo-revision
+        envFrom:
+        - secretRef:
+            name: base-secrets-6d952f7kt7
+        - configMapRef:
+            name: base-configs-k78t7685ht
+        image: docker.io/example/hca_notion_sync:3699aa48811047f730e0505a6ae855f7a2f9f6fb
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /internal/system.readiness.get
+            port: http
+            scheme: HTTP
+          initialDelaySeconds: 30
+          periodSeconds: 30
+          successThreshold: 1
+          timeoutSeconds: 360
+        name: hca-notion-sync
+        ports:
+        - containerPort: 9394
+          name: http
+          protocol: TCP
+        readinessProbe:
+          failureThreshold: 5
+          httpGet:
+            path: /internal/system.readiness.get
+            port: http
+            scheme: HTTP
+          initialDelaySeconds: 30
+          periodSeconds: 30
+          successThreshold: 1
+          timeoutSeconds: 360
         resources:
           limits:
             memory: 4Gi
@@ -1171,8 +1514,22 @@ spec:
   template:
     spec:
       containers:
-      - name: lookup-scanner
-        env:
+      - env:
+        - name: OTEL_SERVICE_NAME
+          value: lookup-scanner
+        - name: LOOKUP_SCANNER__SYSTEM__MINIO_OPTIONS__ENABLE_MINIO
+          value: 'false'
+        - name: LOOKUP_SCANNER__SYSTEM__AWS_OPTIONS__S3_REGION
+          value: eu-central-1
+        - name: LOOKUP_SCANNER__SYSTEM__AWS_OPTIONS__S3_BUCKET_PUBLIC
+          value: example-cdn
+        - name: LOOKUP_SCANNER__SYSTEM__AWS_OPTIONS__CDN_BASE_URL
+          value: https://cdn.example.com/
+        - name: SOURCE_VERSION
+          valueFrom:
+            configMapKeyRef:
+              name: example-monorepo-revision-sync-968cb4dfd2
+              key: monorepo-revision
         - name: LOOKUP_SCANNER__AUTO_INHERITANCE__ENABLE
           value: 'true'
         - name: LOOKUP_SCANNER__STYLE_TRANSFER_KAFKA_CONSUMER__NUM_OF_CONSUMERS
@@ -1195,14 +1552,38 @@ spec:
           value: '0'
         - name: LOOKUP_SCANNER__INGEST_OEM_IMAGE_WORKER__KAFKA_CONSUMER_CHUNK_SIZE
           value: '30'
-        - name: LOOKUP_SCANNER__SYSTEM__MINIO_OPTIONS__ENABLE_MINIO
-          value: 'false'
-        - name: LOOKUP_SCANNER__SYSTEM__AWS_OPTIONS__S3_REGION
-          value: eu-central-1
-        - name: LOOKUP_SCANNER__SYSTEM__AWS_OPTIONS__S3_BUCKET_PUBLIC
-          value: example-cdn
-        - name: LOOKUP_SCANNER__SYSTEM__AWS_OPTIONS__CDN_BASE_URL
-          value: https://cdn.example.com/
+        envFrom:
+        - secretRef:
+            name: base-secrets-6d952f7kt7
+        - configMapRef:
+            name: base-configs-k78t7685ht
+        image: docker.io/example/lookup_scanner:71748ce3178b8666188daccb18442cf024fa1ce3
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /api/internal/system.liveness.get
+            port: http
+            scheme: HTTP
+          initialDelaySeconds: 6
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 5
+        name: lookup-scanner
+        ports:
+        - containerPort: 4030
+          name: http
+          protocol: TCP
+        readinessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /api/internal/system.readiness.get
+            port: http
+            scheme: HTTP
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          successThreshold: 1
+          timeoutSeconds: 3
         resources:
           limits:
             memory: 3Gi
@@ -1253,17 +1634,67 @@ spec:
   template:
     spec:
       containers:
-      - name: lookup-server
-        env:
+      - env:
+        - name: OTEL_SERVICE_NAME
+          value: lookup-server
+        - name: LOOKUP_SERVER__LOGGING__LEVEL
+          value: info
+        - name: SOURCE_VERSION
+          valueFrom:
+            configMapKeyRef:
+              name: example-monorepo-revision-sync-968cb4dfd2
+              key: monorepo-revision
         - name: OTEL_BSP_MAX_QUEUE_SIZE
           value: '8096'
         - name: OTEL_BSP_MAX_CONCURRENT_EXPORTS
           value: '8'
+        envFrom:
+        - secretRef:
+            name: base-secrets-6d952f7kt7
+        - configMapRef:
+            name: base-configs-k78t7685ht
+        image: docker.io/example/lookup_server:9c41919e99bb4b295ba065a48da1228ebe7267d3
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /api/status/readiness
+            port: http
+            scheme: HTTP
+          initialDelaySeconds: 120
+          periodSeconds: 3
+          successThreshold: 1
+          timeoutSeconds: 1
+        name: lookup-server
+        ports:
+        - containerPort: 4000
+          name: http
+          protocol: TCP
+        readinessProbe:
+          failureThreshold: 90
+          httpGet:
+            path: /api/status/readiness
+            port: http
+            scheme: HTTP
+          initialDelaySeconds: 1
+          periodSeconds: 3
+          successThreshold: 1
+          timeoutSeconds: 1
         resources:
           limits:
             memory: 16Gi
           requests:
             memory: 10Gi
+        startupProbe:
+          failureThreshold: 120
+          httpGet:
+            path: /api/status/readiness
+            port: http
+            scheme: HTTP
+          initialDelaySeconds: 20
+          periodSeconds: 3
+          successThreshold: 1
+          timeoutSeconds: 1
       terminationGracePeriodSeconds: 180
       imagePullSecrets:
       - name: dockerhub-example-pull
@@ -1310,7 +1741,46 @@ spec:
   template:
     spec:
       containers:
-      - name: lookup-server-cdc
+      - env:
+        - name: OTEL_SERVICE_NAME
+          value: lookup-server-cdc
+        - name: SOURCE_VERSION
+          valueFrom:
+            configMapKeyRef:
+              name: example-monorepo-revision-sync-968cb4dfd2
+              key: monorepo-revision
+        envFrom:
+        - secretRef:
+            name: base-secrets-6d952f7kt7
+        - configMapRef:
+            name: base-configs-k78t7685ht
+        image: docker.io/example/lookup_server_cdc:295bd0809eaa286649ecaeb8ca6f738c2b2ae7f8
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /api/internal/system.liveness.get
+            port: http
+            scheme: HTTP
+          initialDelaySeconds: 6
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 5
+        name: lookup-server-cdc
+        ports:
+        - containerPort: 4000
+          name: http
+          protocol: TCP
+        readinessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /api/internal/system.readiness.get
+            port: http
+            scheme: HTTP
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          successThreshold: 1
+          timeoutSeconds: 3
         resources:
           limits:
             memory: 3Gi
@@ -1634,12 +2104,141 @@ spec:
   template:
     spec:
       containers:
-      - name: ml-server
+      - args:
+        - ml_server.main:app
+        - --port
+        - '5003'
+        - --host
+        - 0.0.0.0
+        command:
+        - uvicorn
+        env:
+        - name: OTEL_SERVICE_NAME
+          value: ml-server
+        - name: ML_SERVER_LOG_LEVEL
+          valueFrom:
+            configMapKeyRef:
+              key: ML_SERVER_LOG_LEVEL
+              name: base-configs-k78t7685ht
+        - name: PYROSCOPE_INGEST_URL
+          valueFrom:
+            configMapKeyRef:
+              name: base-configs-k78t7685ht
+              key: PYROSCOPE_INGEST_URL
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: example_ENVIRONMENT
+          valueFrom:
+            configMapKeyRef:
+              key: example_ENVIRONMENT
+              name: base-configs-k78t7685ht
+        - name: GOOGLE_APPLICATION_CREDENTIALS
+          value: /var/gcp-credentials/credentials.json
+        - name: PG_DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: PG_DB_PASSWORD_MLSERVER
+              name: base-secrets-6d952f7kt7
+        - name: OPENAI_API_KEY
+          valueFrom:
+            secretKeyRef:
+              key: OPENAI_API_KEY
+              name: base-secrets-6d952f7kt7
+        - name: PG_DB_HOST
+          valueFrom:
+            configMapKeyRef:
+              key: PG_DB_HOST
+              name: base-configs-k78t7685ht
+        - name: PG_DB_PORT
+          valueFrom:
+            configMapKeyRef:
+              key: PG_DB_PORT
+              name: base-configs-k78t7685ht
+        - name: PG_DB_USERNAME
+          valueFrom:
+            configMapKeyRef:
+              key: PG_DB_USERNAME_MLSERVER
+              name: base-configs-k78t7685ht
+        - name: PG_DB_DATABASE
+          valueFrom:
+            configMapKeyRef:
+              key: PG_DB_DATABASE
+              name: base-configs-k78t7685ht
+        - name: OTEL_EXPORTER_OTLP_ENDPOINT
+          valueFrom:
+            configMapKeyRef:
+              key: OTEL_EXPORTER_OTLP_ENDPOINT
+              name: base-configs-k78t7685ht
+        - name: KAFKA_BROKER_HOST_LIST
+          valueFrom:
+            configMapKeyRef:
+              key: KAFKA_BROKER_HOST_LIST
+              name: base-configs-k78t7685ht
+        - name: S3_BUCKET_PUBLIC
+          valueFrom:
+            configMapKeyRef:
+              key: S3_BUCKET_PUBLIC
+              name: base-configs-k78t7685ht
+        - name: S3_REGION
+          valueFrom:
+            configMapKeyRef:
+              key: S3_REGION
+              name: base-configs-k78t7685ht
+        - name: S3_KEY
+          valueFrom:
+            secretKeyRef:
+              key: S3_KEY
+              name: base-secrets-6d952f7kt7
+        - name: S3_SECRET
+          valueFrom:
+            secretKeyRef:
+              key: S3_SECRET
+              name: base-secrets-6d952f7kt7
+        - name: SOURCE_VERSION
+          valueFrom:
+            configMapKeyRef:
+              name: example-monorepo-revision-sync-968cb4dfd2
+              key: monorepo-revision
+        image: docker.io/example/ml_server:74182263033c06a649e05a4a6cfb33561baa88be
+        livenessProbe:
+          failureThreshold: 5
+          httpGet:
+            path: /api/v1/liveness
+            port: http
+            scheme: HTTP
+          initialDelaySeconds: 180
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 10
+        name: ml-server
+        ports:
+        - containerPort: 5003
+          name: http
+          protocol: TCP
+        - containerPort: 9102
+          name: metrics
+          protocol: TCP
+        readinessProbe:
+          failureThreshold: 5
+          httpGet:
+            path: /api/v1/liveness
+            port: http
+            scheme: HTTP
+          initialDelaySeconds: 180
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 3
         resources:
           limits:
             memory: 8Gi
           requests:
             memory: 2Gi
+        volumeMounts:
+        - mountPath: /var/gcp-credentials
+          name: google-credentials
+          readOnly: true
       volumes:
       - name: google-credentials
         secret:
@@ -1691,12 +2290,134 @@ spec:
   template:
     spec:
       containers:
-      - name: ml-server-workers
+      - args:
+        - ml_server.workers.main:app
+        - --port
+        - '5003'
+        - --host
+        - 0.0.0.0
+        command:
+        - uvicorn
+        env:
+        - name: OTEL_SERVICE_NAME
+          value: ml-server-workers
+        - name: CDN_BASE_URL
+          value: http://cdn.example.com
+        - name: ML_SERVER_LOG_LEVEL
+          valueFrom:
+            configMapKeyRef:
+              key: ML_SERVER_LOG_LEVEL
+              name: base-configs-k78t7685ht
+        - name: example_ENVIRONMENT
+          valueFrom:
+            configMapKeyRef:
+              key: example_ENVIRONMENT
+              name: base-configs-k78t7685ht
+        - name: GOOGLE_APPLICATION_CREDENTIALS
+          value: /var/gcp-credentials/credentials.json
+        - name: PG_DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: PG_DB_PASSWORD_MLSERVER
+              name: base-secrets-6d952f7kt7
+        - name: OPENAI_API_KEY
+          valueFrom:
+            secretKeyRef:
+              key: OPENAI_API_KEY
+              name: base-secrets-6d952f7kt7
+        - name: PG_DB_HOST
+          valueFrom:
+            configMapKeyRef:
+              key: PG_DB_HOST
+              name: base-configs-k78t7685ht
+        - name: PG_DB_PORT
+          valueFrom:
+            configMapKeyRef:
+              key: PG_DB_PORT
+              name: base-configs-k78t7685ht
+        - name: PG_DB_USERNAME
+          valueFrom:
+            configMapKeyRef:
+              key: PG_DB_USERNAME_MLSERVER
+              name: base-configs-k78t7685ht
+        - name: PG_DB_DATABASE
+          valueFrom:
+            configMapKeyRef:
+              key: PG_DB_DATABASE
+              name: base-configs-k78t7685ht
+        - name: OTEL_EXPORTER_OTLP_ENDPOINT
+          valueFrom:
+            configMapKeyRef:
+              key: OTEL_EXPORTER_OTLP_ENDPOINT
+              name: base-configs-k78t7685ht
+        - name: KAFKA_BROKER_HOST_LIST
+          valueFrom:
+            configMapKeyRef:
+              key: KAFKA_BROKER_HOST_LIST
+              name: base-configs-k78t7685ht
+        - name: S3_BUCKET_PUBLIC
+          valueFrom:
+            configMapKeyRef:
+              key: S3_BUCKET_PUBLIC
+              name: base-configs-k78t7685ht
+        - name: S3_REGION
+          valueFrom:
+            configMapKeyRef:
+              key: S3_REGION
+              name: base-configs-k78t7685ht
+        - name: S3_KEY
+          valueFrom:
+            secretKeyRef:
+              key: S3_KEY
+              name: base-secrets-6d952f7kt7
+        - name: S3_SECRET
+          valueFrom:
+            secretKeyRef:
+              key: S3_SECRET
+              name: base-secrets-6d952f7kt7
+        - name: SOURCE_VERSION
+          valueFrom:
+            configMapKeyRef:
+              name: example-monorepo-revision-sync-968cb4dfd2
+              key: monorepo-revision
+        image: docker.io/example/ml_server:74182263033c06a649e05a4a6cfb33561baa88be
+        livenessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /api/v1/liveness
+            port: http
+            scheme: HTTP
+          initialDelaySeconds: 180
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 20
+        name: ml-server-workers
+        ports:
+        - containerPort: 5003
+          name: http
+          protocol: TCP
+        - containerPort: 9102
+          name: metrics
+          protocol: TCP
+        readinessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /api/v1/liveness
+            port: http
+            scheme: HTTP
+          initialDelaySeconds: 180
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 6
         resources:
           limits:
             memory: 8Gi
           requests:
             memory: 2Gi
+        volumeMounts:
+        - mountPath: /var/gcp-credentials
+          name: google-credentials
+          readOnly: true
       volumes:
       - name: google-credentials
         secret:
@@ -1840,7 +2561,73 @@ spec:
   template:
     spec:
       containers:
-      - name: node
+      - env:
+        - name: OTEL_SERVICE_NAME
+          value: node-api
+        - name: PG_DB_HOST
+          valueFrom:
+            configMapKeyRef:
+              key: PG_DB_BOUNCER_HOST
+              name: base-configs-k78t7685ht
+        - name: PRISMA_DB_URL
+          value: postgresql://$(PG_DB_USERNAME_NODE_API):$(PG_DB_PASSWORD_NODE_API)@$(PG_DB_HOST):$(PG_DB_PORT)/$(PG_DB_DATABASE)?schema=example&application_name=node-api&connection_limit=100&pool_timeout=120&pgbouncer=true
+        - name: NODE_OPTIONS
+          value: --max-old-space-size=3072
+        - name: APOLLO_SERVER_PLATFORM
+          value: kubernetes
+        - name: APOLLO_SERVER_ID
+          valueFrom:
+            fieldRef:
+              apiVersion: v1
+              fieldPath: metadata.name
+        - name: APOLLO_SERVER_USER_VERSION
+          value: latest
+        - name: APOLLO_GRAPH_REF
+          value: example-core@prod
+        - name: SOURCE_VERSION
+          valueFrom:
+            configMapKeyRef:
+              name: example-monorepo-revision-sync-968cb4dfd2
+              key: monorepo-revision
+        envFrom:
+        - secretRef:
+            name: base-secrets-6d952f7kt7
+        - configMapRef:
+            name: base-configs-k78t7685ht
+        image: docker.io/example/api:174c80d5ccfebab986f4571edc27ab033d41898e
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /node-api/healthy-check
+            port: http
+            scheme: HTTP
+          initialDelaySeconds: 180
+          periodSeconds: 20
+          successThreshold: 1
+          timeoutSeconds: 7
+        name: node
+        ports:
+        - containerPort: 3000
+          name: http
+          protocol: TCP
+        readinessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /node-api/healthy-check
+            port: http
+            scheme: HTTP
+          initialDelaySeconds: 30
+          periodSeconds: 5
+          successThreshold: 1
+          timeoutSeconds: 3
+        resources:
+          limits:
+            cpu: 500m
+            memory: 3Gi
+          requests:
+            cpu: 100m
+            memory: 800Mi
       imagePullSecrets:
       - name: dockerhub-example-pull
     metadata:
@@ -2269,11 +3056,43 @@ spec:
   template:
     spec:
       containers:
-      - name: repair-jobs-feed-integration
+      - env:
+        - name: OTEL_SERVICE_NAME
+          value: repair-jobs-feed-integration
+        - name: repair_jobs_feed_integration__LOGGING__LEVEL
+          value: info
+        - name: SOURCE_VERSION
+          valueFrom:
+            configMapKeyRef:
+              name: example-monorepo-revision-sync-968cb4dfd2
+              key: monorepo-revision
+        envFrom:
+        - secretRef:
+            name: base-secrets-6d952f7kt7
+        - configMapRef:
+            name: base-configs-k78t7685ht
+        image: docker.io/example/repair_jobs_feed_integration:8c3e40d2fa03c59753a17a29a198937a8915d618
+        imagePullPolicy: IfNotPresent
+        name: repair-jobs-feed-integration
+        ports:
+        - containerPort: 4111
+          name: http
+          protocol: TCP
+        readinessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /api/internal/system.readiness.get
+            port: http
+            scheme: HTTP
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          successThreshold: 1
+          timeoutSeconds: 3
         resources:
           limits:
             memory: 4Gi
           requests:
+            cpu: 50m
             memory: 2Gi
       imagePullSecrets:
       - name: dockerhub-example-pull
@@ -2351,15 +3170,7 @@ spec:
         app.kubernetes.io/name: repairer-server
     spec:
       containers:
-      - name: repairer-server
-        envFrom:
-        - configMapRef:
-            name: repairer-base-configs
-        - secretRef:
-            name: repairer-base-secrets
-        - secretRef:
-            name: body-secret
-        env:
+      - env:
         - name: OTEL_SERVICE_NAME
           value: repairer-server
         - name: OTEL_TRACES_SAMPLER_ARG
@@ -2390,6 +3201,50 @@ spec:
           value: https://app.example.com/auth/confirm
         - name: REPAIRER_SERVER__EMAIL__BASE_URLS__LOGIN_URL
           value: https://pim.example.com/auth/sign-in
+        envFrom:
+        - configMapRef:
+            name: repairer-base-configs
+        - secretRef:
+            name: repairer-base-secrets
+        - secretRef:
+            name: body-secret
+        image: docker.io/example/repairer_server:62e956442ceec747e04c59cd7ef01d42dc1b0c6e
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /healthz
+            port: http
+            scheme: HTTP
+          initialDelaySeconds: 5
+          periodSeconds: 3
+          successThreshold: 1
+          timeoutSeconds: 1
+        name: repairer-server
+        ports:
+        - containerPort: 7172
+          name: http
+          protocol: TCP
+        readinessProbe:
+          failureThreshold: 30
+          httpGet:
+            path: /healthz
+            port: http
+            scheme: HTTP
+          initialDelaySeconds: 5
+          periodSeconds: 3
+          successThreshold: 1
+          timeoutSeconds: 1
+        resources: {}
+        startupProbe:
+          failureThreshold: 30
+          httpGet:
+            path: /healthz
+            port: http
+            scheme: HTTP
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 1
       imagePullSecrets:
       - name: dockerhub-example-pull
       terminationGracePeriodSeconds: 30
@@ -2583,12 +3438,55 @@ spec:
   template:
     spec:
       containers:
-      - name: shopify-integration2
-        env:
+      - env:
+        - name: OTEL_SERVICE_NAME
+          value: shopify-integration2
+        - name: shopify_integration2__LOGGING__LEVEL
+          value: info
+        - name: SHOPIFY_INTEGRATION2_BASE_URL
+          value: https://shopify-integration.integrations.example.com
+        - name: SHOPIFY_INTEGRATION_SCEHMA_ID
+          value: SHOPIFY_2
+        - name: SHOPIFY_INTEGRATION_ENABLE_WEBHOOKS
+          value: 'true'
+        - name: SHOPIFY_INTEGRATION__KAFKA__SELLABLE_PARTITIONS
+          value: '10'
+        - name: SHOPIFY_INTEGRATION__KAFKA__RETRY_PARTITIONS
+          value: '1'
+        - name: SHOPIFY_INTEGRATION__KAFKA__NOTIFICATION_BATCH_SIZE
+          value: '50'
+        - name: SOURCE_VERSION
+          valueFrom:
+            configMapKeyRef:
+              name: example-monorepo-revision-sync-968cb4dfd2
+              key: monorepo-revision
         - name: SHOPIFY_INTEGRATION__KAFKA__RETRY_DELAY_SECONDS
           value: '3600'
+        envFrom:
+        - secretRef:
+            name: base-secrets-6d952f7kt7
+        - configMapRef:
+            name: base-configs-k78t7685ht
+        image: docker.io/example/shopify_integration2:6b90caf2ae1bd85cbbfcf11b1de9617251fb1ceb
+        imagePullPolicy: IfNotPresent
+        name: shopify-integration2
+        ports:
+        - containerPort: 4011
+          name: http
+          protocol: TCP
+        readinessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /api/internal/system.readiness.get
+            port: http
+            scheme: HTTP
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          successThreshold: 1
+          timeoutSeconds: 3
         resources:
           limits:
+            cpu: 1500m
             memory: 4Gi
           requests:
             cpu: 50m
@@ -2666,7 +3564,57 @@ spec:
   template:
     spec:
       containers:
-      - name: subscription-updater
+      - env:
+        - name: OTEL_SERVICE_NAME
+          value: subscription-updater
+        - name: NODE_OPTIONS
+          value: --max-old-space-size=1024
+        - name: APOLLO_SERVER_PLATFORM
+          value: kubernetes
+        - name: APOLLO_SERVER_ID
+          valueFrom:
+            fieldRef:
+              apiVersion: v1
+              fieldPath: metadata.name
+        - name: APOLLO_SERVER_USER_VERSION
+          value: latest
+        - name: SOURCE_VERSION
+          valueFrom:
+            configMapKeyRef:
+              name: example-monorepo-revision-sync-968cb4dfd2
+              key: monorepo-revision
+        envFrom:
+        - secretRef:
+            name: base-secrets-6d952f7kt7
+        - configMapRef:
+            name: base-configs-k78t7685ht
+        image: docker.io/example/subscription_updater:18c9229bc91013682f2de1847ecc4788cfd8ce55
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /healthy-check
+            port: http
+            scheme: HTTP
+          initialDelaySeconds: 180
+          periodSeconds: 20
+          successThreshold: 1
+          timeoutSeconds: 7
+        name: subscription-updater
+        ports:
+        - containerPort: 4000
+          name: http
+          protocol: TCP
+        readinessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /healthy-check
+            port: http
+            scheme: HTTP
+          initialDelaySeconds: 30
+          periodSeconds: 5
+          successThreshold: 1
+          timeoutSeconds: 3
         resources:
           requests:
             memory: 400Mi
@@ -2715,12 +3663,53 @@ spec:
   template:
     spec:
       containers:
-      - name: vrm-search
+      - env:
+        - name: OTEL_SERVICE_NAME
+          value: vrm-search
+        - name: NODE_OPTIONS
+          value: --max-old-space-size=768
+        - name: SOURCE_VERSION
+          valueFrom:
+            configMapKeyRef:
+              name: example-monorepo-revision-sync-968cb4dfd2
+              key: monorepo-revision
+        envFrom:
+        - secretRef:
+            name: base-secrets-6d952f7kt7
+        - configMapRef:
+            name: base-configs-k78t7685ht
+        image: docker.io/example/vrm_search:34ccde7452c82f3d7cb3fd3a1fe2853b3c31fcf7
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /healthy-check
+            port: http
+            scheme: HTTP
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 5
+        name: vrm-search
+        ports:
+        - containerPort: 3003
+          name: http
+          protocol: TCP
+        readinessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /healthy-check
+            port: http
+            scheme: HTTP
+          initialDelaySeconds: 30
+          periodSeconds: 5
+          successThreshold: 1
+          timeoutSeconds: 3
         resources:
-          requests:
-            memory: 1Gi
           limits:
             memory: 2Gi
+          requests:
+            memory: 1Gi
       imagePullSecrets:
       - name: dockerhub-example-pull
     metadata:
@@ -2766,12 +3755,53 @@ spec:
   template:
     spec:
       containers:
-      - name: webhooks-notifier
+      - env:
+        - name: OTEL_SERVICE_NAME
+          value: webhooks-notifier
+        - name: WEBHOOKS_NOTIFIER__LOGGING__LEVEL
+          value: info
+        - name: SOURCE_VERSION
+          valueFrom:
+            configMapKeyRef:
+              name: example-monorepo-revision-sync-968cb4dfd2
+              key: monorepo-revision
+        envFrom:
+        - secretRef:
+            name: base-secrets-6d952f7kt7
+        - configMapRef:
+            name: base-configs-k78t7685ht
+        image: docker.io/example/webhooks_notifier:0ade6c259184bcc263234e6d3dec5119c20222b5
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /api/status/readiness
+            port: http
+            scheme: HTTP
+          initialDelaySeconds: 6
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 5
+        name: webhooks-notifier
+        ports:
+        - containerPort: 4200
+          name: http
+          protocol: TCP
+        readinessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /api/status/readiness
+            port: http
+            scheme: HTTP
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          successThreshold: 1
+          timeoutSeconds: 3
         resources:
-          requests:
-            memory: 2Gi
           limits:
             memory: 6Gi
+          requests:
+            memory: 2Gi
       imagePullSecrets:
       - name: dockerhub-example-pull
     metadata:

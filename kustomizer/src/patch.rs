@@ -51,25 +51,44 @@ fn merge_obj(base: &mut Object, patch: Object, schema: Option<&ObjectType>) -> a
 }
 
 fn merge_array(
-    base: &mut Vec<Value>,
-    patch: Vec<Value>,
+    bases: &mut Vec<Value>,
+    patches: Vec<Value>,
     schema: Option<&ArrayType>,
 ) -> anyhow::Result<()> {
     match schema {
-        Some(schema) => {
-            if matches!(schema.patch_strategy, Some(PatchStrategy::Merge)) {
-                panic!("Replace strategy not implemented yet");
-                base.extend(patch)
-            } else {
-                *base = patch
+        Some(schema) => match schema.list_map_keys.as_deref() {
+            Some(keys) => {
+                for patch in patches {
+                    if let Some(pos) = bases.iter().position(|base| {
+                        keys.iter()
+                            .all(|key| base.get(key.as_str()) == patch.get(key.as_str()))
+                    }) {
+                        merge(&mut bases[pos], patch, Some(&schema.items))?;
+                    } else {
+                        bases.push(patch);
+                    }
+                }
             }
-        }
-        _ => *base = patch,
+            None => {
+                if schema.patch_strategy == Some(PatchStrategy::Merge)
+                    && schema.list_type.is_none_or(|t| t != ListType::Atomic)
+                {
+                    bases.extend(patches)
+                } else {
+                    *bases = patches
+                }
+            }
+        },
+        _ => *bases = patches,
     }
     Ok(())
 }
 
-fn merge(base: &mut Value, patch: Value, schema: Option<&InlineOrRef<Type>>) -> anyhow::Result<()> {
+fn merge(
+    base: &mut Value,
+    patch: Value,
+    schema: Option<&InlineOrRef<Box<Type>>>,
+) -> anyhow::Result<()> {
     let schema = schema.map(|s| Spec::load().resolve(s));
     match (base, patch) {
         (Value::Object(base), Value::Object(patch)) => match schema {
