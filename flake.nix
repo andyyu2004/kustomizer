@@ -19,6 +19,11 @@
 
           cargoLock = {
             lockFile = ./Cargo.lock;
+            outputHashes = {
+              # Weird issue with git dependencies
+              # https://artemis.sh/2023/07/08/nix-rust-project-with-git-dependencies.html
+              "serde_json-1.0.142" = "sha256-ToBU7gGWhZGvBqde6XSIyFC4bYynhe9Ql32mYAYQ/3s=";
+            };
           };
 
           buildInputs = [ ];
