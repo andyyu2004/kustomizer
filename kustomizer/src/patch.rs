@@ -2,7 +2,10 @@ use serde_json::{Value, map::Entry};
 
 use crate::resource::{Object, Resource};
 
-use self::openapi::v2::{ObjectSchema, Schema};
+use self::openapi::v2::{
+    ArrayType, InlineOrRef, ObjectType, Schema, Spec,
+    Type::{self},
+};
 
 pub mod openapi;
 
@@ -22,7 +25,7 @@ pub enum ListType {
 }
 
 pub fn patch(base: &mut Resource, patch: Resource) -> anyhow::Result<()> {
-    let spec = openapi::v2::Spec::load();
+    let spec = Spec::load();
     let schema = spec.schema_for(base.gvk());
     let (_patch_id, mut patch_root) = patch.into_parts();
 
@@ -34,26 +37,39 @@ pub fn patch(base: &mut Resource, patch: Resource) -> anyhow::Result<()> {
     Ok(())
 }
 
-fn merge_obj(
-    base: &mut Object,
-    patch: Object,
-    schema: Option<&ObjectSchema>,
-) -> anyhow::Result<()> {
+fn merge_obj(base: &mut Object, patch: Object, schema: Option<&ObjectType>) -> anyhow::Result<()> {
     for (key, value) in patch {
         match base.entry(key) {
             Entry::Vacant(entry) => drop(entry.insert(value)),
             Entry::Occupied(entry) => {
                 let subschema = schema.and_then(|s| s.properties.get(entry.key()));
-                merge(entry.into_mut(), value, None)?
+                merge(entry.into_mut(), value, subschema)?
             }
         }
     }
     Ok(())
 }
 
-fn merge(base: &mut Value, patch: Value, schema: Option<&Schema>) -> anyhow::Result<()> {
+fn merge_array(
+    base: &mut Vec<Value>,
+    patch: Vec<Value>,
+    _schema: Option<&ArrayType>,
+) -> anyhow::Result<()> {
+    base.extend(patch);
+    Ok(())
+}
+
+fn merge(base: &mut Value, patch: Value, schema: Option<&InlineOrRef<Type>>) -> anyhow::Result<()> {
+    let schema = schema.and_then(|s| Spec::load().resolve(s));
     match (base, patch) {
-        (Value::Object(base), Value::Object(patch)) => merge_obj(base, patch, None)?,
+        (Value::Object(base), Value::Object(patch)) => match schema {
+            Some(Type::Object(schema)) => merge_obj(base, patch, Some(schema))?,
+            _ => merge_obj(base, patch, None)?,
+        },
+        (Value::Array(base), Value::Array(patch)) => match schema {
+            Some(Type::Array(schema)) => merge_array(base, patch, Some(schema))?,
+            _ => merge_array(base, patch, None)?,
+        },
         (base, patch) => *base = patch,
     }
 
