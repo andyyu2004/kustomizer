@@ -26,8 +26,7 @@
             };
           };
 
-          buildInputs = [ ];
-          nativeBuildInputs = [ ];
+          doCheck = false;
 
           meta = with pkgs.lib; {
             description = "Faster rust port of kustomize";
