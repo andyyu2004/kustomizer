@@ -9,6 +9,14 @@ struct Args {
     command: Command,
     #[clap(long, short, default_value_t = false)]
     verbose: bool,
+
+    // Ignored, here for compatibility with kustomize CLI
+    #[clap(long, default_value = "")]
+    load_restrictor: String,
+    #[clap(long, default_value_t = false)]
+    enable_alpha_plugins: bool,
+    #[clap(long, default_value_t = false)]
+    enable_exec: bool,
 }
 
 #[derive(Parser)]
