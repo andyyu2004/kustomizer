@@ -5,7 +5,7 @@ use dashmap::DashMap;
 
 use crate::{
     Located, PathExt, PathId,
-    manifest::{Manifest, Patch},
+    manifest::{Manifest, Patch, Target},
     resmap::ResourceMap,
     resource::{GvkMatcher, Resource},
 };
@@ -41,12 +41,40 @@ impl<'a, A, K> PatchTransformer<'a, A, K> {
             }
         }
     }
+
+    fn apply_strategic_merge_patch(
+        &self,
+        resource: &mut Resource,
+        patch: Resource,
+        target: &Option<Target>,
+    ) -> anyhow::Result<()> {
+        let gvk = patch.gvk();
+        match target {
+            Some(target) => {
+                if !target.matches(resource) {
+                    return Ok(());
+                }
+            }
+            None => {
+                // If no target is specified, match the patch gvk/name against the resource
+                let matcher = GvkMatcher {
+                    group: gvk.group.clone(),
+                    version: gvk.version.clone(),
+                    kind: gvk.kind.clone(),
+                };
+                if !matcher.matches(resource.gvk()) || patch.name() != resource.name() {
+                    return Ok(());
+                }
+            }
+        }
+
+        resource.patch(patch.clone())
+    }
 }
 
 impl<A: Send + Sync, K: Send + Sync> Transformer for PatchTransformer<'_, A, K> {
     #[tracing::instrument(skip_all, name = "patch_transform")]
     async fn transform(&mut self, resources: &mut ResourceMap) -> anyhow::Result<()> {
-        // We don't know what the patches will do, it may patch identity fields.
         let mut out = ResourceMap::with_capacity(resources.len());
         for mut resource in std::mem::take(resources) {
             let id = resource.id().clone();
@@ -61,43 +89,27 @@ impl<A: Send + Sync, K: Send + Sync> Transformer for PatchTransformer<'_, A, K> 
                             .with_context(|| format!("applying JSON patch to resource `{id}`"))?;
                     }
                     Patch::StrategicMerge { patch, target } => {
-                        let _ = (patch, target);
-                        todo!("inline strategic merge")
+                        self.apply_strategic_merge_patch(&mut resource, patch.clone(), target)
+                            .with_context(|| {
+                                format!(
+                                    "applying strategic merge patch to resource `{}`",
+                                    resource.id()
+                                )
+                            })?;
                     }
                     Patch::OutOfLine { path, target } => {
                         let path = PathId::make(self.manifest.parent_path.join(path))?;
                         let patch = Resource::load(path);
 
                         if let Ok(patch) = patch {
-                            let gvk = patch.gvk();
-                            let matcher = GvkMatcher {
-                                group: gvk.group.clone(),
-                                version: gvk.version.clone(),
-                                kind: gvk.kind.clone(),
-                            };
-                            match target {
-                                Some(target) => {
-                                    if !target.matches(&resource) {
-                                        continue;
-                                    }
-                                }
-                                None => {
-                                    // If no target is specified, match the patch gvk/name against the resource
-                                    if !matcher.matches(resource.gvk())
-                                        || patch.name() != resource.name()
-                                    {
-                                        continue;
-                                    }
-                                }
-                            }
-
-                            resource.patch(patch.clone()).with_context(|| {
-                                format!(
-                                    "applying strategic merge patch from `{}` to resource `{}`",
-                                    path.pretty(),
-                                    resource.id()
-                                )
-                            })?;
+                            self.apply_strategic_merge_patch(&mut resource, patch, target)
+                                .with_context(|| {
+                                    format!(
+                                        "applying strategic merge patch from `{}` to resource `{}`",
+                                        path.pretty(),
+                                        resource.id()
+                                    )
+                                })?;
                         } else {
                             let target = target.as_ref().ok_or_else(|| {
                                 anyhow::anyhow!(
