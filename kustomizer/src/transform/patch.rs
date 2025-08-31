@@ -1,7 +1,9 @@
+use std::{collections::HashMap, fs::File};
+
 use anyhow::Context as _;
 
 use crate::{
-    Located, PathExt,
+    Located, PathExt, PathId,
     manifest::{Manifest, Patch},
     resmap::ResourceMap,
     resource::{GvkMatcher, Resource},
@@ -13,6 +15,8 @@ use json_patch::Patch as JsonPatch;
 pub struct PatchTransformer<'a, A, K> {
     manifest: &'a Located<Manifest<A, K>>,
     patches: &'a [Patch],
+    res_cache: HashMap<PathId, Resource>,
+    patch_cache: HashMap<PathId, JsonPatch>,
 }
 
 impl<'a, A, K> PatchTransformer<'a, A, K> {
@@ -20,6 +24,33 @@ impl<'a, A, K> PatchTransformer<'a, A, K> {
         Self {
             patches: &manifest.patches,
             manifest,
+            res_cache: Default::default(),
+            patch_cache: Default::default(),
+        }
+    }
+
+    fn load_resource(&mut self, path: PathId) -> anyhow::Result<&Resource> {
+        match self.res_cache.entry(path) {
+            std::collections::hash_map::Entry::Occupied(e) => Ok(e.into_mut()),
+            std::collections::hash_map::Entry::Vacant(e) => {
+                let resource = Resource::load(path)
+                    .with_context(|| format!("loading resource from path `{}`", path.pretty()))?;
+                Ok(e.insert(resource))
+            }
+        }
+    }
+
+    fn load_json_patch(&self, path: PathId) -> anyhow::Result<JsonPatch> {
+        match self.patch_cache.get(&path) {
+            Some(patch) => Ok(patch.clone()),
+            None => {
+                let file = File::open(path).with_context(|| {
+                    format!("opening JSON patch file at path `{}`", path.pretty())
+                })?;
+                let patch = serde_yaml::from_reader::<_, JsonPatch>(file)
+                    .with_context(|| format!("parsing JSON patch from file `{}`", path.pretty()))?;
+                Ok(patch)
+            }
         }
     }
 }
@@ -46,10 +77,8 @@ impl<A: Send + Sync, K: Send + Sync> Transformer for PatchTransformer<'_, A, K> 
                         todo!("inline strategic merge")
                     }
                     Patch::OutOfLine { path, target } => {
-                        let path = self.manifest.parent_path.join(path);
-                        let patch = Resource::load(&path).with_context(|| {
-                            format!("loading resource from path `{}`", path.pretty())
-                        });
+                        let path = PathId::make(self.manifest.parent_path.join(path))?;
+                        let patch = self.load_resource(path);
 
                         if let Ok(patch) = patch {
                             let gvk = patch.gvk();
@@ -74,7 +103,7 @@ impl<A: Send + Sync, K: Send + Sync> Transformer for PatchTransformer<'_, A, K> 
                                 }
                             }
 
-                            resource.patch(patch).with_context(|| {
+                            resource.patch(patch.clone()).with_context(|| {
                                 format!(
                                     "applying strategic merge patch from `{}` to resource `{}`",
                                     path.pretty(),
@@ -93,15 +122,7 @@ impl<A: Send + Sync, K: Send + Sync> Transformer for PatchTransformer<'_, A, K> 
                                 continue;
                             }
 
-                            let file = std::fs::File::open(&path).with_context(|| {
-                                format!("opening JSON patch file at path `{}`", path.pretty())
-                            })?;
-
-                            // TODO avoid reading the file multiple times
-                            let patch = serde_yaml::from_reader::<_, JsonPatch>(file)
-                                .with_context(|| {
-                                    format!("parsing JSON patch from file `{}`", path.pretty())
-                                })?;
+                            let patch = self.load_json_patch(path)?;
                             resource = json_patch(resource, &patch)?;
                         }
                     }
