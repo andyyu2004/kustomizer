@@ -23,7 +23,7 @@ impl ReplicaTransformer {
 }
 
 impl Transformer for ReplicaTransformer {
-    #[tracing::instrument(skip_all)]
+    #[tracing::instrument(skip_all, name = "replica_transform")]
     async fn transform(
         &mut self,
         resources: &mut crate::resmap::ResourceMap,

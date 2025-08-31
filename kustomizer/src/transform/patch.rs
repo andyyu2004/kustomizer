@@ -25,7 +25,7 @@ impl<'a, A, K> PatchTransformer<'a, A, K> {
 }
 
 impl<A: Send + Sync, K: Send + Sync> Transformer for PatchTransformer<'_, A, K> {
-    #[tracing::instrument(skip_all)]
+    #[tracing::instrument(skip_all, name = "patch_transform")]
     async fn transform(&mut self, resources: &mut ResourceMap) -> anyhow::Result<()> {
         // We don't know what the patches will do, it may patch identity fields.
         let mut out = ResourceMap::with_capacity(resources.len());

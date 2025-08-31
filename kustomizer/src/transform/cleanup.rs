@@ -6,7 +6,7 @@ use super::Transformer;
 pub struct CleanupTransformer(());
 
 impl Transformer for CleanupTransformer {
-    #[tracing::instrument(skip_all)]
+    #[tracing::instrument(skip_all, name = "cleanup_transform")]
     async fn transform(&mut self, resources: &mut ResourceMap) -> anyhow::Result<()> {
         for resource in resources.iter_mut() {
             resource.metadata_mut().clear_internal_fields();
