@@ -1,12 +1,11 @@
 use std::{
+    collections::HashMap,
     hash::{Hash, Hasher},
     io,
     ops::Deref,
     path::Path,
-    sync::LazyLock,
+    sync::{LazyLock, Mutex},
 };
-
-use dashmap::DashMap;
 
 #[derive(Debug, Clone, Copy)]
 pub struct PathId(&'static Path);
@@ -47,27 +46,26 @@ impl Hash for PathId {
     }
 }
 
-static INTERNER: LazyLock<DashMap<&'static Path, PathId>> = LazyLock::new(Default::default);
+static INTERNER: LazyLock<Mutex<HashMap<&'static Path, PathId>>> = LazyLock::new(Default::default);
 
 impl PathId {
     pub fn make(path: impl AsRef<Path>) -> io::Result<Self> {
         let path = path.as_ref();
-        if let Some(id) = INTERNER.get(path) {
+        let mut interner = INTERNER.lock().unwrap();
+        if let Some(id) = interner.get(path) {
             return Ok(*id);
         }
 
         let path = path.canonicalize()?;
-        if let Some(id) = INTERNER.get(path.as_path()) {
+        if let Some(id) = interner.get(path.as_path()) {
             return Ok(*id);
         }
 
         let static_path = Box::leak(path.into_boxed_path());
         let id = PathId(static_path);
-        // This is not a fully thread-safe implementation, if this actually happens in practice we
-        // catch with the assertion below.
         assert!(
-            INTERNER.insert(static_path, id).is_none(),
-            "PathId already exists in the interner"
+            interner.insert(static_path, id).is_none(),
+            "PathId already exists in the interner?"
         );
 
         Ok(id)
