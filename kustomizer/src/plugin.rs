@@ -24,15 +24,19 @@ impl FunctionPlugin {
         input: &ResourceList,
     ) -> anyhow::Result<ResourceList> {
         let mut proc = match self.spec() {
-            FunctionSpec::Exec(spec) => tokio::process::Command::new(&spec.path)
-                .args(&spec.args)
-                .envs(&spec.env)
-                .stdin(Stdio::piped())
-                .stdout(Stdio::piped())
-                .stderr(Stdio::piped())
-                .current_dir(workdir)
-                .spawn()
-                .with_context(|| format!("spawn function command at `{}`", spec.path.display()))?,
+            FunctionSpec::Exec(spec) => {
+                let mut cmd = tokio::process::Command::new(&spec.path);
+                cmd.args(&spec.args)
+                    .envs(&spec.env)
+                    .stdin(Stdio::piped())
+                    .stdout(Stdio::piped())
+                    .stderr(Stdio::piped())
+                    .current_dir(workdir);
+                tracing::info!(cmd = ?cmd.as_std(), "spawning function");
+                cmd.spawn().with_context(|| {
+                    format!("spawn function command at `{}`", spec.path.display())
+                })?
+            }
             FunctionSpec::Container(_spec) => {
                 anyhow::bail!("Container functions are not supported yet")
             }
