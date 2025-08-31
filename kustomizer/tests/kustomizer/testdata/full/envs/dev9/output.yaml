@@ -3744,12 +3744,12 @@ spec:
         - configMapRef:
             name: base-configs-m228kf585k
         - configMapRef:
-            name: external-job-integration-t74684c65d
+            name: external-job-integration-9btb7f5kh2
         - secretRef:
             name: base-secrets-62htgm2m82
         - secretRef:
             name: audatex-secrets
-        image: docker.io/example/repairer_server:188c51171c179f2fb55e30b0a369697e175c499e
+        image: docker.io/example/external_job_integration:32c6f9185cd0b2ce711a92fdac2ba1fc14856895
         imagePullPolicy: IfNotPresent
         name: external-job-integration
         ports:
@@ -3785,6 +3785,39 @@ spec:
   selector:
     app.kubernetes.io/name: example-external-job-integration
 ---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: example-external-job-integration
+  namespace: example-dev9
+  labels:
+    app.kubernetes.io/name: example-external-job-integration
+    app.kubernetes.io/instance: example-dev9
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    nginx.ingress.kubernetes.io/enable-cors: 'true'
+    nginx.ingress.kubernetes.io/cors-allow-credentials: 'true'
+    nginx.ingress.kubernetes.io/cors-allow-methods: GET,OPTIONS,POST,PUT,DELETE
+    nginx.ingress.kubernetes.io/cors-allow-origin: '*'
+    nginx.ingress.kubernetes.io/cors-allow-headers: Accept,Authorization,Cache-Control,Content-Type,DNT,If-Modified-Since,Keep-Alive,Origin,User-Agent,X-Requested-With,x-agx-device-type,x-agx-device-id,x-agx-guest-token,x-agx-store-alias,x-api-key,x-ga-client-id,example-store-id,example-graphql-operation,example-accept-currency,example-organization-id,example-storefront-key,example-uvdb-region-id,baggage,Sentry-Trace,traceparent
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: external-job-integration.dev9.example.pro
+    http:
+      paths:
+      - backend:
+          service:
+            name: example-external-job-integration
+            port:
+              number: 80
+        path: /
+        pathType: ImplementationSpecific
+  tls:
+  - hosts:
+    - external-job-integration.dev9.example.pro
+    secretName: external-job-integration-ingress-tls
+---
 apiVersion: v1
 kind: Secret
 metadata:
@@ -3801,14 +3834,14 @@ stringData:
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: external-job-integration-t74684c65d
+  name: external-job-integration-9btb7f5kh2
   namespace: example-dev9
   labels:
     app.kubernetes.io/name: example-external-job-integration
     app.kubernetes.io/instance: example-dev9
 data:
-  STEER_ORG_ID: 0caceb05-0b06-6000-811d-6a0e152ff190
-  STEER_REPAIRER_ID: d70fa182-bec6-4494-959b-bc57ffedc191
+  STEER_ORG_ID: 3085ccb6-079b-4bbc-b0bc-f853f2735ea0
+  STEER_REPAIRER_ID: f10751c7-477f-4312-81bf-3c76a26c2ce7
   AUDATEX_CORE_EMAIL: evan+audatexscript@example.com
   AUDATEX_USERNAME: audatex
 ---

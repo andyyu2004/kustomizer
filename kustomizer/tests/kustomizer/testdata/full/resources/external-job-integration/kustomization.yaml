@@ -4,10 +4,13 @@ labels:
   - includeSelectors: true
     pairs:
       app.kubernetes.io/name: example-external-job-integration
+
 resources:
   - external-job-integration-deployment.yaml
   - external-job-integration-service.yaml
+  - external-job-integration-ingress.yaml
   - audatex-secret.yaml
+
 configMapGenerator:
   - name: external-job-integration
     envs:
