@@ -3,7 +3,7 @@ use serde_json::{Value, map::Entry};
 use crate::resource::{Object, Resource};
 
 use self::openapi::v2::{
-    ArrayType, InlineOrRef, ObjectType, Schema, Spec,
+    ArrayType, InlineOrRef, ObjectType, Spec,
     Type::{self},
 };
 
@@ -53,14 +53,24 @@ fn merge_obj(base: &mut Object, patch: Object, schema: Option<&ObjectType>) -> a
 fn merge_array(
     base: &mut Vec<Value>,
     patch: Vec<Value>,
-    _schema: Option<&ArrayType>,
+    schema: Option<&ArrayType>,
 ) -> anyhow::Result<()> {
-    base.extend(patch);
+    match schema {
+        Some(schema) => {
+            if matches!(schema.patch_strategy, Some(PatchStrategy::Merge)) {
+                panic!("Replace strategy not implemented yet");
+                base.extend(patch)
+            } else {
+                *base = patch
+            }
+        }
+        _ => *base = patch,
+    }
     Ok(())
 }
 
 fn merge(base: &mut Value, patch: Value, schema: Option<&InlineOrRef<Type>>) -> anyhow::Result<()> {
-    let schema = schema.and_then(|s| Spec::load().resolve(s));
+    let schema = schema.map(|s| Spec::load().resolve(s));
     match (base, patch) {
         (Value::Object(base), Value::Object(patch)) => match schema {
             Some(Type::Object(schema)) => merge_obj(base, patch, Some(schema))?,
