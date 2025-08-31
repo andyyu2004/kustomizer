@@ -1,0 +1,45 @@
+name: 'Setup Nix and Rust Environment'
+description: 'Sets up Nix, direnv, and Rust caching for consistent development environment'
+runs:
+  using: 'composite'
+  steps:
+    - name: Install Nix
+      uses: DeterminateSystems/nix-installer-action@main
+
+    - name: Setup Nix cache
+      uses: DeterminateSystems/magic-nix-cache-action@main
+
+    - name: Setup development environment
+      shell: bash
+      run: nix develop --command echo "Development environment ready"
+
+    - name: Install direnv
+      shell: bash
+      run: |
+        curl -sfL https://direnv.net/install.sh | bash
+        echo "$HOME/.local/bin" >> $GITHUB_PATH
+
+    - name: Load environment variables
+      shell: bash
+      run: |
+        direnv allow .
+        direnv export gha > "$GITHUB_ENV"
+
+    - name: Cache cargo registry
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.cargo/registry/index/
+          ~/.cargo/registry/cache/
+          ~/.cargo/git/db/
+        key: ${{ runner.os }}-cargo-registry-${{ hashFiles('**/Cargo.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-cargo-registry-
+
+    - name: Cache cargo build
+      uses: actions/cache@v4
+      with:
+        path: target/
+        key: ${{ runner.os }}-cargo-build-${{ hashFiles('**/Cargo.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-cargo-build-
