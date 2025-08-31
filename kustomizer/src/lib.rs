@@ -127,27 +127,6 @@ mod hack {
 
     #[test]
     #[ignore]
-    fn test_partly_shared() -> anyhow::Result<()> {
-        let output = Command::new("bash")
-            .stdin(Stdio::null())
-            .stdout(Stdio::piped())
-            .stderr(Stdio::piped())
-            .arg("test.sh")
-            .output()?;
-
-        if !output.status.success() {
-            return Err(anyhow::anyhow!(
-                "test.sh failed with status {}: {}\n{}",
-                output.status,
-                String::from_utf8_lossy(&output.stdout),
-                String::from_utf8_lossy(&output.stderr),
-            ));
-        }
-        Ok(())
-    }
-
-    #[test]
-    #[ignore]
     fn test_tmp_1() -> anyhow::Result<()> {
         let output = Command::new("bash")
             .stdin(Stdio::null())
