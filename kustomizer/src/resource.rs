@@ -18,6 +18,7 @@ use std::path::Path;
 use crate::{
     PathExt, PathId,
     manifest::{Behavior, FunctionSpec, Str},
+    patch::merge_patch,
 };
 
 pub use self::refs::RefSpecs;
@@ -257,7 +258,7 @@ impl Resource {
     }
 
     pub fn patch(&mut self, patch: Self) -> anyhow::Result<()> {
-        crate::patch::patch(self, patch)
+        merge_patch(self, patch)
             .with_context(|| format!("applying patch to resource `{}`", self.id))
     }
 
