@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: db-restore
+spec:
+  template:
+    spec:
+      containers:
+      - name: db-restore
+        env:
+        - name: PARTLY_ENV_NAME
+          value: "overridethis"
+        - name: GOOGLE_APPLICATION_CREDENTIALS
+          value: "/secrets/gcp/cranker-db-restore.json"
+        command:
+        - "python"
+        - "/scripts/db-restore.py"
+        - "--instance"
+        - "partly-postgres"
+        - "--password-k8s-secret"
+        - "postgres.partly-postgres.credentials.postgresql.acid.zalan.do"
+        - "--finalise-script"
+        - "/scripts-finalise/finalise.sql"
+        - "--watch-configmap"
+        - "partly-dataset-revision"
+        - "--gcp-credentials"
+        - "/secrets/gcp/cranker-db-restore.json"
+        - "--argocd-env-name"
+        - $(PARTLY_ENV_NAME)
+        volumeMounts:
+        - name: gcp-sa-credentials
+          mountPath: /secrets/gcp
+          readOnly: true
+      volumes:
+      - name: gcp-sa-credentials
+        secret:
+          secretName: db-restore-gcp-sa 
