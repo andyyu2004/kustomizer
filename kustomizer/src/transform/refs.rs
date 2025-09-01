@@ -130,7 +130,8 @@ impl RenameTransformer<'_> {
 
         Ok(name == res_id.name
             && kind.is_none_or(|k| k == res_id.gvk.kind)
-            && namespace == res_id.namespace.as_deref())
+            && (namespace == res_id.namespace.as_deref()
+                || res_id.namespace.is_none() && namespace == Some("default")))
     }
 
     /// Update the name and namespace fields in a reference object
