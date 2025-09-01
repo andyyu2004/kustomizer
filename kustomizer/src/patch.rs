@@ -28,7 +28,7 @@ pub enum ListType {
 }
 
 #[tracing::instrument(skip_all, fields(resource = %base.id()))]
-pub fn patch(base: &mut Resource, patch: Resource) -> anyhow::Result<()> {
+pub fn merge_patch(base: &mut Resource, patch: Resource) -> anyhow::Result<()> {
     let spec = Spec::load();
     let schema = spec.schema_for(base.gvk());
     let (_patch_id, mut patch_root) = patch.into_parts();
