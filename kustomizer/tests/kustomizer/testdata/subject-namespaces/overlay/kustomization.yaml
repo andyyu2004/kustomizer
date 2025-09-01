@@ -1,0 +1,23 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+images:
+  - name: registry.k8s.io/external-dns/external-dns
+    newTag: v0.16.1
+
+resources:
+  - ../base/
+
+patches:
+  - patch: |-
+      - op: add
+        path: /spec/template/spec/containers/0/args/-
+        value: --txt-owner-id=owner
+      - op: add
+        path: /spec/template/spec/containers/0/args/-
+        value: --txt-prefix=prefix.
+    target:
+      group: apps
+      version: v1
+      kind: Deployment
+      name: external-dns

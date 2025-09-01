@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: external-dns
+spec:
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: external-dns
+  template:
+    metadata:
+      labels:
+        app: external-dns
+    spec:
+      serviceAccountName: external-dns
+      containers:
+        - name: external-dns
+          image: registry.k8s.io/external-dns/external-dns
+          args:
+            - --source=service
+            - --source=ingress
+            - --registry=txt
+            - --zone-id-filter=aa25baed79f7cdff31f689525ccb9d79
+            - --provider=cloudflare
+            - --cloudflare-dns-records-per-page=5000 # (optional) configure how many DNS records to fetch per request
+          # API Token will be preferred for authentication if CF_API_TOKEN environment variable is set. Otherwise CF_API_KEY and CF_API_EMAIL should be set to run ExternalDNS with Cloudflare. You may provide the Cloudflare API token through a file by setting the CF_API_TOKEN="file:/path/to/token".
+          env:
+            - name: CF_API_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: cf-token
+                  key: apiToken
