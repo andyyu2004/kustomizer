@@ -1,0 +1,338 @@
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: db-restore
+  namespace: partly-dev
+  labels:
+    app.kubernetes.io/name: db-restore
+spec:
+  serviceName: db-restore
+  replicas: 1
+  template:
+    spec:
+      serviceAccountName: db-restore
+      containers:
+      - name: db-restore
+        env:
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: PARTLY_ENV_NAME
+          value: overridethis
+        - name: GOOGLE_APPLICATION_CREDENTIALS
+          value: /secrets/gcp/cranker-db-restore.json
+        image: google/cloud-sdk:517.0.0-alpine
+        imagePullPolicy: IfNotPresent
+        command:
+        - python
+        - /scripts/db-restore.py
+        - --instance
+        - partly-postgres
+        - --password-k8s-secret
+        - postgres.partly-postgres.credentials.postgresql.acid.zalan.do
+        - --finalise-script
+        - /scripts-finalise/finalise.sql
+        - --watch-configmap
+        - partly-dataset-revision
+        - --gcp-credentials
+        - /secrets/gcp/cranker-db-restore.json
+        - --argocd-env-name
+        - $(PARTLY_ENV_NAME)
+        volumeMounts:
+        - name: scripts-volume
+          mountPath: /scripts
+        - name: finalise-script-volume
+          mountPath: /scripts-finalise
+        - name: gcp-sa-credentials
+          mountPath: /secrets/gcp
+          readOnly: true
+      volumes:
+      - name: gcp-sa-credentials
+        secret:
+          secretName: db-restore-gcp-sa
+    metadata:
+      labels:
+        app.kubernetes.io/name: db-restore
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: db-restore
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: nightly-reset
+  namespace: partly-dev
+  labels:
+    app.kubernetes.io/name: db-restore
+spec:
+  schedule: 0 2 * * *
+  timeZone: Pacific/Auckland
+  concurrencyPolicy: Replace
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 10
+      template:
+        spec:
+          containers:
+          - name: reset
+            image: alpine:3.22
+            imagePullPolicy: IfNotPresent
+            command:
+            - /bin/sh
+            - -c
+            - apk add --update --no-cache git openssh jq curl bash && /scripts/reset-env.sh
+            env:
+            - name: POD_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: ARGOCD_REPO_DEPLOY_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: gitlab-argocd-repo-token
+                  key: key
+            - name: NOTION_BEARER_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: notion-secret
+                  key: bearer-token
+            volumeMounts:
+            - name: scripts-volume
+              mountPath: /scripts
+          restartPolicy: OnFailure
+          volumes:
+          - name: scripts-volume
+            configMap:
+              name: reset-env-script
+              defaultMode: 493
+        metadata:
+          labels:
+            app.kubernetes.io/name: db-restore
+    metadata:
+      labels:
+        app.kubernetes.io/name: db-restore
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: db-restore
+  namespace: partly-dev
+  labels:
+    app.kubernetes.io/name: db-restore
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: db-restore-reader
+  namespace: partly-dev
+  labels:
+    app.kubernetes.io/name: db-restore
+subjects:
+- kind: ServiceAccount
+  name: db-restore
+  namespace: partly-dev
+roleRef:
+  kind: Role
+  name: db-restore-reader
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: db-restore-reader
+  namespace: partly-dev
+  labels:
+    app.kubernetes.io/name: db-restore
+rules:
+- apiGroups:
+  - '*'
+  resources:
+  - '*'
+  verbs:
+  - get
+  - list
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: db-restore-cm-creator
+  namespace: partly-dev
+  labels:
+    app.kubernetes.io/name: db-restore
+subjects:
+- kind: ServiceAccount
+  name: db-restore
+  namespace: partly-dev
+roleRef:
+  kind: Role
+  name: db-restore-cm-creator
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: db-restore-cm-creator
+  namespace: partly-dev
+  labels:
+    app.kubernetes.io/name: db-restore
+rules:
+- apiGroups:
+  - ''
+  resources:
+  - configmaps
+  verbs:
+  - create
+  - update
+  - patch
+  - delete
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: db-restore-script
+  namespace: partly-dev
+  labels:
+    app.kubernetes.io/name: db-restore
+data:
+  db-restore.py: |
+    #!/usr/bin/env python3
+
+    def main():
+        pass
+
+    if __name__ == "__main__":
+        main()
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: reset-env-script
+  namespace: partly-dev
+  labels:
+    app.kubernetes.io/name: db-restore
+data:
+  reset-env.sh: |
+    #!/usr/bin/env bash
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: db-restore-deleter
+  namespace: partly-dev
+rules:
+- apiGroups:
+  - '*'
+  resources:
+  - '*'
+  verbs:
+  - delete
+  - list
+  - get
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: db-restore-deleter
+  namespace: partly-dev
+subjects:
+- kind: ServiceAccount
+  name: db-restore
+  namespace: partly-dev
+roleRef:
+  kind: Role
+  name: db-restore-deleter
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres
+  namespace: partly-dev
+spec:
+  type: LoadBalancer
+  loadBalancerClass: tailscale
+  selector:
+    application: spilo
+  ports:
+  - port: 5432
+    targetPort: 5432
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: finalise-script-bck7g289mt
+  namespace: partly-dev
+data:
+  finalise.sql: "CREATE TABLE IF NOT EXISTS partly.dataset_version (id SERIAL PRIMARY KEY, version TEXT, timestamp TEXT);   \n"
+---
+apiVersion: acid.zalan.do/v1
+kind: postgresql
+metadata:
+  name: partly-postgres
+  namespace: partly-dev
+  annotations:
+    argocd.argoproj.io/sync-wave: '-3'
+spec:
+  teamId: devs
+  podAnnotations:
+    prometheus.io/scrape: 'true'
+    prometheus.io/port: '9187'
+    prometheus.io/path: /metrics
+  volume:
+    size: 20Gi
+  numberOfInstances: 1
+  users:
+    postgres:
+    - superuser
+    - createdb
+    example_dev:
+    - superuser
+    - createdb
+  databases:
+    postgres: postgres
+    partly: example_dev
+  postgresql:
+    version: '17'
+    parameters:
+      wal_level: logical
+      max_connections: '200'
+  sidecars:
+  - name: prometheus-exporter
+    image: quay.io/prometheuscommunity/postgres-exporter:v0.17.1
+    ports:
+    - name: metrics
+      containerPort: 9187
+    env:
+    - name: DATA_SOURCE_URI
+      value: localhost:5432/postgres?sslmode=disable
+    - name: DATA_SOURCE_USER
+      value: $(POSTGRES_USER)
+    - name: DATA_SOURCE_PASS
+      value: $(POSTGRES_PASSWORD)
+  resources:
+    requests:
+      cpu: 200m
+      memory: 500Mi
+    limits:
+      cpu: 1000m
+      memory: 2Gi
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: postgres.example-postgres.credentials.postgresql.acid.zalan.do
+  namespace: partly-dev
+  labels:
+    application: spilo
+    cluster-name: example-postgres
+    team: devs
+  annotations:
+    argocd.argoproj.io/sync-wave: '-4'
+data:
+  password: Ym9iCg==
+  username: cG9zdGdyZXM=
+type: Opaque

@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: db-restore
+spec:
+  serviceName: db-restore
+  replicas: 1
+  template:
+    spec:
+      serviceAccountName: db-restore
+      containers:
+        - name: db-restore
+          env:
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+          image: google/cloud-sdk:517.0.0-alpine
+          imagePullPolicy: IfNotPresent
+          command:
+            - "python"
+            - "/scripts/db-restore.py"
+            - "--private-ip"
+            - "--finalise-script"
+            - "/scripts-finalise/finalise.sql"
+            - "--watch-configmap"
+            - partly-dataset-revision
+          volumeMounts:
+            - name: scripts-volume
+              mountPath: /scripts
+            - name: finalise-script-volume
+              mountPath: /scripts-finalise
+      volumes:
+        - name: scripts-volume
+          configMap:
+            name: db-restore-script
+        - name: finalise-script-volume
+          configMap:
+            name: finalise-script

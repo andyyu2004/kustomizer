@@ -1,0 +1,50 @@
+apiVersion: "acid.zalan.do/v1"
+kind: postgresql
+metadata:
+  name: partly-postgres
+  annotations:
+    argocd.argoproj.io/sync-wave: "-3"
+spec:
+  teamId: devs
+  podAnnotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "9187"
+    prometheus.io/path: "/metrics"
+  volume:
+    size: 20Gi
+  numberOfInstances: 1
+  users:
+    postgres:
+      - superuser
+      - createdb
+    example_dev:
+      - superuser
+      - createdb
+  databases:
+    postgres: postgres
+    partly: example_dev
+  postgresql:
+    version: "17"
+    parameters:
+      wal_level: logical
+      max_connections: "200"
+  sidecars:
+    - name: prometheus-exporter
+      image: quay.io/prometheuscommunity/postgres-exporter:v0.17.1
+      ports:
+        - name: metrics
+          containerPort: 9187
+      env:
+        - name: DATA_SOURCE_URI
+          value: "localhost:5432/postgres?sslmode=disable"
+        - name: DATA_SOURCE_USER
+          value: $(POSTGRES_USER)
+        - name: DATA_SOURCE_PASS
+          value: $(POSTGRES_PASSWORD)
+  resources:
+    requests:
+      cpu: 200m
+      memory: 500Mi
+    limits:
+      cpu: 1000m
+      memory: 2Gi

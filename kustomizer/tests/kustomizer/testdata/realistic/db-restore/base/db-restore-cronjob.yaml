@@ -1,0 +1,49 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: nightly-reset
+spec:
+  schedule: "0 2 * * *"
+  timeZone: "Pacific/Auckland"
+  concurrencyPolicy: Replace
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 10
+      template:
+        spec:
+          containers:
+            - name: reset
+              image: alpine:3.22
+              imagePullPolicy: IfNotPresent
+              command:
+                [
+                  "/bin/sh",
+                  "-c",
+                  "apk add --update --no-cache git openssh jq curl bash && /scripts/reset-env.sh",
+                ]
+              env:
+                - name: POD_NAMESPACE
+                  valueFrom:
+                    fieldRef:
+                      fieldPath: metadata.namespace
+                - name: ARGOCD_REPO_DEPLOY_KEY
+                  valueFrom:
+                    secretKeyRef:
+                      name: gitlab-argocd-repo-token
+                      key: key
+                - name: NOTION_BEARER_TOKEN
+                  valueFrom:
+                    secretKeyRef:
+                      name: notion-secret
+                      key: bearer-token
+              volumeMounts:
+                - name: scripts-volume
+                  mountPath: /scripts
+          restartPolicy: OnFailure
+          volumes:
+            - name: scripts-volume
+              configMap:
+                name: reset-env-script
+                defaultMode: 0o755

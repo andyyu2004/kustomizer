@@ -1,0 +1,208 @@
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: db-restore
+  namespace: partly
+  labels:
+    app.kubernetes.io/name: db-restore
+spec:
+  serviceName: db-restore
+  replicas: 1
+  template:
+    spec:
+      serviceAccountName: db-restore
+      containers:
+      - name: db-restore
+        env:
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        image: google/cloud-sdk:517.0.0-alpine
+        imagePullPolicy: IfNotPresent
+        command:
+        - python
+        - /scripts/db-restore.py
+        - --private-ip
+        - --finalise-script
+        - /scripts-finalise/finalise.sql
+        - --watch-configmap
+        - partly-dataset-revision
+        volumeMounts:
+        - name: scripts-volume
+          mountPath: /scripts
+        - name: finalise-script-volume
+          mountPath: /scripts-finalise
+      volumes:
+      - name: scripts-volume
+        configMap:
+          name: db-restore-script
+      - name: finalise-script-volume
+        configMap:
+          name: finalise-script
+    metadata:
+      labels:
+        app.kubernetes.io/name: db-restore
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: db-restore
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: nightly-reset
+  namespace: partly
+  labels:
+    app.kubernetes.io/name: db-restore
+spec:
+  schedule: 0 2 * * *
+  timeZone: Pacific/Auckland
+  concurrencyPolicy: Replace
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 10
+      template:
+        spec:
+          containers:
+          - name: reset
+            image: alpine:3.22
+            imagePullPolicy: IfNotPresent
+            command:
+            - /bin/sh
+            - -c
+            - apk add --update --no-cache git openssh jq curl bash && /scripts/reset-env.sh
+            env:
+            - name: POD_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: ARGOCD_REPO_DEPLOY_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: gitlab-argocd-repo-token
+                  key: key
+            - name: NOTION_BEARER_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: notion-secret
+                  key: bearer-token
+            volumeMounts:
+            - name: scripts-volume
+              mountPath: /scripts
+          restartPolicy: OnFailure
+          volumes:
+          - name: scripts-volume
+            configMap:
+              name: reset-env-script
+              defaultMode: 493
+        metadata:
+          labels:
+            app.kubernetes.io/name: db-restore
+    metadata:
+      labels:
+        app.kubernetes.io/name: db-restore
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: db-restore
+  namespace: partly
+  labels:
+    app.kubernetes.io/name: db-restore
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: db-restore-reader
+  namespace: partly
+  labels:
+    app.kubernetes.io/name: db-restore
+subjects:
+- kind: ServiceAccount
+  name: db-restore
+  namespace: partly
+roleRef:
+  kind: Role
+  name: db-restore-reader
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: db-restore-reader
+  namespace: partly
+  labels:
+    app.kubernetes.io/name: db-restore
+rules:
+- apiGroups:
+  - '*'
+  resources:
+  - '*'
+  verbs:
+  - get
+  - list
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: db-restore-cm-creator
+  namespace: partly
+  labels:
+    app.kubernetes.io/name: db-restore
+subjects:
+- kind: ServiceAccount
+  name: db-restore
+  namespace: partly
+roleRef:
+  kind: Role
+  name: db-restore-cm-creator
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: db-restore-cm-creator
+  namespace: partly
+  labels:
+    app.kubernetes.io/name: db-restore
+rules:
+- apiGroups:
+  - ''
+  resources:
+  - configmaps
+  verbs:
+  - create
+  - update
+  - patch
+  - delete
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: db-restore-script
+  namespace: partly
+  labels:
+    app.kubernetes.io/name: db-restore
+data:
+  db-restore.py: |
+    #!/usr/bin/env python3
+
+    def main():
+        pass
+
+    if __name__ == "__main__":
+        main()
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: reset-env-script
+  namespace: partly
+  labels:
+    app.kubernetes.io/name: db-restore
+data:
+  reset-env.sh: |
+    #!/usr/bin/env bash
