@@ -1378,7 +1378,13 @@
       "type": "object",
       "properties": {
         "extra": {
-          "type": "object"
+          "type": "object",
+          "additionalProperties": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
         },
         "groups": {
           "type": "array",
@@ -1623,7 +1629,13 @@
       "type": "object",
       "properties": {
         "extra": {
-          "type": "object"
+          "type": "object",
+          "additionalProperties": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
         },
         "groups": {
           "type": "array",
@@ -2632,7 +2644,13 @@
           "type": "integer"
         },
         "extra": {
-          "type": "object"
+          "type": "object",
+          "additionalProperties": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
         },
         "groups": {
           "type": "array",
@@ -2895,7 +2913,10 @@
           "type": "boolean"
         },
         "volumeAttributes": {
-          "type": "object"
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
         },
         "volumeHandle": {
           "type": "string"
@@ -2918,7 +2939,10 @@
           "type": "boolean"
         },
         "volumeAttributes": {
-          "type": "object"
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
         }
       }
     },
@@ -3126,10 +3150,16 @@
           "type": "string"
         },
         "binaryData": {
-          "type": "object"
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
         },
         "data": {
-          "type": "object"
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
         },
         "immutable": {
           "type": "boolean"
@@ -3481,7 +3511,10 @@
       "type": "object",
       "properties": {
         "allocatedResources": {
-          "type": "object"
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/resource.Quantity"
+          }
         },
         "allocatedResourcesStatus": {
           "type": "array",
@@ -4042,7 +4075,10 @@
           "type": "string"
         },
         "options": {
-          "type": "object"
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
         },
         "readOnly": {
           "type": "boolean"
@@ -4062,7 +4098,10 @@
           "type": "string"
         },
         "options": {
-          "type": "object"
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
         },
         "readOnly": {
           "type": "boolean"
@@ -4383,19 +4422,34 @@
       "type": "object",
       "properties": {
         "default": {
-          "type": "object"
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/resource.Quantity"
+          }
         },
         "defaultRequest": {
-          "type": "object"
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/resource.Quantity"
+          }
         },
         "max": {
-          "type": "object"
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/resource.Quantity"
+          }
         },
         "maxLimitRequestRatio": {
-          "type": "object"
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/resource.Quantity"
+          }
         },
         "min": {
-          "type": "object"
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/resource.Quantity"
+          }
         },
         "type": {
           "type": "string"
@@ -4871,10 +4925,16 @@
           ]
         },
         "allocatable": {
-          "type": "object"
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/resource.Quantity"
+          }
         },
         "capacity": {
-          "type": "object"
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/resource.Quantity"
+          }
         },
         "conditions": {
           "type": "array",
@@ -5134,13 +5194,22 @@
           "x-kubernetes-list-type": "atomic"
         },
         "allocatedResourceStatuses": {
-          "type": "object"
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
         },
         "allocatedResources": {
-          "type": "object"
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/resource.Quantity"
+          }
         },
         "capacity": {
-          "type": "object"
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/resource.Quantity"
+          }
         },
         "conditions": {
           "type": "array",
@@ -5226,7 +5295,10 @@
           "$ref": "#/definitions/v1.AzureFilePersistentVolumeSource"
         },
         "capacity": {
-          "type": "object"
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/resource.Quantity"
+          }
         },
         "cephfs": {
           "$ref": "#/definitions/v1.CephFSPersistentVolumeSource"
@@ -5717,13 +5789,19 @@
           "type": "string"
         },
         "nodeSelector": {
-          "type": "object"
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
         },
         "os": {
           "$ref": "#/definitions/v1.PodOS"
         },
         "overhead": {
-          "type": "object"
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/resource.Quantity"
+          }
         },
         "preemptionPolicy": {
           "type": "string"
@@ -5742,7 +5820,15 @@
           "x-kubernetes-list-type": "atomic"
         },
         "resourceClaims": {
-          "type": "any"
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1.PodResourceClaim"
+          },
+          "x-kubernetes-patch-strategy": "merge,retainKeys",
+          "x-kubernetes-list-type": "map",
+          "x-kubernetes-list-map-keys": [
+            "name"
+          ]
         },
         "resources": {
           "$ref": "#/definitions/v1.ResourceRequirements"
@@ -5808,7 +5894,15 @@
           ]
         },
         "volumes": {
-          "type": "any"
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1.Volume"
+          },
+          "x-kubernetes-patch-strategy": "merge,retainKeys",
+          "x-kubernetes-list-type": "map",
+          "x-kubernetes-list-map-keys": [
+            "name"
+          ]
         }
       }
     },
@@ -5891,7 +5985,15 @@
           "type": "string"
         },
         "resourceClaimStatuses": {
-          "type": "any"
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1.PodResourceClaimStatus"
+          },
+          "x-kubernetes-patch-strategy": "merge,retainKeys",
+          "x-kubernetes-list-type": "map",
+          "x-kubernetes-list-map-keys": [
+            "name"
+          ]
         },
         "startTime": {
           "$ref": "#/definitions/v1.Time"
@@ -6194,7 +6296,10 @@
           "type": "integer"
         },
         "selector": {
-          "type": "object"
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
         },
         "template": {
           "$ref": "#/definitions/v1.PodTemplateSpec"
@@ -6312,7 +6417,10 @@
       "type": "object",
       "properties": {
         "hard": {
-          "type": "object"
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/resource.Quantity"
+          }
         },
         "scopeSelector": {
           "$ref": "#/definitions/v1.ScopeSelector"
@@ -6330,10 +6438,16 @@
       "type": "object",
       "properties": {
         "hard": {
-          "type": "object"
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/resource.Quantity"
+          }
         },
         "used": {
-          "type": "object"
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/resource.Quantity"
+          }
         }
       }
     },
@@ -6351,10 +6465,16 @@
           ]
         },
         "limits": {
-          "type": "object"
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/resource.Quantity"
+          }
         },
         "requests": {
-          "type": "object"
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/resource.Quantity"
+          }
         }
       }
     },
@@ -6511,7 +6631,10 @@
           "type": "string"
         },
         "data": {
-          "type": "object"
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
         },
         "immutable": {
           "type": "boolean"
@@ -6523,7 +6646,10 @@
           "$ref": "#/definitions/v1.ObjectMeta"
         },
         "stringData": {
-          "type": "object"
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
         },
         "type": {
           "type": "string"
@@ -6872,7 +6998,10 @@
           "type": "boolean"
         },
         "selector": {
-          "type": "object"
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
         },
         "sessionAffinity": {
           "type": "string"
@@ -7297,10 +7426,16 @@
       "type": "object",
       "properties": {
         "limits": {
-          "type": "object"
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/resource.Quantity"
+          }
         },
         "requests": {
-          "type": "object"
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/resource.Quantity"
+          }
         }
       }
     },
@@ -7363,7 +7498,10 @@
           "$ref": "#/definitions/v1.EndpointConditions"
         },
         "deprecatedTopology": {
-          "type": "object"
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
         },
         "hints": {
           "$ref": "#/definitions/v1.EndpointHints"
@@ -8269,7 +8407,10 @@
       "type": "object",
       "properties": {
         "podFixed": {
-          "type": "object"
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/resource.Quantity"
+          }
         }
       }
     },
@@ -8320,7 +8461,10 @@
       "type": "object",
       "properties": {
         "nodeSelector": {
-          "type": "object"
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
         },
         "tolerations": {
           "type": "array",
@@ -8426,7 +8570,10 @@
           "type": "integer"
         },
         "disruptedPods": {
-          "type": "object"
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/v1.Time"
+          }
         },
         "disruptionsAllowed": {
           "type": "integer"
@@ -8948,7 +9095,10 @@
           "x-kubernetes-list-type": "atomic"
         },
         "parameters": {
-          "type": "object"
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
         },
         "provisioner": {
           "type": "string"
@@ -9056,7 +9206,10 @@
           "type": "boolean"
         },
         "attachmentMetadata": {
-          "type": "object"
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
         },
         "detachError": {
           "$ref": "#/definitions/v1.VolumeError"
@@ -9382,10 +9535,16 @@
           "$ref": "#/definitions/v1.JSON"
         },
         "definitions": {
-          "type": "object"
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/v1.JSONSchemaProps"
+          }
         },
         "dependencies": {
-          "type": "object"
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/v1.JSONSchemaPropsOrStringArray"
+          }
         },
         "description": {
           "type": "string"
@@ -9428,7 +9587,7 @@
           "type": "integer"
         },
         "maximum": {
-          "type": "any"
+          "type": "number"
         },
         "minItems": {
           "type": "integer"
@@ -9440,10 +9599,10 @@
           "type": "integer"
         },
         "minimum": {
-          "type": "any"
+          "type": "number"
         },
         "multipleOf": {
-          "type": "any"
+          "type": "number"
         },
         "not": {
           "$ref": "#/definitions/v1.JSONSchemaProps"
@@ -9462,10 +9621,16 @@
           "type": "string"
         },
         "patternProperties": {
-          "type": "object"
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/v1.JSONSchemaProps"
+          }
         },
         "properties": {
-          "type": "object"
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/v1.JSONSchemaProps"
+          }
         },
         "required": {
           "type": "array",
@@ -9816,7 +9981,10 @@
           "x-kubernetes-list-type": "atomic"
         },
         "matchLabels": {
-          "type": "object"
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
         }
       }
     },
@@ -9888,7 +10056,10 @@
       "type": "object",
       "properties": {
         "annotations": {
-          "type": "object"
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
         },
         "creationTimestamp": {
           "$ref": "#/definitions/v1.Time"
@@ -9914,7 +10085,10 @@
           "type": "integer"
         },
         "labels": {
-          "type": "object"
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
         },
         "managedFields": {
           "type": "array",

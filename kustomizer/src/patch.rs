@@ -10,10 +10,13 @@ use self::openapi::v2::{
 pub mod openapi;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "kebab-case")]
+#[serde(rename_all = "camelCase")]
 pub enum PatchStrategy {
     Merge,
     Replace,
+    RetainKeys,
+    #[serde(rename = "merge,retainKeys", alias = "retainKeys,merge")]
+    MergeRetainKeys,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, serde::Serialize, serde::Deserialize)]
