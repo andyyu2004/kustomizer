@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize, ser::SerializeStruct as _};
 use crate::{
     manifest::Str,
     patch::{ListType, PatchStrategy},
-    resource::Gvk,
+    resource::{Gvk, Object},
 };
 
 const SPEC_V2_GZ: &[u8] = include_bytes!("./openapi-v2-kubernetes-1.32-minimized.json");
@@ -214,6 +214,7 @@ impl<'de> Deserialize<'de> for Ref {
 }
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct ObjectType {
     #[serde(default, skip_serializing_if = "IndexMap::is_empty")]
     pub properties: IndexMap<String, InlineOrRef<Box<Type>>>,
@@ -251,6 +252,7 @@ pub enum Type {
     Array(ArrayType),
     String,
     Integer,
+    Number,
     Boolean,
     Any,
 }
@@ -260,27 +262,54 @@ impl<'de> Deserialize<'de> for Type {
     where
         D: serde::Deserializer<'de>,
     {
-        #[derive(Deserialize)]
-        #[serde(tag = "type", rename_all = "camelCase")]
-        enum TypeHelper {
-            Object(ObjectType),
-            Array(ArrayType),
+        #[derive(Debug, Deserialize)]
+        struct Helper {
+            // If there is no `type` field, it indicates an `any` type.
+            // It's also a deserialization nightmare for serde so we need a helper struct for
+            // deserializing this.
+            #[serde(rename = "type")]
+            kind: Option<TypeKind>,
+            #[serde(flatten)]
+            rest: Object,
+        }
+
+        #[derive(Debug, Deserialize)]
+        #[serde(rename_all = "camelCase")]
+        enum TypeKind {
+            Object,
+            Array,
             String,
             Integer,
+            Number,
             Boolean,
             Any,
         }
 
-        Ok(match TypeHelper::deserialize(deserializer) {
-            Ok(TypeHelper::Object(o)) => Type::Object(o),
-            Ok(TypeHelper::Array(a)) => Type::Array(a),
-            Ok(TypeHelper::String) => Type::String,
-            Ok(TypeHelper::Integer) => Type::Integer,
-            Ok(TypeHelper::Boolean) => Type::Boolean,
-            Ok(TypeHelper::Any) => Type::Any,
-            // Some weird cases we don't care about, treat as Any
-            Err(_) => Type::Any,
-        })
+        let ty = Helper::deserialize(deserializer)?;
+
+        let ty = match ty.kind {
+            Some(TypeKind::Object) => {
+                serde_json::from_value::<ObjectType>(serde_json::Value::Object(ty.rest.clone()))
+                    .map(Type::Object)
+                    .map_err(|err| {
+                        serde::de::Error::custom(format!(
+                            "parsing ObjectType: {}\n{err}",
+                            serde_json::to_string_pretty(&ty.rest).unwrap()
+                        ))
+                    })?
+            }
+            Some(TypeKind::Array) => {
+                serde_json::from_value::<ArrayType>(serde_json::Value::Object(ty.rest))
+                    .map(Type::Array)
+                    .map_err(|err| serde::de::Error::custom(format!("parsing ArrayType: {err}")))?
+            }
+            Some(TypeKind::Number) => Type::Number,
+            Some(TypeKind::String) => Type::String,
+            Some(TypeKind::Integer) => Type::Integer,
+            Some(TypeKind::Boolean) => Type::Boolean,
+            Some(TypeKind::Any) | None => Type::Any,
+        };
+        Ok(ty)
     }
 }
 
@@ -290,11 +319,86 @@ mod tests {
 
     use serde_json::json;
 
+    use crate::patch::openapi::v2::ObjectType;
+
     use super::{Spec, Type};
 
     #[test]
     fn test_serde() -> anyhow::Result<()> {
         assert_eq!(serde_json::from_value::<Type>(json!({}))?, Type::Any);
+        assert_eq!(
+            serde_json::from_value::<Type>(json!({"type": "string"}))?,
+            Type::String
+        );
+
+        assert!(serde_json::from_value::<ObjectType>(
+            json!({
+                "description": String::from("bob"),
+                "additionalProperties": {
+                    "$ref": String::from("#/definitions/io.k8s.apimachinery.pkg.api.resource.Quantity"),
+                },
+            })
+        ).is_ok());
+
+        // Test case from failing PodSpec
+        serde_json::from_value::<Type>(json!({
+            "type": "object",
+            "required": ["containers"],
+            "properties": {
+                "resourceClaims": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/io.k8s.api.core.v1.PodResourceClaim"
+                    },
+                    "x-kubernetes-list-map-keys": ["name"],
+                    "x-kubernetes-list-type": "map",
+                    "x-kubernetes-patch-merge-key": "name",
+                    "x-kubernetes-patch-strategy": "merge,retainKeys"
+                },
+                "schedulingGates": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/io.k8s.api.core.v1.PodSchedulingGate"
+                    },
+                    "x-kubernetes-list-map-keys": ["name"],
+                    "x-kubernetes-list-type": "map",
+                    "x-kubernetes-patch-merge-key": "name",
+                    "x-kubernetes-patch-strategy": "merge"
+                },
+                "topologySpreadConstraints": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/io.k8s.api.core.v1.TopologySpreadConstraint"
+                    },
+                    "x-kubernetes-list-map-keys": ["topologyKey", "whenUnsatisfiable"],
+                    "x-kubernetes-list-type": "map",
+                    "x-kubernetes-patch-merge-key": "topologyKey",
+                    "x-kubernetes-patch-strategy": "merge"
+                },
+                "volumes": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/io.k8s.api.core.v1.Volume"
+                    },
+                    "x-kubernetes-list-map-keys": ["name"],
+                    "x-kubernetes-list-type": "map",
+                    "x-kubernetes-patch-merge-key": "name",
+                    "x-kubernetes-patch-strategy": "merge,retainKeys"
+                }
+            }
+        }))
+        .unwrap();
+
+        serde_json::from_value::<Type>(json!({
+          "type": "object",
+          "properties": {
+            "minimum": {
+              "type": "number",
+              "format": "double"
+            },
+          }
+        }))?;
+
         Ok(())
     }
 

@@ -49,6 +49,12 @@ spec:
           mountPath: /secrets/gcp
           readOnly: true
       volumes:
+      - name: scripts-volume
+        configMap:
+          name: db-restore-script
+      - name: finalise-script-volume
+        configMap:
+          name: finalise-script-bck7g289mt
       - name: gcp-sa-credentials
         secret:
           secretName: db-restore-gcp-sa

@@ -1,3 +1,5 @@
+#![recursion_limit = "256"] // temp
+
 mod build;
 pub mod dbg;
 mod fieldspec;
