@@ -42,8 +42,8 @@ impl<'a> MetadataView<'a> {
 #[derive(Debug)]
 pub struct AnnotationsView<'a>(&'a Object);
 
-impl AnnotationsView<'_> {
-    pub fn get(&self, key: &str) -> Option<&str> {
+impl<'a> AnnotationsView<'a> {
+    pub fn get(&self, key: &str) -> Option<&'a str> {
         self.0.get(key).and_then(|v| v.as_str())
     }
 

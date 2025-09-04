@@ -62,7 +62,9 @@ impl<'a, A, K> PatchTransformer<'a, A, K> {
                     version: gvk.version.clone(),
                     kind: gvk.kind.clone(),
                 };
-                if !matcher.matches(resource.gvk()) || patch.name() != resource.name() {
+
+                // FIXME match all ids
+                if !matcher.matches(resource.gvk()) || resource.name() != patch.name() {
                     return Ok(());
                 }
             }

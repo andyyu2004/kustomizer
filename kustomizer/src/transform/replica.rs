@@ -27,14 +27,17 @@ impl Transformer for ReplicaTransformer {
     #[tracing::instrument(skip_all, name = "replica_transform")]
     async fn transform(&mut self, resources: &mut ResourceMap) -> anyhow::Result<()> {
         let field_specs = &fieldspec::Builtin::load().replicas;
-        for resource in resources.iter_mut() {
-            if let Some(desired_replicas) = self.replicas.get(resource.name()).copied() {
-                field_specs.apply::<u64>(resource, |replicas| {
-                    *replicas = desired_replicas as u64;
-                    Ok(())
-                })?;
+        for (name, replicas) in &self.replicas {
+            for resource in resources.iter_mut() {
+                if resource.any_id_matches(|id| id.name == name) {
+                    field_specs.apply::<u64>(resource, |replicas_field| {
+                        *replicas_field = *replicas as u64;
+                        Ok(())
+                    })?;
+                }
             }
         }
+
         Ok(())
     }
 }
