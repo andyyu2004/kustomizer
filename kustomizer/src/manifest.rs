@@ -154,8 +154,7 @@ pub struct GeneratorOptions {
     pub immutable: bool,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize)]
-#[serde(rename_all = "camelCase", deny_unknown_fields)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 pub struct KeyValuePairSources {
     #[serde(default, skip_serializing_if = "<[_]>::is_empty")]
     pub literals: Box<[KeyValuePair]>,
@@ -163,6 +162,35 @@ pub struct KeyValuePairSources {
     pub files: Box<[MaybeKeyValuePair]>,
     #[serde(default, skip_serializing_if = "<[_]>::is_empty")]
     pub envs: Box<[PathBuf]>,
+}
+
+impl<'de> Deserialize<'de> for KeyValuePairSources {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        #[derive(Deserialize)]
+        #[serde(rename_all = "camelCase", deny_unknown_fields)]
+        struct Helper {
+            #[serde(default)]
+            literals: Box<[KeyValuePair]>,
+            #[serde(default)]
+            files: Box<[MaybeKeyValuePair]>,
+            #[serde(default)]
+            envs: Vec<PathBuf>,
+            // Support for legacy singular `env` field
+            env: Option<PathBuf>,
+        }
+
+        let mut helper = Helper::deserialize(deserializer)?;
+        helper.envs.extend(helper.env);
+
+        Ok(KeyValuePairSources {
+            literals: helper.literals,
+            files: helper.files,
+            envs: helper.envs.into_boxed_slice(),
+        })
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
