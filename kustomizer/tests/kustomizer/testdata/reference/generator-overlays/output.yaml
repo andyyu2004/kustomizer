@@ -1,0 +1,30 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: p1-com1-m9k97g7c5h
+data:
+  from: base
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: com1-8tc62428t2
+data:
+  from: overlay
+  foo: bar
+  baz: qux
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: p2-com2-m9k97g7c5h
+data:
+  from: base
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: com2-87mcggf7d7
+data:
+  from: overlay
