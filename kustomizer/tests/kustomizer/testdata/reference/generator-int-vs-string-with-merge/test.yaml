@@ -1,0 +1,2 @@
+# Ported from Go kustomize TestGeneratorIntVsStringWithMerge in configmaps_test.go
+# Tests configMapGenerator with behavior: merge to combine base and overlay literals
