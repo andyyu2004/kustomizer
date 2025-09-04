@@ -1,0 +1,2 @@
+# Ported from Go kustomize TestDataIsSingleQuote in configmaps_test.go
+# Tests literal values that are just a single quote character
