@@ -25,9 +25,9 @@ This file tracks which tests from the Go kustomize test suite have been ported t
 - ✅ TestSimple1 - simple-patch (already ported in ai-generated)
 
 ### configmaps_test.go  
-- ⏳ TestGeneratorIntVsStringNoMerge
-- ⏳ TestGeneratorIntVsStringWithMerge
-- ⏳ TestGeneratorFromProperties
+- ✅ TestGeneratorIntVsStringNoMerge - generator-int-vs-string-no-merge
+- ✅ TestGeneratorIntVsStringWithMerge - generator-int-vs-string-with-merge
+- ✅ TestGeneratorFromProperties - generator-from-properties
 - ⏳ TestGeneratorBasics
 - ⏳ TestGeneratorRepeatsInKustomization
 - ⏳ TestIssue3393
