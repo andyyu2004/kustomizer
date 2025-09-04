@@ -1,0 +1,7 @@
+resources:
+- base
+configMapGenerator:
+- name: bob
+  behavior: merge
+  literals:
+  - month=12
