@@ -44,7 +44,11 @@ impl Transformer for ImageTagTransformer {
 
         for resource in resources.iter_mut() {
             field_specs.apply::<String>(resource, |image_ref| {
-                if *image_ref == self.image_tag.name {
+                let image_name = image_ref
+                    .split(':')
+                    .next()
+                    .ok_or_else(|| anyhow::anyhow!("invalid image: `{image_ref}`"))?;
+                if *image_name == self.image_tag.name {
                     let new_name = if self.image_tag.new_name.is_empty() {
                         self.image_tag.name.clone()
                     } else {

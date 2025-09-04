@@ -328,6 +328,23 @@ impl Resource {
         ))
     }
 
+    pub fn any_name_matches(&self, p: impl FnMut(&str) -> bool) -> bool {
+        self.all_names().any(p)
+    }
+
+    /// Iterator over all names this resource has had, including current and previous names.
+    fn all_names(&self) -> impl Iterator<Item = &str> + fmt::Debug {
+        let mut names = vec![self.name().as_str()];
+        if let Some(prev) = self
+            .metadata()
+            .annotations()
+            .and_then(|a| a.get(annotation::PREVIOUS_NAMES))
+        {
+            names.extend(prev.split(','));
+        }
+        names.into_iter()
+    }
+
     pub fn name(&self) -> &Str {
         &self.id.name
     }

@@ -3,10 +3,7 @@ use json_patch::Patch as JsonPatch;
 use regex::Regex;
 use std::path::PathBuf;
 
-use crate::{
-    fieldspec,
-    resource::{Metadata, Resource},
-};
+use crate::resource::{Metadata, Resource};
 use compact_str::CompactString;
 use indexmap::IndexMap;
 use serde::{Deserialize, Serialize};
@@ -391,8 +388,6 @@ pub struct Label {
     pub include_selectors: bool,
     #[serde(default, skip_serializing_if = "std::ops::Not::not")]
     pub include_templates: bool,
-    #[serde(default, skip_serializing_if = "<[_]>::is_empty")]
-    pub field_specs: Box<[fieldspec::FieldSpec]>,
 }
 
 pub mod kind {

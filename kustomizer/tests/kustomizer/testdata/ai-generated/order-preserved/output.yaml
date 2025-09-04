@@ -1,0 +1,30 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: my-ns
+---
+apiVersion: v1
+kind: Role
+metadata:
+  name: p-b-my-role
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: p-b-my-service
+---
+apiVersion: v1
+kind: Deployment
+metadata:
+  name: p-b-my-dep
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: p-my-service2
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: my-ns2

@@ -1,0 +1,2 @@
+# Ported from Go kustomize TestBaseInResourceList in baseandoverlaysmall_test.go
+# Tests referencing a base directory in the resources list with namePrefix chaining

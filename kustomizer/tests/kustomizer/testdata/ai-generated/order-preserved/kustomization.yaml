@@ -1,0 +1,5 @@
+namePrefix: p-
+resources:
+- base
+- prod/my-service.yaml
+- prod/my-namespace.yaml

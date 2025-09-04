@@ -1,19 +1,58 @@
-use crate::{fieldspec, manifest::Label, resmap::ResourceMap, resource::Object};
+use std::borrow::Cow;
+
+use indexmap::IndexMap;
+
+use crate::{
+    fieldspec,
+    manifest::{Label, Str},
+    resmap::ResourceMap,
+    resource::Object,
+};
 
 use super::Transformer;
 
-pub struct LabelTransformer<'a>(pub &'a [Label]);
+#[derive(Debug)]
+pub struct LabelTransformer<'a> {
+    labels: Cow<'a, [Label]>,
+}
+
+impl<'a, 'de> serde::Deserialize<'de> for LabelTransformer<'a> {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        #[derive(serde::Deserialize)]
+        struct Labels {
+            labels: IndexMap<Str, Str>,
+        }
+
+        let labels = Labels::deserialize(deserializer)?;
+        Ok(LabelTransformer::new(vec![Label {
+            pairs: labels.labels,
+            include_selectors: Default::default(),
+            include_templates: Default::default(),
+        }]))
+    }
+}
+
+impl<'a> LabelTransformer<'a> {
+    pub fn new(labels: impl Into<Cow<'a, [Label]>>) -> Self {
+        Self {
+            labels: labels.into(),
+        }
+    }
+}
 
 impl Transformer for LabelTransformer<'_> {
     #[tracing::instrument(skip_all, name = "label_transform")]
     async fn transform(&mut self, resources: &mut ResourceMap) -> anyhow::Result<()> {
-        if self.0.is_empty() {
+        if self.labels.is_empty() {
             return Ok(());
         }
 
         let builtins = fieldspec::Builtin::load();
 
-        for label in self.0 {
+        for label in &self.labels[..] {
             if label.pairs.is_empty() {
                 continue;
             }
