@@ -1,0 +1,2 @@
+# Ported from Go kustomize TestSimple1 in simple_test.go
+# Tests basic strategic merge patch functionality
