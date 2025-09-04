@@ -28,16 +28,16 @@ This file tracks which tests from the Go kustomize test suite have been ported t
 - ✅ TestGeneratorIntVsStringNoMerge - generator-int-vs-string-no-merge
 - ✅ TestGeneratorIntVsStringWithMerge - generator-int-vs-string-with-merge
 - ✅ TestGeneratorFromProperties - generator-from-properties
-- ⏳ TestGeneratorBasics
-- ⏳ TestGeneratorRepeatsInKustomization
-- ⏳ TestIssue3393
-- ⏳ TestGeneratorSimpleOverlay
-- ⏳ TestGeneratorOverlaysBinaryData
-- ⏳ TestGeneratorOverlays
-- ⏳ TestConfigMapGeneratorMergeNamePrefix
-- ⏳ TestConfigMapGeneratorLiteralNewline
-- ⏳ TestDataEndsWithQuotes
-- ⏳ TestDataIsSingleQuote
+- ✅ TestGeneratorBasics - generator-basics
+- ⏸️ TestGeneratorRepeatsInKustomization - Skipped (weird edge case with repeated fields)
+- ✅ TestIssue3393 - issue-3393
+- ❌ TestGeneratorSimpleOverlay - generator-simple-overlay (configMapGenerator merge bug with prefixes)
+- ❌ TestGeneratorOverlaysBinaryData - generator-overlays-binary-data (missing binary data support)
+- ❌ TestGeneratorOverlays - generator-overlays (same configMapGenerator merge bug)
+- ✅ TestConfigMapGeneratorMergeNamePrefix - configmap-generator-merge-name-prefix
+- ❌ TestConfigMapGeneratorLiteralNewline - configmap-generator-literal-newline (missing generators field)
+- ✅ TestDataEndsWithQuotes - data-ends-with-quotes
+- ✅ TestDataIsSingleQuote - data-is-single-quote
 - ⏳ TestPrefixSuffix
 - ⏳ TestPrefixSuffix2
 
