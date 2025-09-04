@@ -1,4 +1,5 @@
 use serde::Deserialize as _;
+use serde_json::map::Entry;
 
 use crate::manifest::{Behavior, FunctionSpec};
 
@@ -107,6 +108,10 @@ impl MetadataViewMut<'_> {
         if let Some(mut annotations) = self.annotations_mut() {
             annotations.remove(annotation::BEHAVIOR);
             annotations.remove(annotation::NEEDS_HASH);
+            annotations.remove(annotation::FUNCTION);
+            annotations.remove(annotation::PREVIOUS_KINDS);
+            annotations.remove(annotation::PREVIOUS_NAMESPACES);
+            annotations.remove(annotation::PREVIOUS_NAMES);
         }
     }
 
@@ -156,11 +161,30 @@ impl LabelsViewMut<'_> {
 pub struct AnnotationsViewMut<'a>(&'a mut Object);
 
 impl AnnotationsViewMut<'_> {
-    pub fn insert(&mut self, key: &str, value: &str) {
-        self.0.insert(
-            key.to_string(),
-            serde_json::Value::String(value.to_string()),
-        );
+    pub fn insert(&mut self, key: impl Into<String>, value: &str) {
+        self.0
+            .insert(key.into(), serde_json::Value::String(value.to_string()));
+    }
+
+    pub fn insert_or_update(&mut self, key: impl Into<String>, f: impl FnOnce(&mut String)) {
+        let key = key.into();
+        let v = match self.0.entry(key) {
+            Entry::Vacant(entry) => {
+                let v = entry.insert(serde_json::Value::String(String::new()));
+                let serde_json::Value::String(v) = v else {
+                    unreachable!();
+                };
+                v
+            }
+            Entry::Occupied(entry) => {
+                let v = entry.into_mut();
+                let serde_json::Value::String(v) = v else {
+                    panic!("got non-string annotation value")
+                };
+                v
+            }
+        };
+        f(v);
     }
 
     pub fn remove(&mut self, key: &str) -> Option<String> {
