@@ -1,0 +1,14 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: p-cm-c9867f8446
+data:
+  fruit: apple
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cm-564g2ttccf
+data:
+  veggie: broccoli
