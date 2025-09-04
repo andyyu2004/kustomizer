@@ -46,8 +46,7 @@ impl Builder {
                     .lock()
                     .await
                     .push(Rename::new_name(res.id().clone(), new_name.clone()));
-                let mut res = res.clone();
-                res.set_name(new_name);
+                let res = res.with_name(new_name);
                 resmap.insert(res)?;
             } else {
                 resmap.insert(res)?;

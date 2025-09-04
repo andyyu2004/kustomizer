@@ -191,7 +191,8 @@ impl Resource {
         Resource::new(id, metadata, root)
     }
 
-    pub fn into_parts(self) -> (ResId, Object) {
+    #[must_use]
+    pub(crate) fn into_parts(self) -> (ResId, Object) {
         let Resource { id, root } = self;
         (
             id,
@@ -202,19 +203,18 @@ impl Resource {
         )
     }
 
-    pub fn set_name(&mut self, name: Str) {
-        self.metadata_mut().set_name(name.clone());
-        self.id.name = name;
-    }
-
+    #[must_use]
     pub fn with_name(mut self, name: Str) -> Self {
+        self.store_curr_id();
         self.metadata_mut().set_name(name.clone());
         let (mut id, root) = self.into_parts();
         id.name = name;
         Self::from_parts(id, root).expect("invariants should be maintained by this function")
     }
 
+    #[must_use]
     pub fn with_namespace(mut self, ns: Str) -> Self {
+        self.store_curr_id();
         self.metadata_mut().set_namespace(ns.clone());
         let (mut id, root) = self.into_parts();
         id.namespace = Some(ns);
@@ -223,6 +223,43 @@ impl Resource {
 
     pub fn id(&self) -> &ResId {
         &self.id
+    }
+
+    fn store_curr_id(&mut self) {
+        let id = self.id().clone();
+        self.metadata_mut().make_annotations_mut().insert_or_update(
+            annotation::PREVIOUS_NAMES,
+            |s| {
+                if s.is_empty() {
+                    *s = id.name.to_string()
+                } else {
+                    s.push_str(&format!(",{}", id.name))
+                }
+            },
+        );
+
+        self.metadata_mut().make_annotations_mut().insert_or_update(
+            annotation::PREVIOUS_NAMESPACES,
+            |s| {
+                let ns = id.namespace.as_deref().unwrap_or("");
+                if s.is_empty() {
+                    *s = ns.to_string()
+                } else {
+                    s.push_str(&format!(",{ns}"))
+                }
+            },
+        );
+
+        self.metadata_mut().make_annotations_mut().insert_or_update(
+            annotation::PREVIOUS_KINDS,
+            |s| {
+                if s.is_empty() {
+                    *s = id.kind.to_string()
+                } else {
+                    s.push_str(&format!(",{}", id.kind))
+                }
+            },
+        );
     }
 
     pub fn name(&self) -> &Str {
@@ -469,8 +506,12 @@ impl<'de> Deserialize<'de> for Resource {
     }
 }
 
-pub mod annotation {
+pub(crate) mod annotation {
     pub const FUNCTION: &str = "config.kubernetes.io/function";
     pub const BEHAVIOR: &str = "kustomize.config.k8s.io/behavior";
     pub const NEEDS_HASH: &str = "kustomize.config.k8s.io/needs-hash";
+
+    pub const PREVIOUS_NAMES: &str = "internal.config.kubernetes.io/previous-names";
+    pub const PREVIOUS_NAMESPACES: &str = "internal.config.kubernetes.io/previous-namespaces";
+    pub const PREVIOUS_KINDS: &str = "internal.config.kubernetes.io/previous-kinds";
 }
