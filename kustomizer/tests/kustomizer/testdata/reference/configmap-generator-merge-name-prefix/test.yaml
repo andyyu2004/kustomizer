@@ -1,0 +1,2 @@
+# Ported from Go kustomize TestConfigMapGeneratorMergeNamePrefix in configmaps_test.go
+# Tests configMapGenerator merge with name prefix and suffix transformations

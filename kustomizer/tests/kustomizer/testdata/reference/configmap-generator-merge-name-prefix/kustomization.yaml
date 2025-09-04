@@ -1,0 +1,12 @@
+resources:
+- o1
+- o2
+configMapGenerator:
+- name: o1-cm
+  behavior: merge
+  literals:
+  - big=bang
+- name: cm-o2
+  behavior: merge
+  literals:
+  - big=crunch
