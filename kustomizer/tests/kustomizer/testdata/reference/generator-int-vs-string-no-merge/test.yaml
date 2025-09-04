@@ -1,0 +1,2 @@
+# Ported from Go kustomize TestGeneratorIntVsStringNoMerge in configmaps_test.go
+# Tests configMapGenerator with different literal value types (int, string, bool)
