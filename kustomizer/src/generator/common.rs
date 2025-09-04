@@ -36,6 +36,20 @@ pub enum DataEncoding {
     Base64,
 }
 
+// Strips surrounding single or double quotes from a string, if present.
+fn strip_quotes(s: &str) -> &str {
+    let bytes = s.as_bytes();
+    if bytes.len() < 2 || bytes[0] != bytes[bytes.len() - 1] {
+        return s;
+    }
+
+    if bytes[0] == b'\'' || bytes[0] == b'"' {
+        return &s[1..bytes.len() - 1];
+    }
+
+    s
+}
+
 pub async fn process_key_value_sources(
     workdir: &Path,
     sources: &KeyValuePairSources,
@@ -45,12 +59,12 @@ pub async fn process_key_value_sources(
     let mut object = Object::new();
 
     for kv in &sources.literals {
+        let value = strip_quotes(&kv.value);
         let value = match encoding {
-            DataEncoding::Raw => kv.value.to_string(),
-            DataEncoding::Base64 => base64::Engine::encode(
-                &base64::engine::general_purpose::STANDARD,
-                kv.value.as_bytes(),
-            ),
+            DataEncoding::Raw => value.to_string(),
+            DataEncoding::Base64 => {
+                base64::Engine::encode(&base64::engine::general_purpose::STANDARD, value.as_bytes())
+            }
         };
 
         if object
