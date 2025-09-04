@@ -3,6 +3,7 @@ use std::collections::HashMap;
 use crate::{
     fieldspec,
     manifest::{Replica, Str},
+    resmap::ResourceMap,
 };
 
 use super::Transformer;
@@ -24,10 +25,7 @@ impl ReplicaTransformer {
 
 impl Transformer for ReplicaTransformer {
     #[tracing::instrument(skip_all, name = "replica_transform")]
-    async fn transform(
-        &mut self,
-        resources: &mut crate::resmap::ResourceMap,
-    ) -> anyhow::Result<()> {
+    async fn transform(&mut self, resources: &mut ResourceMap) -> anyhow::Result<()> {
         let field_specs = &fieldspec::Builtin::load().replicas;
         for resource in resources.iter_mut() {
             if let Some(desired_replicas) = self.replicas.get(resource.name()).copied() {
