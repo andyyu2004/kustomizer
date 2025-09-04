@@ -1,0 +1,7 @@
+resources:
+- cm.yaml
+configMapGenerator:
+  - name: project
+    behavior: merge
+    literals:
+    - ANOTHER_ENV_VARIABLE="bar"
