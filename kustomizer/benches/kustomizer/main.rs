@@ -5,7 +5,7 @@ fn main() {
 #[divan::bench]
 #[tokio::main]
 async fn build_production() -> kustomizer::ResourceMap {
-    kustomizer::build("tests/kustomizer/testdata/full/envs/production/")
+    kustomizer::build("tests/kustomizer/testdata/realistic/example-com/envs/production/")
         .await
         .unwrap()
 }
@@ -13,7 +13,7 @@ async fn build_production() -> kustomizer::ResourceMap {
 #[divan::bench]
 #[tokio::main]
 async fn build_staging() -> kustomizer::ResourceMap {
-    kustomizer::build("tests/kustomizer/testdata/full/envs/staging/")
+    kustomizer::build("tests/kustomizer/testdata/realistic/example-com/envs/staging/")
         .await
         .unwrap()
 }
@@ -21,7 +21,7 @@ async fn build_staging() -> kustomizer::ResourceMap {
 #[divan::bench]
 #[tokio::main]
 async fn build_resources() -> kustomizer::ResourceMap {
-    kustomizer::build("tests/kustomizer/testdata/full/resources")
+    kustomizer::build("tests/kustomizer/testdata/realistic/example-com/resources")
         .await
         .unwrap()
 }
