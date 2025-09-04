@@ -95,6 +95,13 @@ pub struct ResId {
     pub namespace: Option<Str>,
 }
 
+#[derive(Debug)]
+pub(crate) struct ResIdRef<'a> {
+    pub kind: &'a str,
+    pub name: &'a str,
+    pub namespace: Option<&'a str>,
+}
+
 impl Deref for ResId {
     type Target = Gvk;
 
@@ -175,6 +182,17 @@ impl Resource {
             "root must not duplicate metadata"
         );
 
+        assert!(!id.name.contains('/'), "name must not contain '/'");
+        assert!(!id.name.contains(','), "name must not contain ','");
+
+        if let Some(ns) = &id.namespace {
+            assert!(!ns.contains('/'), "namespace must not contain '/'");
+            assert!(!ns.contains(','), "namespace must not contain ','");
+        }
+
+        assert!(!id.kind.contains('/'), "kind must not contain '/'");
+        assert!(!id.kind.contains(','), "kind must not contain ','");
+
         Ok(Resource {
             id,
             root: serde_json::Value::Object(root),
@@ -227,39 +245,87 @@ impl Resource {
 
     fn store_curr_id(&mut self) {
         let id = self.id().clone();
-        self.metadata_mut().make_annotations_mut().insert_or_update(
-            annotation::PREVIOUS_NAMES,
-            |s| {
-                if s.is_empty() {
-                    *s = id.name.to_string()
-                } else {
-                    s.push_str(&format!(",{}", id.name))
-                }
-            },
-        );
+        self.metadata_mut()
+            .make_annotations_mut()
+            .insert_or_update(annotation::PREVIOUS_NAMES, |s| {
+                s.push_str(&format!("{},", id.name))
+            });
 
         self.metadata_mut().make_annotations_mut().insert_or_update(
             annotation::PREVIOUS_NAMESPACES,
             |s| {
                 let ns = id.namespace.as_deref().unwrap_or("");
-                if s.is_empty() {
-                    *s = ns.to_string()
-                } else {
-                    s.push_str(&format!(",{ns}"))
-                }
+                s.push_str(&format!("{ns},"))
             },
         );
 
-        self.metadata_mut().make_annotations_mut().insert_or_update(
-            annotation::PREVIOUS_KINDS,
-            |s| {
-                if s.is_empty() {
-                    *s = id.kind.to_string()
-                } else {
-                    s.push_str(&format!(",{}", id.kind))
-                }
-            },
+        self.metadata_mut()
+            .make_annotations_mut()
+            .insert_or_update(annotation::PREVIOUS_KINDS, |s| {
+                s.push_str(&format!("{},", id.kind))
+            });
+    }
+
+    pub(crate) fn any_id_matches(&self, p: impl FnMut(ResIdRef<'_>) -> bool) -> bool {
+        self.all_ids().any(p)
+    }
+
+    /// Iterator over all names this resource has had, including current and previous names.
+    fn all_ids(&self) -> impl Iterator<Item = ResIdRef<'_>> + fmt::Debug {
+        let curr = std::iter::once(ResIdRef {
+            kind: &self.id.kind,
+            name: &self.id.name,
+            namespace: self.id.namespace.as_deref(),
+        });
+
+        let prev_names = self
+            .metadata()
+            .annotations()
+            .and_then(|a| a.get(annotation::PREVIOUS_NAMES))
+            .unwrap_or_default()
+            .split(',');
+
+        let prev_namespaces = self
+            .metadata()
+            .annotations()
+            .and_then(|a| a.get(annotation::PREVIOUS_NAMESPACES))
+            .unwrap_or_default()
+            .split(',');
+
+        let prev_kinds = self
+            .metadata()
+            .annotations()
+            .and_then(|a| a.get(annotation::PREVIOUS_KINDS))
+            .unwrap_or_default()
+            .split(',');
+
+        debug_assert_eq!(
+            prev_namespaces.clone().count(),
+            prev_names.clone().count(),
+            "previous names and namespaces must have same length: {:?} and {:?}",
+            prev_namespaces.collect::<Vec<_>>(),
+            prev_names.collect::<Vec<_>>(),
         );
+
+        debug_assert_eq!(
+            prev_kinds.clone().count(),
+            prev_names.clone().count(),
+            "previous names and kinds must have same length: {:?} and {:?}",
+            prev_kinds.collect::<Vec<_>>(),
+            prev_names.collect::<Vec<_>>(),
+        );
+
+        curr.chain(prev_names.zip(prev_namespaces).zip(prev_kinds).map(
+            |((name, namespace), kind)| ResIdRef {
+                kind,
+                name,
+                namespace: if namespace.is_empty() {
+                    None
+                } else {
+                    Some(namespace)
+                },
+            },
+        ))
     }
 
     pub fn name(&self) -> &Str {
