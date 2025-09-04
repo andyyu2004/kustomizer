@@ -1,0 +1,2 @@
+# Ported from Go kustomize TestOrderPreserved in baseandoverlaysmall_test.go
+# Tests that resource order is preserved when mixing base resources and overlay resources

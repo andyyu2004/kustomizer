@@ -1,0 +1,2 @@
+# Ported from Go kustomize TestSmallBase in baseandoverlaysmall_test.go
+# Tests base functionality with namePrefix and commonLabels

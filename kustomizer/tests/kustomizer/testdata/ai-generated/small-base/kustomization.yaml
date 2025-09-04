@@ -1,0 +1,7 @@
+namePrefix: a-
+labels:
+  - pairs:
+      app: my-app
+resources:
+- my-deployment.yaml
+- my-service.yaml

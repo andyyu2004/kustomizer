@@ -1,0 +1,6 @@
+namePrefix: b-
+resources:
+- my-namespace.yaml
+- my-role.yaml
+- my-service.yaml
+- my-deployment.yaml

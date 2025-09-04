@@ -141,7 +141,7 @@ impl Builder {
         }
 
         if !kustomization.labels.is_empty() {
-            LabelTransformer(&kustomization.labels)
+            LabelTransformer::new(kustomization.labels.as_ref())
                 .transform(&mut resmap)
                 .await?;
         }
@@ -223,7 +223,7 @@ impl Builder {
                     .await
                     .with_context(|| {
                         format!(
-                            "failed transforming resources with function spec at `{}`",
+                            "transforming resources with function spec at `{}`",
                             path.pretty()
                         )
                     })?;
@@ -234,7 +234,17 @@ impl Builder {
                             transformer_spec.root().clone(),
                         ))
                         .with_context(|| {
-                            format!("failed parsing ImageTagTransformer at `{}`", path.pretty())
+                            format!("parsing ImageTagTransformer at `{}`", path.pretty())
+                        })?
+                        .transform(&mut resmap)
+                        .await?
+                    }
+                    "LabelTransformer" => {
+                        serde_json::from_value::<LabelTransformer<'_>>(serde_json::Value::Object(
+                            transformer_spec.root().clone(),
+                        ))
+                        .with_context(|| {
+                            format!("parsing LabelTransformer at `{}`", path.pretty())
                         })?
                         .transform(&mut resmap)
                         .await?
@@ -341,7 +351,7 @@ impl Builder {
                 .function_spec()
                 .with_context(|| {
                     format!(
-                        "failed parsing function spec from generator spec at `{}`",
+                        "parsing function spec from generator spec at `{}`",
                         path.pretty()
                     )
                 })?
@@ -351,7 +361,7 @@ impl Builder {
                 .await
                 .with_context(|| {
                     format!(
-                        "failed generating resources from function spec at {}",
+                        "generating resources from function spec at {}",
                         path.pretty()
                     )
                 })?;

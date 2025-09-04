@@ -20,8 +20,16 @@ impl<F: FnMut(&str) -> Str + Send> Transformer for NameTransformer<F> {
         let mut out = ResourceMap::with_capacity(resources.len());
 
         for resource in std::mem::take(resources) {
-            let new_name = (self.f)(resource.name());
-            out.insert(resource.with_name(new_name))?;
+            // TODO could be more principled about the skip list here
+            match (resource.kind().as_str(), resource.gvk().group.as_str()) {
+                ("CustomResourceDefinition", _)
+                | ("APIService", "apiregistration.k8s.io")
+                | ("Namespace", _) => out.insert(resource)?,
+                _ => {
+                    let new_name = (self.f)(resource.name());
+                    out.insert(resource.with_name(new_name))?
+                }
+            };
         }
 
         *resources = out;
