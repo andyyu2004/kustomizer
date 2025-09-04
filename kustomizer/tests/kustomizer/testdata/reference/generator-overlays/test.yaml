@@ -1,0 +1,2 @@
+# Ported from Go kustomize TestGeneratorOverlays in configmaps_test.go
+# Tests complex multi-level configMapGenerator overlays
