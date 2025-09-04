@@ -1,0 +1,2 @@
+# Ported from Go kustomize TestConfigMapGeneratorLiteralNewline in configmaps_test.go
+# Tests configMapGenerator with multiline literals via generators field
