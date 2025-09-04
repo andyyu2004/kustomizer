@@ -1,0 +1,3 @@
+# Ported from Go kustomize TestDataEndsWithQuotes in configmaps_test.go
+# Regression test for https://github.com/kubernetes-sigs/kustomize/issues/4233
+# Tests literal values containing single quotes
