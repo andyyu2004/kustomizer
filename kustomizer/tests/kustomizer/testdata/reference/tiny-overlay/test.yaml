@@ -1,0 +1,2 @@
+# Ported from Go kustomize TestTinyOverlay in baseandoverlaysmall_test.go
+# Tests basic overlay functionality with namePrefix and strategic merge patches
