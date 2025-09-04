@@ -1,0 +1,2 @@
+# Ported from Go kustomize TestGeneratorSimpleOverlay in configmaps_test.go
+# Tests configMapGenerator overlay behavior with name prefix
