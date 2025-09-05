@@ -1,0 +1,11 @@
+apiVersion: builtin
+kind: ConfigMapGenerator
+metadata:
+  name: testing
+literals:
+  - |
+    initial.txt=greetings
+    everyone
+  - |
+    final.txt=different
+    behavior

@@ -1,0 +1,5 @@
+configMapGenerator:
+- name: cm
+  behavior: create
+  literals:
+  - foo=bar

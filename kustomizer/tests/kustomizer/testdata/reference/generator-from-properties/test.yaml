@@ -1,0 +1,2 @@
+# Ported from Go kustomize TestGeneratorFromProperties in configmaps_test.go
+# Tests configMapGenerator with envs (properties files) and merge behavior

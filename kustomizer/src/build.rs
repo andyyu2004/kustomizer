@@ -104,7 +104,7 @@ impl Builder {
 
         if !kustomization.config_map_generators.is_empty() {
             let configmaps = ConfigMapGenerator::new(
-                &kustomization.config_map_generators,
+                kustomization.config_map_generators.as_ref(),
                 &kustomization.generator_options,
             )
             .generate(&kustomization.parent_path, &ResourceList::new([]))
@@ -211,57 +211,7 @@ impl Builder {
 
         for path in &kustomization.transformers {
             let path = PathId::make(kustomization.parent_path.join(path))?;
-            let transformer_spec = Resource::load(path)
-                .with_context(|| format!("loading transformer spec from {}", path.pretty()))?;
-
-            if let Some(annotations) = transformer_spec.annotations()
-                && annotations.has(KUSTOMIZE_FUNCTION_ANNOTATION)
-            {
-                let function_spec = annotations.function_spec()?.unwrap();
-                FunctionPlugin::new(function_spec)
-                    .transform(&mut resmap)
-                    .await
-                    .with_context(|| {
-                        format!(
-                            "transforming resources with function spec at `{}`",
-                            path.pretty()
-                        )
-                    })?;
-            } else if transformer_spec.api_version() == "builtin" {
-                match transformer_spec.kind().as_str() {
-                    "ImageTagTransformer" => {
-                        serde_json::from_value::<ImageTagTransformer>(serde_json::Value::Object(
-                            transformer_spec.root().clone(),
-                        ))
-                        .with_context(|| {
-                            format!("parsing ImageTagTransformer at `{}`", path.pretty())
-                        })?
-                        .transform(&mut resmap)
-                        .await?
-                    }
-                    "LabelTransformer" => {
-                        serde_json::from_value::<LabelTransformer<'_>>(serde_json::Value::Object(
-                            transformer_spec.root().clone(),
-                        ))
-                        .with_context(|| {
-                            format!("parsing LabelTransformer at `{}`", path.pretty())
-                        })?
-                        .transform(&mut resmap)
-                        .await?
-                    }
-                    _ => bail!(
-                        "unknown builtin transformer kind `{}` at `{}`",
-                        transformer_spec.kind(),
-                        path.pretty()
-                    ),
-                }
-            } else {
-                bail!(
-                    "only builtin or custom transformers with `{KUSTOMIZE_FUNCTION_ANNOTATION}` annotation are supported `{}`, got {}",
-                    path.pretty(),
-                    transformer_spec.id()
-                );
-            }
+            self.apply_transformer(path, &mut resmap).await?;
         }
 
         Ok(resmap)
@@ -334,7 +284,63 @@ impl Builder {
         }
     }
 
-    async fn build_generator<A: Symbol, K: Symbol>(
+    async fn apply_transformer(
+        &self,
+        path: PathId,
+        resmap: &mut ResourceMap,
+    ) -> anyhow::Result<()> {
+        let transformer_spec = Resource::load(path)
+            .with_context(|| format!("loading transformer spec from {}", path.pretty()))?;
+
+        if let Some(annotations) = transformer_spec.annotations()
+            && annotations.has(KUSTOMIZE_FUNCTION_ANNOTATION)
+        {
+            let function_spec = annotations.function_spec()?.unwrap();
+            FunctionPlugin::new(function_spec)
+                .transform(resmap)
+                .await
+                .with_context(|| {
+                    format!(
+                        "transforming resources with function spec at `{}`",
+                        path.pretty()
+                    )
+                })?;
+        } else if transformer_spec.api_version() == "builtin" {
+            match transformer_spec.kind().as_str() {
+                "ImageTagTransformer" => {
+                    serde_json::from_value::<ImageTagTransformer>(serde_json::Value::Object(
+                        transformer_spec.root().clone(),
+                    ))
+                    .with_context(|| format!("parsing ImageTagTransformer at `{}`", path.pretty()))?
+                    .transform(resmap)
+                    .await?
+                }
+                "LabelTransformer" => {
+                    serde_json::from_value::<LabelTransformer<'_>>(serde_json::Value::Object(
+                        transformer_spec.root().clone(),
+                    ))
+                    .with_context(|| format!("parsing LabelTransformer at `{}`", path.pretty()))?
+                    .transform(resmap)
+                    .await?
+                }
+                _ => bail!(
+                    "unknown builtin transformer kind `{}` at `{}`",
+                    transformer_spec.kind(),
+                    path.pretty()
+                ),
+            }
+        } else {
+            bail!(
+                "only builtin or custom transformers with `{KUSTOMIZE_FUNCTION_ANNOTATION}` annotation are supported `{}`, got {}",
+                path.pretty(),
+                transformer_spec.id()
+            );
+        }
+
+        Ok(())
+    }
+
+    async fn build_generator<A, K>(
         &self,
         kustomization: &Located<Manifest<A, K>>,
         path: &Path,
@@ -367,6 +373,34 @@ impl Builder {
                 })?;
 
             Ok(generated)
+        } else if generator_spec.api_version() == "builtin" {
+            match generator_spec.kind().as_str() {
+                "ConfigMapGenerator" => {
+                    let mut generator = serde_json::from_value::<ConfigMapGenerator<'_>>(
+                        serde_json::Value::Object(generator_spec.root().clone()),
+                    )
+                    .with_context(|| {
+                        format!("parsing ConfigMapGenerator at `{}`", path.pretty())
+                    })?;
+                    generator.set_options(&kustomization.generator_options);
+
+                    let generated = generator
+                        .generate(workdir, &ResourceList::new([]))
+                        .await
+                        .with_context(|| {
+                            format!(
+                                "generating resources from ConfigMapGenerator at `{}`",
+                                path.pretty()
+                            )
+                        })?;
+                    Ok(generated)
+                }
+                _ => bail!(
+                    "unknown builtin generator kind `{}` at `{}`",
+                    generator_spec.kind(),
+                    path.pretty()
+                ),
+            }
         } else {
             bail!(
                 "only custom generators with the `{KUSTOMIZE_FUNCTION_ANNOTATION}` annotation are supported `{}`, got {}",
