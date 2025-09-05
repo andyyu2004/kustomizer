@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: testing-tt4769fb52
+data:
+  initial.txt: |
+    greetings
+    everyone
+  final.txt: |
+    different
+    behavior
