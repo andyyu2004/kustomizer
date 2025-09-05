@@ -79,8 +79,7 @@ impl Builder {
                 .iter()
                 .cloned()
                 .map(|path| async move {
-                    let path = PathId::make(kustomization.parent_path.join(&path))?;
-                    self.build_generator(path)
+                    self.build_generator(kustomization, &path)
                         .await
                         .with_context(|| {
                             format!(
@@ -105,7 +104,7 @@ impl Builder {
 
         if !kustomization.config_map_generators.is_empty() {
             let configmaps = ConfigMapGenerator::new(
-                &kustomization.config_map_generators,
+                kustomization.config_map_generators.as_ref(),
                 &kustomization.generator_options,
             )
             .generate(&kustomization.parent_path, &ResourceList::new([]))
@@ -341,7 +340,12 @@ impl Builder {
         Ok(())
     }
 
-    async fn build_generator(&self, path: PathId) -> anyhow::Result<ResourceList> {
+    async fn build_generator<A, K>(
+        &self,
+        kustomization: &Located<Manifest<A, K>>,
+        path: &Path,
+    ) -> anyhow::Result<ResourceList> {
+        let path = PathId::make(kustomization.parent_path.join(path))?;
         let workdir = path.parent().unwrap();
         let generator_spec = Resource::load(path)
             .with_context(|| format!("loading generator spec from {}", path.pretty()))?;
@@ -369,6 +373,34 @@ impl Builder {
                 })?;
 
             Ok(generated)
+        } else if generator_spec.api_version() == "builtin" {
+            match generator_spec.kind().as_str() {
+                "ConfigMapGenerator" => {
+                    let mut generator = serde_json::from_value::<ConfigMapGenerator<'_>>(
+                        serde_json::Value::Object(generator_spec.root().clone()),
+                    )
+                    .with_context(|| {
+                        format!("parsing ConfigMapGenerator at `{}`", path.pretty())
+                    })?;
+                    generator.set_options(&kustomization.generator_options);
+
+                    let generated = generator
+                        .generate(workdir, &ResourceList::new([]))
+                        .await
+                        .with_context(|| {
+                            format!(
+                                "generating resources from ConfigMapGenerator at `{}`",
+                                path.pretty()
+                            )
+                        })?;
+                    Ok(generated)
+                }
+                _ => bail!(
+                    "unknown builtin generator kind `{}` at `{}`",
+                    generator_spec.kind(),
+                    path.pretty()
+                ),
+            }
         } else {
             bail!(
                 "only custom generators with the `{KUSTOMIZE_FUNCTION_ANNOTATION}` annotation are supported `{}`, got {}",

@@ -1,7 +1,9 @@
+use std::borrow::Cow;
+
 use anyhow::Context;
 
 use crate::{
-    manifest::{self, GeneratorOptions},
+    manifest::{self, Behavior, GeneratorOptions, KeyValuePairSources, TypeMeta, apiversion, kind},
     resource::{Annotations, Gvk, Metadata, Object, ResId, Resource},
 };
 
@@ -11,16 +13,58 @@ use super::{
 };
 
 pub struct ConfigMapGenerator<'a> {
-    generators: &'a [manifest::Generator],
+    generators: Cow<'a, [manifest::Generator]>,
     options: &'a GeneratorOptions,
 }
 
 impl<'a> ConfigMapGenerator<'a> {
-    pub fn new(generators: &'a [manifest::Generator], options: &'a GeneratorOptions) -> Self {
+    pub fn new(
+        generators: impl Into<Cow<'a, [manifest::Generator]>>,
+        options: &'a GeneratorOptions,
+    ) -> Self {
         Self {
-            generators,
+            generators: generators.into(),
             options,
         }
+    }
+
+    pub fn set_options(&mut self, options: &'a GeneratorOptions) {
+        self.options = options;
+    }
+}
+
+impl<'de, 'a> serde::Deserialize<'de> for ConfigMapGenerator<'a> {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        #[derive(serde::Deserialize)]
+        struct Helper {
+            #[allow(unused)]
+            #[serde(flatten)]
+            type_meta: TypeMeta<apiversion::Builtin, kind::ConfigMapGenerator>,
+            metadata: Metadata,
+            #[serde(default)]
+            behavior: Behavior,
+            #[serde(flatten)]
+            sources: KeyValuePairSources,
+            #[serde(default)]
+            options: GeneratorOptions,
+        }
+
+        let mut helper = Helper::deserialize(deserializer)?;
+        let generator = manifest::Generator {
+            namespace: helper.metadata.namespace.take(),
+            name: helper.metadata.name,
+            behavior: helper.behavior,
+            sources: helper.sources,
+            options: helper.options,
+        };
+
+        Ok(ConfigMapGenerator::new(
+            vec![generator],
+            GeneratorOptions::static_default(),
+        ))
     }
 }
 
@@ -33,7 +77,7 @@ impl Generator for ConfigMapGenerator<'_> {
     ) -> anyhow::Result<ResourceList> {
         let mut resources = Vec::with_capacity(self.generators.len());
 
-        for generator in self.generators {
+        for generator in &self.generators[..] {
             resources.push(
                 self.generate_one(workdir, generator)
                     .await

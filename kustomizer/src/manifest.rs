@@ -1,7 +1,7 @@
 use core::fmt;
 use json_patch::Patch as JsonPatch;
 use regex::Regex;
-use std::path::PathBuf;
+use std::{path::PathBuf, sync::LazyLock};
 
 use crate::resource::{Metadata, Resource};
 use compact_str::CompactString;
@@ -152,6 +152,13 @@ pub struct GeneratorOptions {
     pub disable_name_suffix_hash: Option<bool>,
     #[serde(default, skip_serializing_if = "std::ops::Not::not")]
     pub immutable: bool,
+}
+
+impl GeneratorOptions {
+    pub fn static_default() -> &'static Self {
+        static STATIC_DEFAULT: LazyLock<GeneratorOptions> = LazyLock::new(Default::default);
+        &*STATIC_DEFAULT
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
@@ -427,6 +434,7 @@ pub mod kind {
     define_symbol!(ImageTagTransformer = "ImageTagTransformer");
     define_symbol!(ServiceAccount = "ServiceAccount");
     define_symbol!(Namespace = "Namespace");
+    define_symbol!(ConfigMapGenerator = "ConfigMapGenerator");
 }
 
 pub mod apiversion {
