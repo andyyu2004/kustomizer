@@ -2,7 +2,7 @@ use core::fmt;
 use std::ops::{Index, IndexMut};
 
 use anyhow::{Context, bail};
-use indexmap::{IndexMap, map::Entry};
+use indexmap::IndexMap;
 
 use crate::{
     manifest::Behavior,
@@ -64,36 +64,56 @@ impl ResourceMap {
     }
 
     pub fn insert(&mut self, resource: Resource) -> anyhow::Result<()> {
+        let mut matches = self
+            .resources
+            .values_mut()
+            .filter(|r| {
+                r.any_id_matches(|id| {
+                    id.name == resource.id().name
+                        && id.namespace == resource.id().namespace.as_deref()
+                        && id.kind == resource.id().gvk.kind
+                })
+            })
+            .fuse();
+
+        let fst_match = matches.next();
+        let snd_match = matches.next();
+
         let behavior = resource
-            .metadata()
             .annotations()
             .map_or(Ok(Behavior::Create), |annotations| annotations.behavior())?;
-        match self.resources.entry(resource.id().clone()) {
-            Entry::Occupied(mut entry) => match behavior {
+
+        match (fst_match, snd_match) {
+            (None, _) => match behavior {
+                // FIXME bug
+                // Merge should cause failure if the resource does not already exist, but causes a
+                // test failure currently.
+                Behavior::Create | Behavior::Merge => {
+                    drop(self.resources.insert(resource.id().clone(), resource))
+                }
+                Behavior::Replace => bail!(
+                    "resource id `{}` does not exist, cannot {behavior}",
+                    resource.id()
+                ),
+            },
+            (Some(existing), None) => match behavior {
                 Behavior::Create => bail!(
                     "may not add resource with an already registered id `{}`, consider specifying `merge` or `replace` behavior",
                     resource.id()
                 ),
-                Behavior::Merge => {
-                    entry
-                        .get_mut()
-                        .merge_data_fields(resource)
-                        .with_context(|| {
-                            format!("failed to merge resources with id `{}`", entry.get().id())
-                        })?
-                }
-                Behavior::Replace => todo!("replace"),
-            },
-            Entry::Vacant(entry) => match behavior {
-                // FIXME: temporarily allow merging into a non-existent resource to pass test.
-                Behavior::Create | Behavior::Merge => drop(entry.insert(resource)),
+                Behavior::Merge => existing.merge_data_fields(resource).with_context(|| {
+                    format!("failed to merge resources with id `{}`", existing.id())
+                })?,
                 Behavior::Replace => {
-                    bail!(
-                        "resource id `{}` does not exist, cannot {behavior}",
-                        resource.id()
-                    )
+                    self.resources.insert(resource.id().clone(), resource);
                 }
             },
+            _ => {
+                bail!(
+                    "multiple resources match the id `{}` that could accept merge",
+                    resource.id()
+                )
+            }
         }
 
         Ok(())
