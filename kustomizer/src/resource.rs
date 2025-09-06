@@ -328,23 +328,6 @@ impl Resource {
         ))
     }
 
-    pub fn any_name_matches(&self, p: impl FnMut(&str) -> bool) -> bool {
-        self.all_names().any(p)
-    }
-
-    /// Iterator over all names this resource has had, including current and previous names.
-    fn all_names(&self) -> impl Iterator<Item = &str> + fmt::Debug {
-        let mut names = vec![self.name().as_str()];
-        if let Some(prev) = self
-            .metadata()
-            .annotations()
-            .and_then(|a| a.get(annotation::PREVIOUS_NAMES))
-        {
-            names.extend(prev.split(','));
-        }
-        names.into_iter()
-    }
-
     pub fn name(&self) -> &Str {
         &self.id.name
     }
@@ -384,13 +367,6 @@ impl Resource {
 
     // right-biased merge of data fields `data` and `binaryData` and `stringData`
     pub(crate) fn merge_data_fields(&mut self, other: Self) -> anyhow::Result<()> {
-        ensure!(
-            self.id == other.id,
-            "may only merge resources with the same id, got {} and {}",
-            self.id,
-            other.id
-        );
-
         // TODO merging metadata and annotations, not sure what is correct behavior for this?
 
         // Merge `data` field

@@ -157,7 +157,7 @@ pub struct GeneratorOptions {
 impl GeneratorOptions {
     pub fn static_default() -> &'static Self {
         static STATIC_DEFAULT: LazyLock<GeneratorOptions> = LazyLock::new(Default::default);
-        &*STATIC_DEFAULT
+        &STATIC_DEFAULT
     }
 }
 
