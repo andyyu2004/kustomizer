@@ -1,0 +1,2 @@
+# Ported from Go kustomize TestGeneratorOptionsWithBases in generatoroptions_test.go
+# Tests generatorOptions inheritance from base to overlay

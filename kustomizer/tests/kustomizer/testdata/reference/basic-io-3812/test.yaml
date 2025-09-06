@@ -1,0 +1,2 @@
+# Ported from Go kustomize TestBasicIO3812 in basic_io_test.go
+# Tests basic I/O functionality for issue 3812

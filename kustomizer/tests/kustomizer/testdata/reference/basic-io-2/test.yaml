@@ -1,0 +1,2 @@
+# Ported from Go kustomize TestBasicIO_2 in basic_io_test.go
+# Tests basic I/O functionality with multiple resources

@@ -1,0 +1,3 @@
+kind: fail
+# Ported from Go kustomize TestComponentErrors case "files-cannot-be-added-to-components-list"
+# Tests that files cannot be added to components list

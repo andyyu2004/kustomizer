@@ -1,0 +1,2 @@
+# Ported from Go kustomize TestComponent case "nested-components"
+# Tests components that reference other components

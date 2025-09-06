@@ -1,0 +1,2 @@
+# Ported from Go kustomize TestSecretGenerator in generatoroptions_test.go
+# Tests secretGenerator with literals and generatorOptions

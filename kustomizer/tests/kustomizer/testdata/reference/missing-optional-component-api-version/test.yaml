@@ -1,0 +1,2 @@
+# Ported from Go kustomize TestComponent case "missing-optional-component-api-version"
+# Tests component without explicit apiVersion (should default)

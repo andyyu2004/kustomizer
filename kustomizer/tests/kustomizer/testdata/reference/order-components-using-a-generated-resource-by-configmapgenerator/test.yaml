@@ -1,0 +1,2 @@
+# Ported from Go kustomize TestOrderOfAccumulatedComponent case "components_using_a_generated_resource_by_configMapGenerator"
+# Tests order of accumulated components with generated resources

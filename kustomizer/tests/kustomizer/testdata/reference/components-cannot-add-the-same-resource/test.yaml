@@ -1,0 +1,3 @@
+kind: fail
+# Ported from Go kustomize TestComponentErrors case "components-cannot-add-the-same-resource"
+# Tests that components cannot add the same resource

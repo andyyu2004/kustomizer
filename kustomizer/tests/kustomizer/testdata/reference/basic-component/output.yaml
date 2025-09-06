@@ -1,0 +1,16 @@
+---
+apiVersion: v1
+kind: Deployment
+metadata:
+  name: comp-storefront
+spec:
+  replicas: 3
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: comp-my-configmap-97647ckcmg
+data:
+  testValue: blue
+  otherValue: green
+  compValue: red

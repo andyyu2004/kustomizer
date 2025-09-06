@@ -1,0 +1,4 @@
+loading kustomization resource tests/kustomizer/testdata/reference/components-cannot-be-added-to-resources/comp
+
+Caused by:
+    expected `kustomize.config.k8s.io/v1beta1`, found `kustomize.config.k8s.io/v1alpha1`

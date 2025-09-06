@@ -1,0 +1,6 @@
+configMapGenerator:
+- name: myMap
+  literals:
+  - foo=bar
+generatorOptions:
+  disableNameSuffixHash: true

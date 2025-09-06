@@ -1,0 +1,3 @@
+kind: fail
+# Ported from Go kustomize TestComponentErrors case "components-cannot-be-added-to-resources"
+# Tests that components cannot be added to resources list

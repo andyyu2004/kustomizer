@@ -1,0 +1,2 @@
+# Ported from Go kustomize TestComponent case "multiple-components"
+# Tests multiple components applied together

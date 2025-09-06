@@ -1,0 +1,6 @@
+namePrefix: baked-
+nameSuffix: -pie
+configMapGenerator:
+- name: apple
+  literals:
+  - foo=bar

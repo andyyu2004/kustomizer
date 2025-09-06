@@ -1,0 +1,6 @@
+resources:
+- base
+configMapGenerator:
+- name: myMap2
+  literals:
+  - foo=bar

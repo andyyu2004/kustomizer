@@ -1,0 +1,2 @@
+# Ported from Go kustomize TestComponent case "applying-component-directly-should-be-same-as-kustomization"
+# Tests that applying a component directly produces same result as via kustomization

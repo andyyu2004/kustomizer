@@ -1,0 +1,4 @@
+apiVersion: invalid/v1
+kind: Component
+
+namePrefix: comp-

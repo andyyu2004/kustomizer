@@ -1,0 +1,2 @@
+# Ported from Go kustomize TestComponent case "components_using_a_generated_resource_by_configMapGenerator"
+# Tests components using generated resources from configMapGenerator

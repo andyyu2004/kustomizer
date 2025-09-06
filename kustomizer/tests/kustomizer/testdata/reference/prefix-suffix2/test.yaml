@@ -1,0 +1,2 @@
+# Ported from Go kustomize TestPrefixSuffix2 in configmaps_test.go
+# Tests configMapGenerator with namePrefix and nameSuffix on multiple generators
