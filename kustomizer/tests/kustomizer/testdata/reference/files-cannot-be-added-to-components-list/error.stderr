@@ -1,0 +1,4 @@
+loading component `deployment.yaml`
+
+Caused by:
+    path is not a kustomization.yaml file: tests/kustomizer/testdata/reference/files-cannot-be-added-to-components-list/deployment.yaml

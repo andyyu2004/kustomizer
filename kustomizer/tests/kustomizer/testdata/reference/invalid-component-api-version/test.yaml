@@ -1,0 +1,3 @@
+kind: fail
+# Ported from Go kustomize TestComponentErrors case "invalid-component-api-version"
+# Tests that invalid apiVersion in component is rejected

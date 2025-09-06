@@ -1,0 +1,2 @@
+# Ported from Go kustomize TestComponent case "multiple-bases-can-add-the-same-component-if-it-doesn-not-define-named-entities"
+# Tests that multiple bases can add same component if it doesn't define named entities

@@ -1,0 +1,2 @@
+# Ported from Go kustomize TestBlankNamespace4240 in blankvalues_test.go
+# Tests blank namespace handling for issue 4240

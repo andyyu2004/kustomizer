@@ -1,0 +1,7 @@
+secretGenerator:
+- name: mySecret
+  literals:
+  - username=admin
+  - password=somepw
+generatorOptions:
+  disableNameSuffixHash: true

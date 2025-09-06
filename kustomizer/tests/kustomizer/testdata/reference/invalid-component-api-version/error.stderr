@@ -1,0 +1,4 @@
+loading component `comp`
+
+Caused by:
+    expected `kustomize.config.k8s.io/v1alpha1`, found `invalid/v1`

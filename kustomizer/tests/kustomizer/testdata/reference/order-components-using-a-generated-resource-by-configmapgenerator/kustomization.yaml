@@ -1,0 +1,10 @@
+resources:
+- resource.yaml
+components:
+- components
+configMapGenerator:
+- name: generated-resource
+  literals:
+  - key=value
+generatorOptions:
+  disableNameSuffixHash: true

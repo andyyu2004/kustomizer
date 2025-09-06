@@ -1,0 +1,4 @@
+failure merging resources from `../base` into `tests/kustomizer/testdata/reference/components-cannot-add-the-same-base/comp2/kustomization.yaml`
+
+Caused by:
+    may not add resource with an already registered id `v1.Deployment/storefront`, consider specifying `merge` or `replace` behavior

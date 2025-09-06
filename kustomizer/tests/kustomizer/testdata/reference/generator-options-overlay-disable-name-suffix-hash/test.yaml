@@ -1,0 +1,2 @@
+# Ported from Go kustomize TestGeneratorOptionsOverlayDisableNameSuffixHash in generatoroptions_test.go
+# Tests overlay disabling name suffix hash via generatorOptions

@@ -1,0 +1,14 @@
+---
+apiVersion: v1
+kind: Deployment
+metadata:
+  name: comp-storefront1
+spec:
+  replicas: 1
+---
+apiVersion: v1
+kind: Deployment
+metadata:
+  name: comp-storefront2
+spec:
+  replicas: 1

@@ -1,0 +1,2 @@
+# Ported from Go kustomize TestComponent case "basic-component"
+# Tests basic component functionality with resources and configurations
