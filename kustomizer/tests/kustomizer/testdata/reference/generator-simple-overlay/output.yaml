@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: cm-877mt5hc89
+  name: p-cm-877mt5hc89
 data:
   fruit: apple
   veggie: broccoli

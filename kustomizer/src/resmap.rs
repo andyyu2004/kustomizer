@@ -97,26 +97,19 @@ impl ResourceMap {
                 ),
                 Behavior::Merge => {
                     let id = existing.id().clone();
-                    let existing = std::mem::replace(existing, Resource::dummy());
-                    let idx = self.resources.get_index_of(&id).unwrap();
 
-                    let mut merged =
-                        existing.with_merged_metadata(&resource).with_context(|| {
-                            format!("failed to merge metadata for resources with id `{id}`",)
-                        })?;
-
-                    merged.merge_data_fields(resource).with_context(|| {
-                        format!("failed to merge resources with id `{}`", merged.id())
+                    existing.merge_metadata(&resource).with_context(|| {
+                        format!("failed to merge metadata for resources with id `{id}`")
                     })?;
 
-                    self.resources
-                        .replace_index(idx, merged.id().clone())
-                        .expect("merged key should not exist");
-                    assert!(
-                        self.resources
-                            .insert(merged.id().clone(), merged)
-                            .expect("dummy should be here")
-                            .is_dummy()
+                    existing.merge_data_fields(resource).with_context(|| {
+                        format!("failed to merge resources with id `{}`", existing.id())
+                    })?;
+
+                    assert_eq!(
+                        &id,
+                        existing.id(),
+                        "merge should preserve resource identity"
                     );
                 }
                 Behavior::Replace => {

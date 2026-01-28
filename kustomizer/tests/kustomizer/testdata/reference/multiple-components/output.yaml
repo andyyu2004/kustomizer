@@ -9,7 +9,7 @@ spec:
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: my-configmap-comp2-874kd7m69d
+  name: comp1-my-configmap-comp2-874kd7m69d
 data:
   testValue: blue
   otherValue: green

@@ -390,10 +390,9 @@ impl Resource {
             .with_context(|| format!("applying patch to resource `{}`", self.id))
     }
 
-    /// Right-biased merge of metadata fields into `self`.
-    /// Note this can change the resource's identity if name/namespace are changed. This is why we
-    /// return a new Resource.
-    pub(crate) fn with_merged_metadata(mut self, other: &Self) -> anyhow::Result<Self> {
+    /// Right-biased merge of metadata fields (labels and annotations) into `self`.
+    /// The resource's identity (name/namespace) is preserved.
+    pub(crate) fn merge_metadata(&mut self, other: &Self) -> anyhow::Result<()> {
         let mut metadata = self.make_metadata_mut();
 
         if let Some(other_labels) = other.metadata().and_then(|md| md.labels()) {
@@ -420,9 +419,7 @@ impl Resource {
             }
         }
 
-        Ok(self
-            .with_name(other.id.name.clone())
-            .with_namespace(other.id.namespace.clone()))
+        Ok(())
     }
 
     // right-biased merge of data fields `data` and `binaryData` and `stringData`

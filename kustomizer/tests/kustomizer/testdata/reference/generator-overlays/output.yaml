@@ -2,7 +2,7 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: com1-8tc62428t2
+  name: p1-com1-8tc62428t2
 data:
   from: overlay
   foo: bar
@@ -11,6 +11,6 @@ data:
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: com2-87mcggf7d7
+  name: p2-com2-87mcggf7d7
 data:
   from: overlay
