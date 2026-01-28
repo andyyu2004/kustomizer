@@ -6,7 +6,7 @@ use indexmap::IndexMap;
 
 use crate::{
     manifest::Behavior,
-    resource::{ResId, Resource},
+    resource::{ResId, Resource, annotation},
 };
 
 #[derive(Clone, Default)]
@@ -63,17 +63,11 @@ impl ResourceMap {
         self.resources.keys()
     }
 
-    pub fn insert(&mut self, resource: Resource) -> anyhow::Result<()> {
+    pub fn insert(&mut self, mut resource: Resource) -> anyhow::Result<()> {
         let mut matches = self
             .resources
             .values_mut()
-            .filter(|r| {
-                r.any_id_matches(|id| {
-                    id.name == resource.id().name
-                        && id.namespace == resource.id().namespace.as_deref()
-                        && id.kind == resource.id().gvk.kind
-                })
-            })
+            .filter(|res| res.any_id_matches(|id| *resource.id() == id))
             .fuse();
 
         let fst_match = matches.next();
@@ -91,7 +85,7 @@ impl ResourceMap {
                 Behavior::Create | Behavior::Merge => {
                     drop(self.resources.insert(resource.id().clone(), resource))
                 }
-                Behavior::Replace => bail!(
+                Behavior::Replace => panic!(
                     "resource id `{}` does not exist, cannot {behavior}",
                     resource.id()
                 ),
@@ -105,7 +99,20 @@ impl ResourceMap {
                     format!("failed to merge resources with id `{}`", existing.id())
                 })?,
                 Behavior::Replace => {
-                    self.resources.insert(resource.id().clone(), resource);
+                    resource
+                        .metadata_mut()
+                        .annotations_mut()
+                        .unwrap()
+                        .remove(annotation::BEHAVIOR);
+
+                    let existing_id = existing.id().clone();
+                    let resource = if let Some(ns) = existing_id.namespace.clone() {
+                        resource.with_namespace(ns)
+                    } else {
+                        resource
+                    };
+
+                    assert!(self.resources.insert(existing_id, resource).is_some());
                 }
             },
             _ => {

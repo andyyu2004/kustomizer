@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: cf-token
+  namespace: external-dns
+type: Opaque
+stringData:
+  cf-token: override
