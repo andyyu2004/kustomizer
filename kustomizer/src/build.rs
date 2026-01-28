@@ -73,25 +73,20 @@ impl Builder {
     ) -> anyhow::Result<ResourceMap> {
         let mut resmap = self.build_kustomization_base(resmap, kustomization).await?;
 
-        let generated_resources = future::try_join_all(
-            kustomization
-                .generators
-                .iter()
-                .cloned()
-                .map(|path| async move {
-                    self.build_generator(kustomization, &path)
-                        .await
-                        .with_context(|| {
-                            format!(
-                                "building generator at `{}` in `{}`",
-                                path.pretty(),
-                                kustomization.path.pretty()
-                            )
-                        })
-                        .map(|generated| (path, generated))
-                }),
-        )
-        .await?;
+        let generated_resources =
+            future::try_join_all(kustomization.generators.iter().map(|path| async move {
+                self.build_generator(kustomization, path)
+                    .await
+                    .with_context(|| {
+                        format!(
+                            "building generator at `{}` in `{}`",
+                            path.pretty(),
+                            kustomization.path.pretty()
+                        )
+                    })
+                    .map(|generated| (path, generated))
+            }))
+            .await?;
 
         for (path, generated) in generated_resources {
             resmap.extend(generated).with_context(|| {
@@ -223,8 +218,8 @@ impl Builder {
         kustomization: &Located<Manifest<A, K>>,
     ) -> anyhow::Result<ResourceMap> {
         let resources =
-            future::try_join_all(kustomization.resources.iter().cloned().map(|path| async {
-                let built = self.build_resource(kustomization, &path).await?;
+            future::try_join_all(kustomization.resources.iter().map(|path| async move {
+                let built = self.build_resource(kustomization, path).await?;
                 anyhow::Ok((path, built))
             }))
             .await?;
