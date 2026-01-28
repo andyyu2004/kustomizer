@@ -54,6 +54,7 @@ impl Builder {
         }
 
         let refspecs = RefSpecs::load_builtin();
+        // Update references to renamed resources
         RenameTransformer::new(refspecs, &self.renames.lock().await)
             .transform(&mut resmap)
             .await?;
@@ -61,6 +62,88 @@ impl Builder {
         CleanupTransformer::default().transform(&mut resmap).await?;
 
         Ok(resmap)
+    }
+
+    async fn apply_transforms<A: Symbol, K: Symbol>(
+        &self,
+        kustomization: &Located<Manifest<A, K>>,
+        resmap: &mut ResourceMap,
+    ) -> anyhow::Result<()> {
+        if !kustomization.labels.is_empty() {
+            LabelTransformer::new(kustomization.labels.as_ref())
+                .transform(resmap)
+                .await?;
+        }
+
+        if !kustomization.common_annotations.is_empty() {
+            AnnotationTransformer(&kustomization.common_annotations)
+                .transform(resmap)
+                .await?;
+        }
+
+        if let Some(namespace) = &kustomization.namespace {
+            for res in resmap.iter() {
+                if res.namespace() != Some(namespace) {
+                    self.renames
+                        .lock()
+                        .await
+                        .push(Rename::new_namespace(res.id().clone(), namespace.clone()));
+                }
+            }
+
+            NamespaceTransformer(namespace.clone())
+                .transform(resmap)
+                .await?;
+        }
+
+        if !kustomization.patches.is_empty() {
+            PatchTransformer::new(kustomization)
+                .transform(resmap)
+                .await?;
+        }
+
+        if !kustomization.replicas.is_empty() {
+            ReplicaTransformer::new(&kustomization.replicas)
+                .transform(resmap)
+                .await?;
+        }
+
+        match (&kustomization.name_prefix, &kustomization.name_suffix) {
+            (prefix, suffix) if !prefix.is_empty() || !suffix.is_empty() => {
+                self.renames.lock().await.extend(resmap.iter().map(|res| {
+                    Rename::new_name(
+                        res.id().clone(),
+                        format_compact!("{prefix}{}{suffix}", res.name()),
+                    )
+                }));
+                NameTransformer::new(|name| format_compact!("{prefix}{name}{suffix}"))
+                    .transform(resmap)
+                    .await?;
+            }
+            _ => {}
+        };
+
+        if !kustomization.images.is_empty() {
+            for image in &kustomization.images {
+                ImageTagTransformer::from(image.clone())
+                    .transform(resmap)
+                    .await
+                    .with_context(|| {
+                        format!(
+                            "transforming resources with image tag spec {:?} in `{}`",
+                            image,
+                            kustomization.path.pretty()
+                        )
+                    })?;
+            }
+        }
+
+        for path in &kustomization.transformers {
+            let path = PathId::make(kustomization.parent_path.join(path))?;
+            self.apply_transformer(path, resmap).await?;
+        }
+
+        Ok(())
     }
 
     #[tracing::instrument(skip_all, fields(path = %kustomization.path.pretty()))]
@@ -135,79 +218,7 @@ impl Builder {
             resmap = self.build(resmap, &component).await?;
         }
 
-        if !kustomization.labels.is_empty() {
-            LabelTransformer::new(kustomization.labels.as_ref())
-                .transform(&mut resmap)
-                .await?;
-        }
-
-        if !kustomization.common_annotations.is_empty() {
-            AnnotationTransformer(&kustomization.common_annotations)
-                .transform(&mut resmap)
-                .await?;
-        }
-
-        if let Some(namespace) = &kustomization.namespace {
-            for res in resmap.iter() {
-                if res.namespace() != Some(namespace) {
-                    self.renames
-                        .lock()
-                        .await
-                        .push(Rename::new_namespace(res.id().clone(), namespace.clone()));
-                }
-            }
-
-            NamespaceTransformer(namespace.clone())
-                .transform(&mut resmap)
-                .await?;
-        }
-
-        if !kustomization.patches.is_empty() {
-            PatchTransformer::new(kustomization)
-                .transform(&mut resmap)
-                .await?;
-        }
-
-        if !kustomization.replicas.is_empty() {
-            ReplicaTransformer::new(&kustomization.replicas)
-                .transform(&mut resmap)
-                .await?;
-        }
-
-        match (&kustomization.name_prefix, &kustomization.name_suffix) {
-            (prefix, suffix) if !prefix.is_empty() || !suffix.is_empty() => {
-                self.renames.lock().await.extend(resmap.iter().map(|res| {
-                    Rename::new_name(
-                        res.id().clone(),
-                        format_compact!("{prefix}{}{suffix}", res.name()),
-                    )
-                }));
-                NameTransformer::new(|name| format_compact!("{prefix}{name}{suffix}"))
-                    .transform(&mut resmap)
-                    .await?;
-            }
-            _ => {}
-        };
-
-        if !kustomization.images.is_empty() {
-            for image in &kustomization.images {
-                ImageTagTransformer::from(image.clone())
-                    .transform(&mut resmap)
-                    .await
-                    .with_context(|| {
-                        format!(
-                            "transforming resources with image tag spec {:?} in `{}`",
-                            image,
-                            kustomization.path.pretty()
-                        )
-                    })?;
-            }
-        }
-
-        for path in &kustomization.transformers {
-            let path = PathId::make(kustomization.parent_path.join(path))?;
-            self.apply_transformer(path, &mut resmap).await?;
-        }
+        self.apply_transforms(kustomization, &mut resmap).await?;
 
         Ok(resmap)
     }

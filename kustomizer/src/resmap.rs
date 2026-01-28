@@ -85,7 +85,7 @@ impl ResourceMap {
                 Behavior::Create | Behavior::Merge => {
                     drop(self.resources.insert(resource.id().clone(), resource))
                 }
-                Behavior::Replace => bail!(
+                Behavior::Replace => panic!(
                     "resource id `{}` does not exist, cannot {behavior}",
                     resource.id()
                 ),

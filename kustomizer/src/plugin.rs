@@ -66,12 +66,15 @@ impl FunctionPlugin {
             );
         }
 
+        let resources = serde_yaml::from_slice::<ResourceList>(&output.stdout)?;
+
         tracing::info!(
             duration = ?now.elapsed(),
             cmd = ?cmd.as_std(),
-            "executed process"
+            resource_count = resources.len(),
+            "executed KRM process"
         );
 
-        Ok(serde_yaml::from_slice::<ResourceList>(&output.stdout)?)
+        Ok(resources)
     }
 }
