@@ -67,13 +67,7 @@ impl ResourceMap {
         let mut matches = self
             .resources
             .values_mut()
-            .filter(|r| {
-                r.any_id_matches(|id| {
-                    id.name == resource.id().name
-                        && id.namespace == resource.id().namespace.as_deref()
-                        && id.kind == resource.id().gvk.kind
-                })
-            })
+            .filter(|res| res.any_id_matches(|id| *resource.id() == id))
             .fuse();
 
         let fst_match = matches.next();
@@ -105,7 +99,14 @@ impl ResourceMap {
                     format!("failed to merge resources with id `{}`", existing.id())
                 })?,
                 Behavior::Replace => {
-                    self.resources.insert(resource.id().clone(), resource);
+                    let existing_id = existing.id().clone();
+                    let resource = if let Some(ns) = existing_id.namespace.clone() {
+                        resource.with_namespace(ns)
+                    } else {
+                        resource
+                    };
+
+                    assert!(self.resources.insert(existing_id, resource).is_some());
                 }
             },
             _ => {

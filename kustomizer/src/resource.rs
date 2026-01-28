@@ -95,11 +95,29 @@ pub struct ResId {
     pub namespace: Option<Str>,
 }
 
-#[derive(Debug)]
 pub(crate) struct ResIdRef<'a> {
     pub kind: &'a str,
     pub name: &'a str,
     pub namespace: Option<&'a str>,
+}
+
+impl fmt::Debug for ResIdRef<'_> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        if let Some(namespace) = &self.namespace {
+            write!(f, "{}/{}.{namespace}", self.kind, self.name)?;
+        } else {
+            write!(f, "{}/{}", self.kind, self.name)?;
+        }
+        Ok(())
+    }
+}
+
+impl PartialEq<ResIdRef<'_>> for ResId {
+    fn eq(&self, other: &ResIdRef<'_>) -> bool {
+        self.kind == other.kind
+            && self.name == other.name
+            && self.namespace.as_deref() == other.namespace
+    }
 }
 
 impl Deref for ResId {
@@ -271,7 +289,7 @@ impl Resource {
     }
 
     /// Iterator over all names this resource has had, including current and previous names.
-    fn all_ids(&self) -> impl Iterator<Item = ResIdRef<'_>> + fmt::Debug {
+    pub(crate) fn all_ids(&self) -> impl Iterator<Item = ResIdRef<'_>> + fmt::Debug {
         let curr = std::iter::once(ResIdRef {
             kind: &self.id.kind,
             name: &self.id.name,
@@ -421,7 +439,7 @@ impl Resource {
 
         if self.root().get("stringData").is_some() || other.root().get("stringData").is_some() {
             anyhow::bail!(
-                "merging secrets with `stringData` is not supported, kustomize has strange behavior for this so this is disallowed, use `data` instead"
+                "merging configmaps with `stringData` is not supported, kustomize has strange behavior for this so this is disallowed, use `data` instead"
             );
         }
 
