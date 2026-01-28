@@ -6,7 +6,7 @@ use indexmap::IndexMap;
 
 use crate::{
     manifest::Behavior,
-    resource::{ResId, Resource},
+    resource::{ResId, Resource, annotation},
 };
 
 #[derive(Clone, Default)]
@@ -63,7 +63,7 @@ impl ResourceMap {
         self.resources.keys()
     }
 
-    pub fn insert(&mut self, resource: Resource) -> anyhow::Result<()> {
+    pub fn insert(&mut self, mut resource: Resource) -> anyhow::Result<()> {
         let mut matches = self
             .resources
             .values_mut()
@@ -99,6 +99,12 @@ impl ResourceMap {
                     format!("failed to merge resources with id `{}`", existing.id())
                 })?,
                 Behavior::Replace => {
+                    resource
+                        .metadata_mut()
+                        .annotations_mut()
+                        .unwrap()
+                        .remove(annotation::BEHAVIOR);
+
                     let existing_id = existing.id().clone();
                     let resource = if let Some(ns) = existing_id.namespace.clone() {
                         resource.with_namespace(ns)
