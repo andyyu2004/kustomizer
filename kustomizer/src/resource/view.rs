@@ -151,10 +151,7 @@ impl MetadataViewMut<'_> {
     // This is private because it is unsafe to be used alone since the id must also be modified alongside.
     pub(super) fn set_namespace(&mut self, namespace: Option<impl Into<String>>) {
         match namespace {
-            None => {
-                self.0.remove("namespace");
-                return;
-            }
+            None => self.0.remove("namespace"),
             Some(namespace) => self.0.insert(
                 "namespace".to_string(),
                 serde_json::Value::String(namespace.into()),

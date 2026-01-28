@@ -112,6 +112,12 @@ impl ResourceMap {
                     self.resources
                         .replace_index(idx, merged.id().clone())
                         .expect("merged key should not exist");
+                    assert!(
+                        self.resources
+                            .insert(merged.id().clone(), merged)
+                            .expect("dummy should be here")
+                            .is_dummy()
+                    );
                 }
                 Behavior::Replace => {
                     resource

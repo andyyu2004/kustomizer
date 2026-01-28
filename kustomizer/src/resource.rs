@@ -172,6 +172,10 @@ impl Resource {
         }
     }
 
+    pub fn is_dummy(&self) -> bool {
+        self.id.kind == "Dummy" && self.id.name == "dummy" && self.id.namespace.is_none()
+    }
+
     pub fn dummy() -> Self {
         Resource {
             id: ResId {
@@ -416,15 +420,9 @@ impl Resource {
             }
         }
 
-        if self.name() != other.name() {
-            self = self.with_name(other.name().clone());
-        }
-
-        if self.namespace() != other.namespace() {
-            self = self.with_namespace(other.namespace().cloned());
-        }
-
-        Ok(self)
+        Ok(self
+            .with_name(other.id.name.clone())
+            .with_namespace(other.id.namespace.clone()))
     }
 
     // right-biased merge of data fields `data` and `binaryData` and `stringData`
