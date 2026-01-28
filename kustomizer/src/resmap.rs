@@ -85,7 +85,7 @@ impl ResourceMap {
                 Behavior::Create | Behavior::Merge => {
                     drop(self.resources.insert(resource.id().clone(), resource))
                 }
-                Behavior::Replace => panic!(
+                Behavior::Replace => bail!(
                     "resource id `{}` does not exist, cannot {behavior}",
                     resource.id()
                 ),
@@ -96,12 +96,12 @@ impl ResourceMap {
                     resource.id()
                 ),
                 Behavior::Merge => {
-                    // existing.merge_metadata(&resource).with_context(|| {
-                    //     format!(
-                    //         "failed to merge metadata for resources with id `{}`",
-                    //         existing.id()
-                    //     )
-                    // })?;
+                    existing.merge_metadata(&resource).with_context(|| {
+                        format!(
+                            "failed to merge metadata for resources with id `{}`",
+                            existing.id()
+                        )
+                    })?;
 
                     existing.merge_data_fields(resource).with_context(|| {
                         format!("failed to merge resources with id `{}`", existing.id())

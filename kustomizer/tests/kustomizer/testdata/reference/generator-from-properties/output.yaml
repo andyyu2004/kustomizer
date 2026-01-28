@@ -3,8 +3,9 @@ kind: ConfigMap
 metadata:
   name: test-configmap-hdghb5ddkg
   annotations:
+    c: addedC
+    a: updatedA
     b: originalB
-    a: originalA
 data:
   VAR1: '100'
   VAR2: '200'
