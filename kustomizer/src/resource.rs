@@ -183,7 +183,11 @@ impl Resource {
                 name: "dummy".into(),
                 namespace: Default::default(),
             },
-            root: Default::default(),
+            root: serde_json::json!({
+                "metadata": {
+                    "name": "dummy"
+                }
+            }),
         }
     }
 
@@ -242,18 +246,18 @@ impl Resource {
     #[must_use]
     pub fn with_name(mut self, name: Str) -> Self {
         self.store_curr_id();
-        self.metadata_mut().set_name(name.clone());
+        self.make_metadata_mut().set_name(name.clone());
         let (mut id, root) = self.into_parts();
         id.name = name;
         Self::from_parts(id, root).expect("invariants should be maintained by this function")
     }
 
     #[must_use]
-    pub fn with_namespace(mut self, ns: Str) -> Self {
+    pub fn with_namespace(mut self, ns: Option<Str>) -> Self {
         self.store_curr_id();
-        self.metadata_mut().set_namespace(ns.clone());
+        self.make_metadata_mut().set_namespace(ns.clone());
         let (mut id, root) = self.into_parts();
-        id.namespace = Some(ns);
+        id.namespace = ns;
         Self::from_parts(id, root).expect("invariants should be maintained by this function")
     }
 
@@ -263,21 +267,20 @@ impl Resource {
 
     fn store_curr_id(&mut self) {
         let id = self.id().clone();
-        self.metadata_mut()
+        self.make_metadata_mut()
             .make_annotations_mut()
             .insert_or_update(annotation::PREVIOUS_NAMES, |s| {
                 s.push_str(&format!("{},", id.name))
             });
 
-        self.metadata_mut().make_annotations_mut().insert_or_update(
-            annotation::PREVIOUS_NAMESPACES,
-            |s| {
+        self.make_metadata_mut()
+            .make_annotations_mut()
+            .insert_or_update(annotation::PREVIOUS_NAMESPACES, |s| {
                 let ns = id.namespace.as_deref().unwrap_or("");
                 s.push_str(&format!("{ns},"))
-            },
-        );
+            });
 
-        self.metadata_mut()
+        self.make_metadata_mut()
             .make_annotations_mut()
             .insert_or_update(annotation::PREVIOUS_KINDS, |s| {
                 s.push_str(&format!("{},", id.kind))
@@ -298,21 +301,21 @@ impl Resource {
 
         let prev_names = self
             .metadata()
-            .annotations()
+            .and_then(|md| md.annotations())
             .and_then(|a| a.get(annotation::PREVIOUS_NAMES))
             .unwrap_or_default()
             .split(',');
 
         let prev_namespaces = self
             .metadata()
-            .annotations()
+            .and_then(|md| md.annotations())
             .and_then(|a| a.get(annotation::PREVIOUS_NAMESPACES))
             .unwrap_or_default()
             .split(',');
 
         let prev_kinds = self
             .metadata()
-            .annotations()
+            .and_then(|md| md.annotations())
             .and_then(|a| a.get(annotation::PREVIOUS_KINDS))
             .unwrap_or_default()
             .split(',');
@@ -383,25 +386,45 @@ impl Resource {
             .with_context(|| format!("applying patch to resource `{}`", self.id))
     }
 
-    // right-biased merge of metadata fields into `self`
-    pub(crate) fn merge_metadata(&mut self, other: &Self) -> anyhow::Result<()> {
-        let mut metadata = self.metadata_mut();
+    /// Right-biased merge of metadata fields into `self`.
+    /// Note this can change the resource's identity if name/namespace are changed. This is why we
+    /// return a new Resource.
+    pub(crate) fn with_merged_metadata(mut self, other: &Self) -> anyhow::Result<Self> {
+        let mut metadata = self.make_metadata_mut();
 
-        if let Some(other_labels) = other.metadata().labels() {
+        if let Some(other_labels) = other.metadata().and_then(|md| md.labels()) {
             let mut labels = metadata.make_labels_mut();
             for (key, value) in other_labels.iter() {
                 labels.insert(key, value);
             }
         }
 
-        if let Some(other_annotations) = other.metadata().annotations() {
+        if let Some(other_annotations) = other.metadata().and_then(|md| md.annotations()) {
             let mut annotations = metadata.make_annotations_mut();
             for (key, value) in other_annotations.iter() {
+                // Skip internal annotations that should not be merged
+                if key == annotation::FUNCTION
+                    || key == annotation::BEHAVIOR
+                    || key == annotation::NEEDS_HASH
+                    || key == annotation::PREVIOUS_NAMES
+                    || key == annotation::PREVIOUS_NAMESPACES
+                    || key == annotation::PREVIOUS_KINDS
+                {
+                    continue;
+                }
                 annotations.insert(key, value);
             }
         }
 
-        Ok(())
+        if self.name() != other.name() {
+            self = self.with_name(other.name().clone());
+        }
+
+        if self.namespace() != other.namespace() {
+            self = self.with_namespace(other.namespace().cloned());
+        }
+
+        Ok(self)
     }
 
     // right-biased merge of data fields `data` and `binaryData` and `stringData`

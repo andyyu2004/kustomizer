@@ -6,20 +6,38 @@ use crate::manifest::{Behavior, FunctionSpec};
 use super::{Object, Resource, annotation};
 
 impl Resource {
-    pub fn metadata(&self) -> MetadataView<'_> {
-        MetadataView(self.root["metadata"].as_object().unwrap())
+    pub fn metadata(&self) -> Option<MetadataView<'_>> {
+        self.root
+            .get("metadata")
+            .and_then(|v| v.as_object())
+            .map(MetadataView)
     }
 
     pub fn labels(&self) -> Option<LabelsView<'_>> {
-        self.metadata().labels()
+        self.metadata()?.labels()
     }
 
     pub fn annotations(&self) -> Option<AnnotationsView<'_>> {
-        self.metadata().annotations()
+        self.metadata()?.annotations()
     }
 
-    pub fn metadata_mut(&mut self) -> MetadataViewMut<'_> {
-        MetadataViewMut(self.root["metadata"].as_object_mut().unwrap())
+    pub fn make_metadata_mut(&mut self) -> MetadataViewMut<'_> {
+        let root = self.root.as_object_mut().unwrap();
+        if !root.contains_key("metadata") {
+            root.insert(
+                "metadata".to_string(),
+                serde_json::Value::Object(Object::new()),
+            );
+        }
+
+        self.metadata_mut().unwrap()
+    }
+
+    pub fn metadata_mut(&mut self) -> Option<MetadataViewMut<'_>> {
+        self.root
+            .get_mut("metadata")
+            .and_then(|v| v.as_object_mut())
+            .map(MetadataViewMut)
     }
 }
 
@@ -27,6 +45,14 @@ impl Resource {
 pub struct MetadataView<'a>(&'a Object);
 
 impl<'a> MetadataView<'a> {
+    pub fn name(&self) -> Option<&'a str> {
+        self.0.get("name").and_then(|v| v.as_str())
+    }
+
+    pub fn namespace(&self) -> Option<&'a str> {
+        self.0.get("namespace").and_then(|v| v.as_str())
+    }
+
     pub fn annotations(&self) -> Option<AnnotationsView<'a>> {
         self.0
             .get("annotations")
@@ -123,11 +149,17 @@ impl MetadataViewMut<'_> {
     }
 
     // This is private because it is unsafe to be used alone since the id must also be modified alongside.
-    pub(super) fn set_namespace(&mut self, namespace: impl Into<String>) {
-        self.0.insert(
-            "namespace".to_string(),
-            serde_json::Value::String(namespace.into()),
-        );
+    pub(super) fn set_namespace(&mut self, namespace: Option<impl Into<String>>) {
+        match namespace {
+            None => {
+                self.0.remove("namespace");
+                return;
+            }
+            Some(namespace) => self.0.insert(
+                "namespace".to_string(),
+                serde_json::Value::String(namespace.into()),
+            ),
+        };
     }
 
     pub fn make_annotations_mut(&mut self) -> AnnotationsViewMut<'_> {

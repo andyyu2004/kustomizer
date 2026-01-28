@@ -96,30 +96,33 @@ impl ResourceMap {
                     resource.id()
                 ),
                 Behavior::Merge => {
-                    existing.merge_metadata(&resource).with_context(|| {
-                        format!(
-                            "failed to merge metadata for resources with id `{}`",
-                            existing.id()
-                        )
+                    let id = existing.id().clone();
+                    let existing = std::mem::replace(existing, Resource::dummy());
+                    let idx = self.resources.get_index_of(&id).unwrap();
+
+                    let mut merged =
+                        existing.with_merged_metadata(&resource).with_context(|| {
+                            format!("failed to merge metadata for resources with id `{id}`",)
+                        })?;
+
+                    merged.merge_data_fields(resource).with_context(|| {
+                        format!("failed to merge resources with id `{}`", merged.id())
                     })?;
 
-                    existing.merge_data_fields(resource).with_context(|| {
-                        format!("failed to merge resources with id `{}`", existing.id())
-                    })?;
+                    self.resources
+                        .replace_index(idx, merged.id().clone())
+                        .expect("merged key should not exist");
                 }
                 Behavior::Replace => {
                     resource
                         .metadata_mut()
+                        .unwrap()
                         .annotations_mut()
                         .unwrap()
                         .remove(annotation::BEHAVIOR);
 
                     let existing_id = existing.id().clone();
-                    let resource = if let Some(ns) = existing_id.namespace.clone() {
-                        resource.with_namespace(ns)
-                    } else {
-                        resource
-                    };
+                    let resource = resource.with_namespace(existing_id.namespace.clone());
 
                     assert!(self.resources.insert(existing_id, resource).is_some());
                 }
