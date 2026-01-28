@@ -7,7 +7,7 @@ use super::{ResourceMap, Transformer};
 pub struct AnnotationTransformer<'a>(pub &'a IndexMap<Str, Str>);
 
 impl Transformer for AnnotationTransformer<'_> {
-    #[tracing::instrument(skip_all, name = "annotation_transform")]
+    #[tracing::instrument(skip_all, name = "annotation_transform", fields(annotations = ?self.0))]
     async fn transform(&mut self, resources: &mut ResourceMap) -> anyhow::Result<()> {
         if self.0.is_empty() {
             return Ok(());
