@@ -1,3 +1,4 @@
+use core::fmt;
 use std::borrow::Cow;
 
 use indexmap::IndexMap;
@@ -14,6 +15,14 @@ use super::Transformer;
 #[derive(Debug)]
 pub struct LabelTransformer<'a> {
     labels: Cow<'a, [Label]>,
+}
+
+impl fmt::Display for LabelTransformer<'_> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_map()
+            .entries(self.labels.iter().flat_map(|label| label.pairs.iter()))
+            .finish()
+    }
 }
 
 impl<'a, 'de> serde::Deserialize<'de> for LabelTransformer<'a> {
@@ -44,7 +53,7 @@ impl<'a> LabelTransformer<'a> {
 }
 
 impl Transformer for LabelTransformer<'_> {
-    #[tracing::instrument(skip_all, name = "label_transform")]
+    #[tracing::instrument(skip_all, name = "label_transform", fields(labels = %self))]
     async fn transform(&mut self, resources: &mut ResourceMap) -> anyhow::Result<()> {
         if self.labels.is_empty() {
             return Ok(());
