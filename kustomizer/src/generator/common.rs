@@ -140,7 +140,7 @@ pub fn name_generated_resource(
     let suffix_hash = disable_name_suffix_hash.map(|v| !v).unwrap_or(true);
     if suffix_hash {
         resource
-            .metadata_mut()
+            .make_metadata_mut()
             .make_annotations_mut()
             .set_needs_hash();
     }

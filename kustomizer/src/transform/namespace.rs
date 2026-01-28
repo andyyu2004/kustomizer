@@ -74,7 +74,7 @@ impl NamespaceTransformer {
             Ok(resource.with_name(self.0.clone()))
         } else if spec.is_namespaced(resource.gvk()) {
             // For namespaced resources, update their namespace
-            Ok(resource.with_namespace(self.0.clone()))
+            Ok(resource.with_namespace(Some(self.0.clone())))
         } else {
             // Cluster-scoped resources remain unchanged
             Ok(resource)

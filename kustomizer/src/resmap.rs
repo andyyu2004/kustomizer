@@ -85,7 +85,7 @@ impl ResourceMap {
                 Behavior::Create | Behavior::Merge => {
                     drop(self.resources.insert(resource.id().clone(), resource))
                 }
-                Behavior::Replace => panic!(
+                Behavior::Replace => bail!(
                     "resource id `{}` does not exist, cannot {behavior}",
                     resource.id()
                 ),
@@ -95,22 +95,33 @@ impl ResourceMap {
                     "may not add resource with an already registered id `{}`, consider specifying `merge` or `replace` behavior",
                     resource.id()
                 ),
-                Behavior::Merge => existing.merge_data_fields(resource).with_context(|| {
-                    format!("failed to merge resources with id `{}`", existing.id())
-                })?,
+                Behavior::Merge => {
+                    let id = existing.id().clone();
+
+                    existing.merge_metadata(&resource).with_context(|| {
+                        format!("failed to merge metadata for resources with id `{id}`")
+                    })?;
+
+                    existing.merge_data_fields(resource).with_context(|| {
+                        format!("failed to merge resources with id `{}`", existing.id())
+                    })?;
+
+                    assert_eq!(
+                        &id,
+                        existing.id(),
+                        "merge should preserve resource identity"
+                    );
+                }
                 Behavior::Replace => {
                     resource
                         .metadata_mut()
+                        .unwrap()
                         .annotations_mut()
                         .unwrap()
                         .remove(annotation::BEHAVIOR);
 
                     let existing_id = existing.id().clone();
-                    let resource = if let Some(ns) = existing_id.namespace.clone() {
-                        resource.with_namespace(ns)
-                    } else {
-                        resource
-                    };
+                    let resource = resource.with_namespace(existing_id.namespace.clone());
 
                     assert!(self.resources.insert(existing_id, resource).is_some());
                 }

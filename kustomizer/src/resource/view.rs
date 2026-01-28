@@ -6,20 +6,38 @@ use crate::manifest::{Behavior, FunctionSpec};
 use super::{Object, Resource, annotation};
 
 impl Resource {
-    pub fn metadata(&self) -> MetadataView<'_> {
-        MetadataView(self.root["metadata"].as_object().unwrap())
+    pub fn metadata(&self) -> Option<MetadataView<'_>> {
+        self.root
+            .get("metadata")
+            .and_then(|v| v.as_object())
+            .map(MetadataView)
     }
 
-    pub fn labels(&self) -> Option<&Object> {
-        self.metadata().labels()
+    pub fn labels(&self) -> Option<LabelsView<'_>> {
+        self.metadata()?.labels()
     }
 
     pub fn annotations(&self) -> Option<AnnotationsView<'_>> {
-        self.metadata().annotations()
+        self.metadata()?.annotations()
     }
 
-    pub fn metadata_mut(&mut self) -> MetadataViewMut<'_> {
-        MetadataViewMut(self.root["metadata"].as_object_mut().unwrap())
+    pub fn make_metadata_mut(&mut self) -> MetadataViewMut<'_> {
+        let root = self.root.as_object_mut().unwrap();
+        if !root.contains_key("metadata") {
+            root.insert(
+                "metadata".to_string(),
+                serde_json::Value::Object(Object::new()),
+            );
+        }
+
+        self.metadata_mut().unwrap()
+    }
+
+    pub fn metadata_mut(&mut self) -> Option<MetadataViewMut<'_>> {
+        self.root
+            .get_mut("metadata")
+            .and_then(|v| v.as_object_mut())
+            .map(MetadataViewMut)
     }
 }
 
@@ -27,6 +45,14 @@ impl Resource {
 pub struct MetadataView<'a>(&'a Object);
 
 impl<'a> MetadataView<'a> {
+    pub fn name(&self) -> Option<&'a str> {
+        self.0.get("name").and_then(|v| v.as_str())
+    }
+
+    pub fn namespace(&self) -> Option<&'a str> {
+        self.0.get("namespace").and_then(|v| v.as_str())
+    }
+
     pub fn annotations(&self) -> Option<AnnotationsView<'a>> {
         self.0
             .get("annotations")
@@ -34,8 +60,34 @@ impl<'a> MetadataView<'a> {
             .map(AnnotationsView)
     }
 
-    pub fn labels(&self) -> Option<&'a Object> {
-        self.0.get("labels").and_then(|v| v.as_object())
+    pub fn labels(&self) -> Option<LabelsView<'a>> {
+        self.0
+            .get("labels")
+            .and_then(|v| v.as_object())
+            .map(LabelsView)
+    }
+}
+
+#[derive(Debug)]
+pub struct LabelsView<'a>(&'a Object);
+
+impl<'a> LabelsView<'a> {
+    pub fn get(&self, key: &str) -> Option<&'a str> {
+        self.0.get(key).and_then(|v| v.as_str())
+    }
+
+    pub fn has(&self, key: &str) -> bool {
+        self.0.contains_key(key)
+    }
+
+    pub fn iter(&self) -> impl Iterator<Item = (&str, &str)> + '_ {
+        self.0.iter().filter_map(|(k, v)| {
+            if let (key, serde_json::Value::String(value)) = (k, v) {
+                Some((key.as_str(), value.as_str()))
+            } else {
+                None
+            }
+        })
     }
 }
 
@@ -49,6 +101,16 @@ impl<'a> AnnotationsView<'a> {
 
     pub fn has(&self, key: &str) -> bool {
         self.0.contains_key(key)
+    }
+
+    pub fn iter(&self) -> impl Iterator<Item = (&str, &str)> + '_ {
+        self.0.iter().filter_map(|(k, v)| {
+            if let (key, serde_json::Value::String(value)) = (k, v) {
+                Some((key.as_str(), value.as_str()))
+            } else {
+                None
+            }
+        })
     }
 
     pub fn behavior(&self) -> anyhow::Result<Behavior> {
@@ -87,11 +149,14 @@ impl MetadataViewMut<'_> {
     }
 
     // This is private because it is unsafe to be used alone since the id must also be modified alongside.
-    pub(super) fn set_namespace(&mut self, namespace: impl Into<String>) {
-        self.0.insert(
-            "namespace".to_string(),
-            serde_json::Value::String(namespace.into()),
-        );
+    pub(super) fn set_namespace(&mut self, namespace: Option<impl Into<String>>) {
+        match namespace {
+            None => self.0.remove("namespace"),
+            Some(namespace) => self.0.insert(
+                "namespace".to_string(),
+                serde_json::Value::String(namespace.into()),
+            ),
+        };
     }
 
     pub fn make_annotations_mut(&mut self) -> AnnotationsViewMut<'_> {
@@ -127,6 +192,16 @@ impl MetadataViewMut<'_> {
             .get_mut("labels")
             .and_then(|v| v.as_object_mut())
             .map(LabelsViewMut)
+    }
+
+    pub fn make_labels_mut(&mut self) -> LabelsViewMut<'_> {
+        if !self.0.contains_key("labels") {
+            self.0.insert(
+                "labels".to_string(),
+                serde_json::Value::Object(Object::new()),
+            );
+        }
+        self.labels_mut().unwrap()
     }
 
     pub fn set(

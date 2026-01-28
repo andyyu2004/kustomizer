@@ -1,5 +1,10 @@
 configMapGenerator:
   - name: test-configmap
     behavior: create
+    options:
+      annotations:
+        a: originalA
+        b: originalB
     envs:
-    - properties
+      - properties
+

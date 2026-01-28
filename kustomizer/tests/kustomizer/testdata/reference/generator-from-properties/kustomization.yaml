@@ -1,7 +1,11 @@
 resources:
-- base
+  - base
 configMapGenerator:
-- name: test-configmap
-  behavior: "merge"
-  envs:
-  - properties
+  - name: test-configmap
+    behavior: "merge"
+    options:
+      annotations:
+        a: updatedA
+        c: addedC
+    envs:
+      - properties
