@@ -421,7 +421,7 @@ impl Resource {
 
         if self.root().get("stringData").is_some() || other.root().get("stringData").is_some() {
             anyhow::bail!(
-                "merging configmaps with `stringData` is not supported, kustomize has strange behavior for this so this is disallowed, use `data` instead"
+                "merging secrets with `stringData` is not supported, kustomize has strange behavior for this so this is disallowed, use `data` instead"
             );
         }
 
