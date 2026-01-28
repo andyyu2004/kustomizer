@@ -95,9 +95,18 @@ impl ResourceMap {
                     "may not add resource with an already registered id `{}`, consider specifying `merge` or `replace` behavior",
                     resource.id()
                 ),
-                Behavior::Merge => existing.merge_data_fields(resource).with_context(|| {
-                    format!("failed to merge resources with id `{}`", existing.id())
-                })?,
+                Behavior::Merge => {
+                    // existing.merge_metadata(&resource).with_context(|| {
+                    //     format!(
+                    //         "failed to merge metadata for resources with id `{}`",
+                    //         existing.id()
+                    //     )
+                    // })?;
+
+                    existing.merge_data_fields(resource).with_context(|| {
+                        format!("failed to merge resources with id `{}`", existing.id())
+                    })?;
+                }
                 Behavior::Replace => {
                     resource
                         .metadata_mut()

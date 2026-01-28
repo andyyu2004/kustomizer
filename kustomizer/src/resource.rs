@@ -383,6 +383,27 @@ impl Resource {
             .with_context(|| format!("applying patch to resource `{}`", self.id))
     }
 
+    // right-biased merge of metadata fields into `self`
+    pub(crate) fn merge_metadata(&mut self, other: &Self) -> anyhow::Result<()> {
+        let mut metadata = self.metadata_mut();
+
+        if let Some(other_labels) = other.metadata().labels() {
+            let mut labels = metadata.make_labels_mut();
+            for (key, value) in other_labels.iter() {
+                labels.insert(key, value);
+            }
+        }
+
+        if let Some(other_annotations) = other.metadata().annotations() {
+            let mut annotations = metadata.make_annotations_mut();
+            for (key, value) in other_annotations.iter() {
+                annotations.insert(key, value);
+            }
+        }
+
+        Ok(())
+    }
+
     // right-biased merge of data fields `data` and `binaryData` and `stringData`
     pub(crate) fn merge_data_fields(&mut self, other: Self) -> anyhow::Result<()> {
         // TODO merging metadata and annotations, not sure what is correct behavior for this?
