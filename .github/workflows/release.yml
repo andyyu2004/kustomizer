@@ -74,6 +74,72 @@ jobs:
           name: kustomizer-${{ matrix.target }}
           path: kustomizer-${{ matrix.target }}.tar.gz
 
+  docker:
+    name: Build and Push Docker Image
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v4
+
+      - name: Download x86_64 musl artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: kustomizer-x86_64-unknown-linux-musl
+          path: artifacts/amd64
+
+      - name: Download aarch64 musl artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: kustomizer-aarch64-unknown-linux-musl
+          path: artifacts/arm64
+
+      - name: Extract binaries
+        run: |
+          cd artifacts/amd64
+          tar xzf kustomizer-x86_64-unknown-linux-musl.tar.gz
+          cd ../arm64
+          tar xzf kustomizer-aarch64-unknown-linux-musl.tar.gz
+          cd ../..
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=semver,pattern={{major}}
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: Build and push multi-arch image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+
   release:
     name: Create Release
     needs: build

@@ -1,0 +1,10 @@
+target/
+.git/
+.github/
+*.md
+Cargo.lock
+flake.nix
+flake.lock
+.envrc
+.direnv/
+.sops.yaml
