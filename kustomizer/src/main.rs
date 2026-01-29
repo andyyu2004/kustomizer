@@ -12,19 +12,23 @@ struct Args {
 
     #[clap(long, default_value = "")]
     trace_file: String,
-
-    // Ignored, here for compatibility with kustomize CLI
-    #[clap(long, default_value = "")]
-    load_restrictor: String,
-    #[clap(long, default_value_t = false)]
-    enable_alpha_plugins: bool,
-    #[clap(long, default_value_t = false)]
-    enable_exec: bool,
 }
 
 #[derive(Parser)]
 enum Command {
     Build {
+        // Ignored, here for compatibility with kustomize
+        #[clap(long, default_value = "")]
+        load_restrictor: String,
+
+        // Ignored, here for compatibility with kustomize
+        #[clap(long, default_value_t = false)]
+        enable_alpha_plugins: bool,
+
+        // Ignored, here for compatibility with kustomize
+        #[clap(long, default_value_t = false)]
+        enable_exec: bool,
+
         dir: PathBuf,
     },
     Debug {
@@ -71,7 +75,7 @@ async fn main() -> anyhow::Result<()> {
     };
 
     match args.command {
-        Command::Build { dir } => {
+        Command::Build { dir, .. } => {
             let resmap = kustomizer::build(dir).await?;
             let mut stdout = std::io::stdout().lock();
             writeln!(stdout, "{resmap}")?;
