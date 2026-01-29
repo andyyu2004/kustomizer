@@ -68,7 +68,7 @@ pub mod nested_yaml {
         S: Serializer,
         T: Serialize,
     {
-        let value = serde_json::to_value(patch).map_err(serde::ser::Error::custom)?;
+        let value = json::to_value(patch).map_err(serde::ser::Error::custom)?;
         yaml::to_string(&value)
             .map_err(serde::ser::Error::custom)?
             .serialize(serializer)
@@ -81,7 +81,7 @@ pub mod nested_yaml {
     {
         let s: Str = Deserialize::deserialize(deserializer)?;
         // We convert the string to a JSON (not YAML) value to avoid enum weirdness with yaml tags.
-        let yaml = yaml::from_str::<serde_json::Value>(&s).map_err(serde::de::Error::custom)?;
+        let yaml = yaml::from_str::<json::Value>(&s).map_err(serde::de::Error::custom)?;
         T::deserialize(yaml).map_err(serde::de::Error::custom)
     }
 }

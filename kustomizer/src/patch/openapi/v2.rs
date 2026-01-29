@@ -92,7 +92,7 @@ impl Spec {
     pub fn load() -> &'static Self {
         static CACHE: OnceLock<Spec> = OnceLock::new();
         CACHE.get_or_init(|| {
-            serde_json::from_reader(SPEC_V2_GZ).expect("test should guarantee this is valid")
+            json::from_reader(SPEC_V2_GZ).expect("test should guarantee this is valid")
         })
     }
 
@@ -289,20 +289,18 @@ impl<'de> Deserialize<'de> for Type {
 
         let ty = match ty.kind {
             Some(TypeKind::Object) => {
-                serde_json::from_value::<ObjectType>(serde_json::Value::Object(ty.rest.clone()))
+                json::from_value::<ObjectType>(json::Value::Object(ty.rest.clone()))
                     .map(Type::Object)
                     .map_err(|err| {
                         serde::de::Error::custom(format!(
                             "parsing ObjectType: {}\n{err}",
-                            serde_json::to_string_pretty(&ty.rest).unwrap()
+                            json::to_string_pretty(&ty.rest).unwrap()
                         ))
                     })?
             }
-            Some(TypeKind::Array) => {
-                serde_json::from_value::<ArrayType>(serde_json::Value::Object(ty.rest))
-                    .map(Type::Array)
-                    .map_err(|err| serde::de::Error::custom(format!("parsing ArrayType: {err}")))?
-            }
+            Some(TypeKind::Array) => json::from_value::<ArrayType>(json::Value::Object(ty.rest))
+                .map(Type::Array)
+                .map_err(|err| serde::de::Error::custom(format!("parsing ArrayType: {err}")))?,
             Some(TypeKind::Number) => Type::Number,
             Some(TypeKind::String) => Type::String,
             Some(TypeKind::Integer) => Type::Integer,
@@ -317,7 +315,7 @@ impl<'de> Deserialize<'de> for Type {
 mod tests {
     use std::fs::File;
 
-    use serde_json::json;
+    use json::json;
 
     use crate::patch::openapi::v2::ObjectType;
 
@@ -325,13 +323,13 @@ mod tests {
 
     #[test]
     fn test_serde() -> anyhow::Result<()> {
-        assert_eq!(serde_json::from_value::<Type>(json!({}))?, Type::Any);
+        assert_eq!(json::from_value::<Type>(json!({}))?, Type::Any);
         assert_eq!(
-            serde_json::from_value::<Type>(json!({"type": "string"}))?,
+            json::from_value::<Type>(json!({"type": "string"}))?,
             Type::String
         );
 
-        assert!(serde_json::from_value::<ObjectType>(
+        assert!(json::from_value::<ObjectType>(
             json!({
                 "description": String::from("bob"),
                 "additionalProperties": {
@@ -341,7 +339,7 @@ mod tests {
         ).is_ok());
 
         // Test case from failing PodSpec
-        serde_json::from_value::<Type>(json!({
+        json::from_value::<Type>(json!({
             "type": "object",
             "required": ["containers"],
             "properties": {
@@ -389,7 +387,7 @@ mod tests {
         }))
         .unwrap();
 
-        serde_json::from_value::<Type>(json!({
+        json::from_value::<Type>(json!({
           "type": "object",
           "properties": {
             "minimum": {
@@ -408,16 +406,16 @@ mod tests {
             include_bytes!("./openapi-v2-kubernetes-1.32.json.gz").as_ref(),
         );
 
-        let spec: Spec = serde_json::from_reader(reader)?;
+        let spec: Spec = json::from_reader(reader)?;
 
         let file = File::create("src/patch/openapi/openapi-v2-kubernetes-1.32-minimized.json.tmp")?;
 
         // Pretty file is for diffing
         let pretty_file =
             File::create("src/patch/openapi/openapi-v2-kubernetes-1.32-minimized-pretty.json")?;
-        serde_json::to_writer(file, &spec)?;
+        json::to_writer(file, &spec)?;
 
-        serde_json::to_writer_pretty(pretty_file, &spec)?;
+        json::to_writer_pretty(pretty_file, &spec)?;
 
         std::fs::rename(
             "src/patch/openapi/openapi-v2-kubernetes-1.32-minimized.json.tmp",
@@ -429,8 +427,8 @@ mod tests {
         let a = "/tmp/alice.json";
         let b = "/tmp/bob.json";
         if loaded_spec != &spec {
-            serde_json::to_writer_pretty(File::create(a)?, &spec)?;
-            serde_json::to_writer_pretty(File::create(b)?, loaded_spec)?;
+            json::to_writer_pretty(File::create(a)?, &spec)?;
+            json::to_writer_pretty(File::create(b)?, loaded_spec)?;
             panic!(
                 "loaded spec does not match written spec, wrote to {a} and {b}\nrun `diff {a} {b}` or `dyff between {a} {b}` to see the difference"
             );

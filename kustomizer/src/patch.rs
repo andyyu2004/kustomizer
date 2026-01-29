@@ -1,4 +1,4 @@
-use serde_json::{Value, map::Entry};
+use json::{Value, map::Entry};
 
 use crate::resource::{Object, Resource};
 

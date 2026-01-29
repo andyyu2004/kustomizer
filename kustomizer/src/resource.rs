@@ -149,11 +149,11 @@ impl fmt::Display for ResId {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Resource {
     id: ResId,
-    // This will always be a JSON object, but stored as serde_json::Value for impl convenience
-    root: serde_json::Value,
+    // This will always be a JSON object, but stored as json::Value for impl convenience
+    root: json::Value,
 }
 
-pub type Object = serde_json::Map<String, serde_json::Value>;
+pub type Object = json::Map<String, json::Value>;
 
 static RES_CACHE: LazyLock<DashMap<PathId, Resource>> = LazyLock::new(Default::default);
 
@@ -188,7 +188,7 @@ impl Resource {
                 name: "dummy".into(),
                 namespace: Default::default(),
             },
-            root: serde_json::json!({
+            root: json::json!({
                 "metadata": {
                     "name": "dummy"
                 }
@@ -204,7 +204,7 @@ impl Resource {
         );
 
         ensure!(
-            root.insert("metadata".into(), serde_json::to_value(&metadata)?)
+            root.insert("metadata".into(), json::to_value(&metadata)?)
                 .is_none(),
             "root must not duplicate metadata"
         );
@@ -222,13 +222,13 @@ impl Resource {
 
         Ok(Resource {
             id,
-            root: serde_json::Value::Object(root),
+            root: json::Value::Object(root),
         })
     }
 
     pub fn from_parts(id: ResId, mut root: Object) -> anyhow::Result<Self> {
         let metadata = match root.remove("metadata") {
-            Some(value) => serde_json::from_value(value.clone())
+            Some(value) => json::from_value(value.clone())
                 .map_err(|e| anyhow::anyhow!("invalid metadata: {}", e))?,
             None => Metadata::default(),
         };
@@ -242,7 +242,7 @@ impl Resource {
         (
             id,
             match root {
-                serde_json::Value::Object(map) => map,
+                json::Value::Object(map) => map,
                 _ => panic!("root is always an object"),
             },
         )
@@ -382,7 +382,7 @@ impl Resource {
         self.root.as_object_mut().expect("root is always an object")
     }
 
-    pub(crate) fn root_raw_mut(&mut self) -> &mut serde_json::Value {
+    pub(crate) fn root_raw_mut(&mut self) -> &mut json::Value {
         &mut self.root
     }
 
@@ -443,7 +443,7 @@ impl Resource {
             (None, Some(right)) => {
                 if !right.is_empty() {
                     self.root_mut()
-                        .insert("data".into(), serde_json::Value::Object(right.clone()));
+                        .insert("data".into(), json::Value::Object(right.clone()));
                 }
             }
             (_, None) => {}
@@ -468,10 +468,8 @@ impl Resource {
             }
             (None, Some(right)) => {
                 if !right.is_empty() {
-                    self.root_mut().insert(
-                        "binaryData".into(),
-                        serde_json::Value::Object(right.clone()),
-                    );
+                    self.root_mut()
+                        .insert("binaryData".into(), json::Value::Object(right.clone()));
                 }
             }
             (_, None) => {}
@@ -497,11 +495,11 @@ pub struct Metadata {
     #[serde(default, skip_serializing_if = "Annotations::is_empty")]
     pub annotations: Annotations,
     #[serde(flatten)]
-    pub rest: IndexMap<Str, serde_json::Value>,
+    pub rest: IndexMap<Str, json::Value>,
 }
 
 impl Deref for Metadata {
-    type Target = IndexMap<Str, serde_json::Value>;
+    type Target = IndexMap<Str, json::Value>;
 
     fn deref(&self) -> &Self::Target {
         &self.rest
@@ -582,7 +580,7 @@ impl Serialize for Resource {
         let mut root = self.root().clone();
         let metadata = root.remove("metadata").unwrap();
 
-        let metadata = serde_json::from_value(metadata).expect("invalid metadata");
+        let metadata = json::from_value(metadata).expect("invalid metadata");
 
         Res {
             api_version,

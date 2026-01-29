@@ -48,7 +48,7 @@ impl NamespaceTransformer {
             if self.is_default_service_account_subject(subject) {
                 subject.insert(
                     "namespace".to_string(),
-                    serde_json::Value::String(target_namespace.to_string()),
+                    json::Value::String(target_namespace.to_string()),
                 );
             }
             Ok(())

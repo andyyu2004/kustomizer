@@ -46,7 +46,7 @@ pub fn diff_reference_impl(path: &Path, actual: &str) -> anyhow::Result<()> {
         .map(str::trim)
         .filter(|s| !s.is_empty())
         .map(|s| yaml::from_str(s).context(format!("parsing YAML document\n{s}")))
-        .collect::<anyhow::Result<HashSet<serde_json::Value>>>()
+        .collect::<anyhow::Result<HashSet<json::Value>>>()
         .context("parsing kustomize output")?;
 
     let actual_documents = actual
@@ -54,7 +54,7 @@ pub fn diff_reference_impl(path: &Path, actual: &str) -> anyhow::Result<()> {
         .map(str::trim)
         .filter(|s| !s.is_empty())
         .map(yaml::from_str)
-        .collect::<anyhow::Result<HashSet<serde_json::Value>>>()
+        .collect::<anyhow::Result<HashSet<json::Value>>>()
         .context("parsing actual output")?;
 
     if expected_documents == actual_documents {
@@ -66,7 +66,7 @@ pub fn diff_reference_impl(path: &Path, actual: &str) -> anyhow::Result<()> {
     // the field for some reason.
     // We can't use dyff's `--exclude` flag, because it doesn't seem to work with paths containing a `.`.
     // See: https://github.com/homeport/dyff/issues/362
-    let clean_document = |mut doc: serde_json::Value| -> serde_json::Value {
+    let clean_document = |mut doc: json::Value| -> json::Value {
         if let Some(metadata) = doc.get_mut("metadata")
             && let Some(annotations) = metadata.get_mut("annotations")
             && let Some(annotations_map) = annotations.as_object_mut()

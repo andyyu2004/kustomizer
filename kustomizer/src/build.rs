@@ -314,7 +314,7 @@ impl Builder {
         } else if transformer_spec.api_version() == "builtin" {
             match transformer_spec.kind().as_str() {
                 "ImageTagTransformer" => {
-                    serde_json::from_value::<ImageTagTransformer>(serde_json::Value::Object(
+                    json::from_value::<ImageTagTransformer>(json::Value::Object(
                         transformer_spec.root().clone(),
                     ))
                     .with_context(|| format!("parsing ImageTagTransformer at `{}`", path.pretty()))?
@@ -322,7 +322,7 @@ impl Builder {
                     .await?
                 }
                 "LabelTransformer" => {
-                    serde_json::from_value::<LabelTransformer<'_>>(serde_json::Value::Object(
+                    json::from_value::<LabelTransformer<'_>>(json::Value::Object(
                         transformer_spec.root().clone(),
                     ))
                     .with_context(|| format!("parsing LabelTransformer at `{}`", path.pretty()))?
@@ -382,8 +382,8 @@ impl Builder {
         } else if generator_spec.api_version() == "builtin" {
             match generator_spec.kind().as_str() {
                 "ConfigMapGenerator" => {
-                    let mut generator = serde_json::from_value::<ConfigMapGenerator<'_>>(
-                        serde_json::Value::Object(generator_spec.root().clone()),
+                    let mut generator = json::from_value::<ConfigMapGenerator<'_>>(
+                        json::Value::Object(generator_spec.root().clone()),
                     )
                     .with_context(|| {
                         format!("parsing ConfigMapGenerator at `{}`", path.pretty())

@@ -66,16 +66,13 @@ impl SecretGenerator<'_> {
         )
         .await?;
 
-        let mut root = Object::from_iter([("data".into(), serde_json::Value::Object(object))]);
+        let mut root = Object::from_iter([("data".into(), json::Value::Object(object))]);
 
         if immutable {
-            root.insert("immutable".into(), serde_json::Value::Bool(true));
+            root.insert("immutable".into(), json::Value::Bool(true));
         }
 
-        root.insert(
-            "type".into(),
-            serde_json::Value::String(generator.ty.to_string()),
-        );
+        root.insert("type".into(), json::Value::String(generator.ty.to_string()));
 
         let secret = Resource::new(
             ResId {
