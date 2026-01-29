@@ -1,0 +1,41 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cursed-configmap
+data:
+  NOPE: "no"
+  YES: "yes"
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cursed-config-54hftb5k6c
+data:
+  n: "no"
+  y: "yes"
+  no: "no"
+  yes: "yes"
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: empty-config-6ct58987ht
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: cursed-secret-55fk89htfh
+data:
+  n: bm8=
+  y: eWVz
+  no: bm8=
+  yes: eWVz
+type: Opaque
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: empty-secret-46f8b28mk5
+data: {}
+type: Opaque

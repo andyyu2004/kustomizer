@@ -1,4 +1,4 @@
 configMapGenerator:
-- name: myMap
-  literals:
-  - foo=bar
+  - name: myMap
+    literals:
+      - foo=bar

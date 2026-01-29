@@ -1,0 +1,19 @@
+resources:
+  - cursed.yaml
+
+configMapGenerator:
+  - name: cursed-config
+    literals:
+      - n=no
+      - y=yes
+    envs:
+      - cursed.env
+  - name: empty-config
+secretGenerator:
+  - name: cursed-secret
+    literals:
+      - n=no
+      - y=yes
+    envs:
+      - cursed.env
+  - name: empty-secret
