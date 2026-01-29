@@ -14,8 +14,8 @@ spec:
         app: my-app
     spec:
       containers:
-      - name: my-app
-        image: my-image:prod-v1.2.3
+        - name: my-app
+          image: my-image:prod-v1.2.3
 ---
 apiVersion: v1
 kind: Service
@@ -25,5 +25,5 @@ spec:
   selector:
     app: my-app
   ports:
-  - port: 80
-    targetPort: 8080
+    - port: 80
+      targetPort: 8080

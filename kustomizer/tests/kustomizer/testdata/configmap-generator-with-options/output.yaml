@@ -9,15 +9,5 @@ metadata:
   annotations:
     team: platform
 data:
-  settings.json: |-
-    {
-      "api": {
-        "endpoint": "https://api.example.com",
-        "timeout": 30
-      },
-      "features": {
-        "enable_logging": true,
-        "cache_ttl": 3600
-      }
-    }
+  settings.json: "{\n  \"api\": {\n    \"endpoint\": \"https://api.example.com\",\n    \"timeout\": 30\n  },\n  \"features\": {\n    \"enable_logging\": true,\n    \"cache_ttl\": 3600\n  }\n}"
 immutable: true

@@ -4,6 +4,6 @@ metadata:
   name: bob-bk46gm59c6
 data:
   fruit: Indian Gooseberry
-  year: '2020'
-  crisis: 'true'
-  month: '12'
+  year: "2020"
+  crisis: "true"
+  month: "12"

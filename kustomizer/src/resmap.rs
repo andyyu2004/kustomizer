@@ -7,6 +7,7 @@ use indexmap::IndexMap;
 use crate::{
     manifest::Behavior,
     resource::{ResId, Resource, annotation},
+    yaml,
 };
 
 #[derive(Clone, Default)]
@@ -26,7 +27,10 @@ impl fmt::Display for ResourceMap {
             if self.len() > 1 {
                 writeln!(f, "---")?;
             }
-            write!(f, "{}", serde_yaml::to_string(resource).unwrap())?;
+            yaml::to_fmt_writer(f, resource).map_err(|err| {
+                tracing::error!("failed to serialize resource for display: {err}");
+                fmt::Error
+            })?;
         }
 
         Ok(())

@@ -5,7 +5,7 @@ use std::{
     process::{Command, Stdio},
 };
 
-use crate::{PathExt, resource::annotation};
+use crate::{PathExt, resource::annotation, yaml};
 
 // Diff against reference kustomize implementation
 pub fn diff_reference_impl(path: &Path, actual: &str) -> anyhow::Result<()> {
@@ -45,16 +45,16 @@ pub fn diff_reference_impl(path: &Path, actual: &str) -> anyhow::Result<()> {
         .split("---\n")
         .map(str::trim)
         .filter(|s| !s.is_empty())
-        .map(|s| serde_yaml::from_str(s).context(format!("parsing YAML document\n{s}")))
-        .collect::<anyhow::Result<HashSet<serde_yaml::Value>>>()
+        .map(|s| yaml::from_str(s).context(format!("parsing YAML document\n{s}")))
+        .collect::<anyhow::Result<HashSet<serde_json::Value>>>()
         .context("parsing kustomize output")?;
 
     let actual_documents = actual
         .split("---\n")
         .map(str::trim)
         .filter(|s| !s.is_empty())
-        .map(serde_yaml::from_str)
-        .collect::<serde_yaml::Result<HashSet<serde_yaml::Value>>>()
+        .map(yaml::from_str)
+        .collect::<anyhow::Result<HashSet<serde_json::Value>>>()
         .context("parsing actual output")?;
 
     if expected_documents == actual_documents {
@@ -66,12 +66,12 @@ pub fn diff_reference_impl(path: &Path, actual: &str) -> anyhow::Result<()> {
     // the field for some reason.
     // We can't use dyff's `--exclude` flag, because it doesn't seem to work with paths containing a `.`.
     // See: https://github.com/homeport/dyff/issues/362
-    let clean_document = |mut doc: serde_yaml::Value| -> serde_yaml::Value {
+    let clean_document = |mut doc: serde_json::Value| -> serde_json::Value {
         if let Some(metadata) = doc.get_mut("metadata")
             && let Some(annotations) = metadata.get_mut("annotations")
-            && let Some(annotations_map) = annotations.as_mapping_mut()
+            && let Some(annotations_map) = annotations.as_object_mut()
         {
-            annotations_map.remove(serde_yaml::Value::String(annotation::BEHAVIOR.to_string()));
+            annotations_map.remove(annotation::BEHAVIOR);
         }
         doc
     };
@@ -79,14 +79,14 @@ pub fn diff_reference_impl(path: &Path, actual: &str) -> anyhow::Result<()> {
     let mut expected = expected_documents
         .into_iter()
         .map(clean_document)
-        .map(|doc| serde_yaml::to_string(&doc).unwrap())
+        .map(|doc| yaml::to_string(&doc).unwrap())
         .collect::<Vec<_>>();
     expected.sort();
 
     let mut actual = actual_documents
         .into_iter()
         .map(clean_document)
-        .map(|doc| serde_yaml::to_string(&doc).unwrap())
+        .map(|doc| yaml::to_string(&doc).unwrap())
         .collect::<Vec<_>>();
     actual.sort();
 

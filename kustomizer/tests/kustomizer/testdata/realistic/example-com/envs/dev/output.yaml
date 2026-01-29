@@ -4,17 +4,17 @@ kind: Ingress
 metadata:
   name: core-server-funnel
   annotations:
-    tailscale.com/funnel: 'true'
-    nginx.ingress.kubernetes.io/enable-cors: 'true'
-    nginx.ingress.kubernetes.io/cors-allow-credentials: 'true'
-    nginx.ingress.kubernetes.io/cors-allow-methods: GET,OPTIONS,POST,PUT,DELETE
-    nginx.ingress.kubernetes.io/cors-allow-origin: '*'
-    nginx.ingress.kubernetes.io/cors-allow-headers: Accept,Authorization,Cache-Control,Content-Type,DNT,If-Modified-Since,Keep-Alive,Origin,User-Agent,X-Requested-With,x-agx-device-type,x-agx-device-id,x-agx-guest-token,x-agx-store-alias,x-api-key,x-ga-client-id,example-store-id,example-graphql-operation,example-accept-currency,example-organization-id,example-storefront-key,example-uvdb-region-id,baggage,Sentry-Trace,traceparent
+    tailscale.com/funnel: "true"
+    nginx.ingress.kubernetes.io/enable-cors: "true"
+    nginx.ingress.kubernetes.io/cors-allow-credentials: "true"
+    nginx.ingress.kubernetes.io/cors-allow-methods: "GET,OPTIONS,POST,PUT,DELETE"
+    nginx.ingress.kubernetes.io/cors-allow-origin: "*"
+    nginx.ingress.kubernetes.io/cors-allow-headers: "Accept,Authorization,Cache-Control,Content-Type,DNT,If-Modified-Since,Keep-Alive,Origin,User-Agent,X-Requested-With,x-agx-device-type,x-agx-device-id,x-agx-guest-token,x-agx-store-alias,x-api-key,x-ga-client-id,example-store-id,example-graphql-operation,example-accept-currency,example-organization-id,example-storefront-key,example-uvdb-region-id,baggage,Sentry-Trace,traceparent"
 spec:
   ingressClassName: tailscale
   tls:
-  - hosts:
-    - core-server-{{ .ENV }}
+    - hosts:
+        - "core-server-{{ .ENV }}"
   defaultBackend:
     service:
       name: example-core-server
@@ -31,10 +31,10 @@ spec:
   selector:
     app: scylla
   ports:
-  - name: cql
-    port: 9042
-    targetPort: cql
-    protocol: TCP
+    - name: cql
+      port: 9042
+      targetPort: cql
+      protocol: TCP
 ---
 apiVersion: v1
 kind: ServiceAccount
@@ -43,7 +43,7 @@ metadata:
   namespace: example
   annotations:
     argocd.argoproj.io/hook: Sync
-    argocd.argoproj.io/sync-wave: '-3'
+    argocd.argoproj.io/sync-wave: "-3"
     argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
 ---
 apiVersion: rbac.authorization.k8s.io/v1
@@ -53,15 +53,15 @@ metadata:
   namespace: example
   annotations:
     argocd.argoproj.io/hook: Sync
-    argocd.argoproj.io/sync-wave: '-3'
+    argocd.argoproj.io/sync-wave: "-3"
     argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
 rules:
-- apiGroups:
-  - ''
-  resources:
-  - configmaps
-  verbs:
-  - get
+  - apiGroups:
+      - ""
+    resources:
+      - configmaps
+    verbs:
+      - get
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
@@ -70,12 +70,12 @@ metadata:
   namespace: example
   annotations:
     argocd.argoproj.io/hook: Sync
-    argocd.argoproj.io/sync-wave: '-3'
+    argocd.argoproj.io/sync-wave: "-3"
     argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
 subjects:
-- kind: ServiceAccount
-  name: block-rollout
-  namespace: example
+  - kind: ServiceAccount
+    name: block-rollout
+    namespace: example
 roleRef:
   kind: Role
   name: configmap-getter
@@ -88,7 +88,7 @@ metadata:
   namespace: example
   annotations:
     argocd.argoproj.io/hook: Sync
-    argocd.argoproj.io/sync-wave: '-3'
+    argocd.argoproj.io/sync-wave: "-3"
     argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
 spec:
   backoffLimit: 4
@@ -97,24 +97,24 @@ spec:
     spec:
       serviceAccountName: block-rollout
       containers:
-      - name: kubectl-wait
-        image: bitnami/kubectl:1.31
-        command:
-        - /bin/sh
-        - -c
-        args:
-        - |
-          echo "Starting check for ConfigMap 'example-block-rollout'..."
-          while kubectl get configmap example-block-rollout > /dev/null 2>&1; do
-            echo "ConfigMap 'example-block-rollout' is still present. Waiting 10 seconds..."
-            sleep 10
-          done
-          echo "ConfigMap 'example-block-rollout' not found. Job completed successfully."
+        - name: kubectl-wait
+          image: bitnami/kubectl:1.31
+          command:
+            - /bin/sh
+            - "-c"
+          args:
+            - |
+              echo "Starting check for ConfigMap 'example-block-rollout'..."
+              while kubectl get configmap example-block-rollout > /dev/null 2>&1; do
+                echo "ConfigMap 'example-block-rollout' is still present. Waiting 10 seconds..."
+                sleep 10
+              done
+              echo "ConfigMap 'example-block-rollout' not found. Job completed successfully."
       restartPolicy: OnFailure
     metadata:
       annotations:
         argocd.argoproj.io/hook: Sync
-        argocd.argoproj.io/sync-wave: '-3'
+        argocd.argoproj.io/sync-wave: "-3"
         argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
 ---
 apiVersion: v1
@@ -123,12 +123,12 @@ metadata:
   name: base-configs-m228kf585k
   namespace: example
   annotations:
-    argocd.argoproj.io/sync-wave: '-5'
+    argocd.argoproj.io/sync-wave: "-5"
 data:
   ENV: dev
   SCYLLA_ADDRESSES: scylla-client:9042
   SCYLLA_LOCAL_DATA_CENTER: dc1
-  SCYLLA_REPLICATION_FACTOR: '1'
+  SCYLLA_REPLICATION_FACTOR: "1"
   SCYLLA_SERVERS: scylla-client
   LOG_LEVEL: debug
 ---
@@ -138,7 +138,7 @@ metadata:
   name: base-secrets-62htgm2m82
   namespace: example
   annotations:
-    argocd.argoproj.io/sync-wave: '-5'
+    argocd.argoproj.io/sync-wave: "-5"
 data:
   POSTGRESQL_URL: Ym9icGF0Y2g=
 type: Opaque
@@ -157,53 +157,53 @@ spec:
   template:
     spec:
       containers:
-      - env:
-        - name: OTEL_SERVICE_NAME
-          value: core-server
-        - name: SOURCE_VERSION
-          valueFrom:
-            configMapKeyRef:
-              name: example-monorepo-revision-sync
-              key: monorepo-revision
-        envFrom:
-        - secretRef:
-            name: base-secrets-62htgm2m82
-        - configMapRef:
-            name: base-configs-m228kf585k
-        image: core-server-image
-        imagePullPolicy: IfNotPresent
-        livenessProbe:
-          failureThreshold: 3
-          httpGet:
-            path: /api/internal/system.readiness.get
-            port: http
-            scheme: HTTP
-          initialDelaySeconds: 60
-          periodSeconds: 5
-          successThreshold: 1
-          timeoutSeconds: 3
-        name: core-server
-        ports:
-        - containerPort: 7000
-          name: http
-          protocol: TCP
-        readinessProbe:
-          failureThreshold: 3
-          httpGet:
-            path: /api/internal/system.readiness.get
-            port: http
-            scheme: HTTP
-          initialDelaySeconds: 5
-          periodSeconds: 5
-          successThreshold: 1
-          timeoutSeconds: 3
-        resources:
-          limits:
-            memory: 2Gi
-          requests:
-            memory: 512Mi
+        - env:
+            - name: OTEL_SERVICE_NAME
+              value: core-server
+            - name: SOURCE_VERSION
+              valueFrom:
+                configMapKeyRef:
+                  name: example-monorepo-revision-sync
+                  key: monorepo-revision
+          envFrom:
+            - secretRef:
+                name: base-secrets-62htgm2m82
+            - configMapRef:
+                name: base-configs-m228kf585k
+          image: core-server-image
+          imagePullPolicy: IfNotPresent
+          livenessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /api/internal/system.readiness.get
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 60
+            periodSeconds: 5
+            successThreshold: 1
+            timeoutSeconds: 3
+          name: core-server
+          ports:
+            - containerPort: 7000
+              name: http
+              protocol: TCP
+          readinessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /api/internal/system.readiness.get
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            successThreshold: 1
+            timeoutSeconds: 3
+          resources:
+            limits:
+              memory: 2Gi
+            requests:
+              memory: 512Mi
       imagePullSecrets:
-      - name: dockerhub-example-pull
+        - name: dockerhub-example-pull
     metadata:
       labels:
         app.kubernetes.io/name: core-server
@@ -220,13 +220,13 @@ metadata:
     app.kubernetes.io/name: core-server
 spec:
   ipFamilies:
-  - IPv4
+    - IPv4
   ipFamilyPolicy: SingleStack
   ports:
-  - name: http
-    port: 80
-    protocol: TCP
-    targetPort: http
+    - name: http
+      port: 80
+      protocol: TCP
+      targetPort: http
   type: ClusterIP
   selector:
     app.kubernetes.io/name: core-server
@@ -241,29 +241,29 @@ metadata:
   annotations:
     cert-manager.io/cluster-issuer: letsencrypt-prod
     nginx.ingress.kubernetes.io/proxy-body-size: 128m
-    nginx.ingress.kubernetes.io/proxy-read-timeout: '90'
-    nginx.ingress.kubernetes.io/cors-allow-methods: GET,OPTIONS,POST,PUT,DELETE
-    nginx.ingress.kubernetes.io/cors-allow-origin: '*'
-    nginx.ingress.kubernetes.io/cors-allow-headers: Accept,Authorization,Cache-Control,Content-Type,DNT,If-Modified-Since,Keep-Alive,Origin,User-Agent,X-Requested-With,x-agx-device-type,x-agx-device-id,x-agx-guest-token,x-agx-store-alias,x-api-key,x-ga-client-id,example-store-id,example-graphql-operation,example-accept-currency,example-organization-id,example-storefront-key,example-uvdb-region-id,baggage,Sentry-Trace,traceparent
-    nginx.ingress.kubernetes.io/enable-cors: 'true'
-    nginx.ingress.kubernetes.io/cors-allow-credentials: 'true'
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "90"
+    nginx.ingress.kubernetes.io/cors-allow-methods: "GET,OPTIONS,POST,PUT,DELETE"
+    nginx.ingress.kubernetes.io/cors-allow-origin: "*"
+    nginx.ingress.kubernetes.io/cors-allow-headers: "Accept,Authorization,Cache-Control,Content-Type,DNT,If-Modified-Since,Keep-Alive,Origin,User-Agent,X-Requested-With,x-agx-device-type,x-agx-device-id,x-agx-guest-token,x-agx-store-alias,x-api-key,x-ga-client-id,example-store-id,example-graphql-operation,example-accept-currency,example-organization-id,example-storefront-key,example-uvdb-region-id,baggage,Sentry-Trace,traceparent"
+    nginx.ingress.kubernetes.io/enable-cors: "true"
+    nginx.ingress.kubernetes.io/cors-allow-credentials: "true"
 spec:
   ingressClassName: nginx
   rules:
-  - host: api.{{ .SUBDOMAIN }}example.{{ .TLD }}
-    http:
-      paths:
-      - backend:
-          service:
-            name: example-core-server
-            port:
-              number: 80
-        path: /api/v1
-        pathType: ImplementationSpecific
+    - host: "api.{{ .SUBDOMAIN }}example.{{ .TLD }}"
+      http:
+        paths:
+          - backend:
+              service:
+                name: example-core-server
+                port:
+                  number: 80
+            path: /api/v1
+            pathType: ImplementationSpecific
   tls:
-  - secretName: core-server-ingress-tls
-    hosts:
-    - api.{{ .SUBDOMAIN }}example.{{ .TLD }}
+    - secretName: core-server-ingress-tls
+      hosts:
+        - "api.{{ .SUBDOMAIN }}example.{{ .TLD }}"
 ---
 apiVersion: v1
 kind: Secret
@@ -296,16 +296,16 @@ spec:
         spec:
           restartPolicy: OnFailure
           containers:
-          - env:
-            - name: OTEL_SERVICE_NAME
-              value: currency-updater-cron
-            envFrom:
-            - secretRef:
-                name: base-secrets-62htgm2m82
-            - configMapRef:
-                name: base-configs-m228kf585k
-            image: currency-updater-image
-            name: example-currency-updater-cron
+            - env:
+                - name: OTEL_SERVICE_NAME
+                  value: currency-updater-cron
+              envFrom:
+                - secretRef:
+                    name: base-secrets-62htgm2m82
+                - configMapRef:
+                    name: base-configs-m228kf585k
+              image: currency-updater-image
+              name: example-currency-updater-cron
         metadata:
           labels:
             app.kubernetes.io/name: currency-updater
@@ -327,53 +327,53 @@ spec:
   template:
     spec:
       containers:
-      - env:
-        - name: OTEL_SERVICE_NAME
-          value: data-ingestor
-        - name: SOURCE_VERSION
-          valueFrom:
-            configMapKeyRef:
-              name: example-monorepo-revision-sync
-              key: monorepo-revision
-        envFrom:
-        - secretRef:
-            name: base-secrets-62htgm2m82
-        - configMapRef:
-            name: base-configs-m228kf585k
-        image: data-ingestor-image
-        imagePullPolicy: IfNotPresent
-        livenessProbe:
-          failureThreshold: 3
-          httpGet:
-            path: /api/internal/system.readiness.get
-            port: http
-            scheme: HTTP
-          initialDelaySeconds: 60
-          periodSeconds: 5
-          successThreshold: 1
-          timeoutSeconds: 3
-        name: data-ingestor
-        ports:
-        - containerPort: 7060
-          name: http
-          protocol: TCP
-        readinessProbe:
-          failureThreshold: 3
-          httpGet:
-            path: /api/internal/system.readiness.get
-            port: http
-            scheme: HTTP
-          initialDelaySeconds: 5
-          periodSeconds: 5
-          successThreshold: 1
-          timeoutSeconds: 3
-        resources:
-          limits:
-            memory: 512Mi
-          requests:
-            memory: 256Mi
+        - env:
+            - name: OTEL_SERVICE_NAME
+              value: data-ingestor
+            - name: SOURCE_VERSION
+              valueFrom:
+                configMapKeyRef:
+                  name: example-monorepo-revision-sync
+                  key: monorepo-revision
+          envFrom:
+            - secretRef:
+                name: base-secrets-62htgm2m82
+            - configMapRef:
+                name: base-configs-m228kf585k
+          image: data-ingestor-image
+          imagePullPolicy: IfNotPresent
+          livenessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /api/internal/system.readiness.get
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 60
+            periodSeconds: 5
+            successThreshold: 1
+            timeoutSeconds: 3
+          name: data-ingestor
+          ports:
+            - containerPort: 7060
+              name: http
+              protocol: TCP
+          readinessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /api/internal/system.readiness.get
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            successThreshold: 1
+            timeoutSeconds: 3
+          resources:
+            limits:
+              memory: 512Mi
+            requests:
+              memory: 256Mi
       imagePullSecrets:
-      - name: dockerhub-example-pull
+        - name: dockerhub-example-pull
     metadata:
       labels:
         app.kubernetes.io/name: data-ingestor
@@ -390,13 +390,13 @@ metadata:
     app.kubernetes.io/name: data-ingestor
 spec:
   ipFamilies:
-  - IPv4
+    - IPv4
   ipFamilyPolicy: SingleStack
   ports:
-  - name: http
-    port: 80
-    protocol: TCP
-    targetPort: http
+    - name: http
+      port: 80
+      protocol: TCP
+      targetPort: http
   type: ClusterIP
   selector:
     app.kubernetes.io/name: data-ingestor
@@ -428,55 +428,55 @@ spec:
   template:
     spec:
       containers:
-      - env:
-        - name: OTEL_SERVICE_NAME
-          value: dataqa-api-rs
-        - name: DATAQA_API_RS__UPLOAD__AWS_OPTIONS__CDN_BASE_URL
-          value: https://cdn.example.com/
-        - name: SOURCE_VERSION
-          valueFrom:
-            configMapKeyRef:
-              name: example-monorepo-revision-sync
-              key: monorepo-revision
-        envFrom:
-        - secretRef:
-            name: base-secrets-62htgm2m82
-        - configMapRef:
-            name: base-configs-m228kf585k
-        image: dataqa-api-rs-image
-        imagePullPolicy: IfNotPresent
-        livenessProbe:
-          failureThreshold: 3
-          httpGet:
-            path: /healthy-check
-            port: http
-            scheme: HTTP
-          initialDelaySeconds: 600
-          periodSeconds: 3
-          successThreshold: 1
-          timeoutSeconds: 1
-        name: dataqa-api-rs
-        ports:
-        - containerPort: 17575
-          name: http
-          protocol: TCP
-        readinessProbe:
-          failureThreshold: 30
-          httpGet:
-            path: /healthy-check
-            port: http
-            scheme: HTTP
-          initialDelaySeconds: 1
-          periodSeconds: 3
-          successThreshold: 1
-          timeoutSeconds: 1
-        resources:
-          limits:
-            memory: 4Gi
-          requests:
-            memory: 512Mi
+        - env:
+            - name: OTEL_SERVICE_NAME
+              value: dataqa-api-rs
+            - name: DATAQA_API_RS__UPLOAD__AWS_OPTIONS__CDN_BASE_URL
+              value: https://cdn.example.com/
+            - name: SOURCE_VERSION
+              valueFrom:
+                configMapKeyRef:
+                  name: example-monorepo-revision-sync
+                  key: monorepo-revision
+          envFrom:
+            - secretRef:
+                name: base-secrets-62htgm2m82
+            - configMapRef:
+                name: base-configs-m228kf585k
+          image: dataqa-api-rs-image
+          imagePullPolicy: IfNotPresent
+          livenessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /healthy-check
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 600
+            periodSeconds: 3
+            successThreshold: 1
+            timeoutSeconds: 1
+          name: dataqa-api-rs
+          ports:
+            - containerPort: 17575
+              name: http
+              protocol: TCP
+          readinessProbe:
+            failureThreshold: 30
+            httpGet:
+              path: /healthy-check
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 1
+            periodSeconds: 3
+            successThreshold: 1
+            timeoutSeconds: 1
+          resources:
+            limits:
+              memory: 4Gi
+            requests:
+              memory: 512Mi
       imagePullSecrets:
-      - name: dockerhub-example-pull
+        - name: dockerhub-example-pull
     metadata:
       labels:
         app.kubernetes.io/name: dataqa-api-rs
@@ -493,13 +493,13 @@ metadata:
     app.kubernetes.io/name: dataqa-api-rs
 spec:
   ipFamilies:
-  - IPv4
+    - IPv4
   ipFamilyPolicy: SingleStack
   ports:
-  - name: http
-    port: 80
-    protocol: TCP
-    targetPort: http
+    - name: http
+      port: 80
+      protocol: TCP
+      targetPort: http
   type: ClusterIP
   selector:
     app.kubernetes.io/name: dataqa-api-rs
@@ -513,28 +513,28 @@ metadata:
     app.kubernetes.io/name: dataqa-api-rs
   annotations:
     cert-manager.io/cluster-issuer: letsencrypt-prod
-    nginx.ingress.kubernetes.io/cors-allow-methods: GET,OPTIONS,POST,PUT,DELETE
-    nginx.ingress.kubernetes.io/cors-allow-origin: '*'
-    nginx.ingress.kubernetes.io/cors-allow-headers: Accept,Authorization,Cache-Control,Content-Type,DNT,If-Modified-Since,Keep-Alive,Origin,User-Agent,X-Requested-With,x-agx-device-type,x-agx-device-id,x-agx-guest-token,x-agx-store-alias,x-api-key,x-ga-client-id,example-store-id,example-graphql-operation,example-accept-currency,example-organization-id,example-storefront-key,example-uvdb-region-id,baggage,Sentry-Trace,traceparent
-    nginx.ingress.kubernetes.io/enable-cors: 'true'
-    nginx.ingress.kubernetes.io/cors-allow-credentials: 'true'
+    nginx.ingress.kubernetes.io/cors-allow-methods: "GET,OPTIONS,POST,PUT,DELETE"
+    nginx.ingress.kubernetes.io/cors-allow-origin: "*"
+    nginx.ingress.kubernetes.io/cors-allow-headers: "Accept,Authorization,Cache-Control,Content-Type,DNT,If-Modified-Since,Keep-Alive,Origin,User-Agent,X-Requested-With,x-agx-device-type,x-agx-device-id,x-agx-guest-token,x-agx-store-alias,x-api-key,x-ga-client-id,example-store-id,example-graphql-operation,example-accept-currency,example-organization-id,example-storefront-key,example-uvdb-region-id,baggage,Sentry-Trace,traceparent"
+    nginx.ingress.kubernetes.io/enable-cors: "true"
+    nginx.ingress.kubernetes.io/cors-allow-credentials: "true"
 spec:
   ingressClassName: nginx
   rules:
-  - host: dataqa-api-rs.{{ .SUBDOMAIN }}example.{{ .TLD }}
-    http:
-      paths:
-      - backend:
-          service:
-            name: example-dataqa-api-rs
-            port:
-              number: 80
-        path: /
-        pathType: ImplementationSpecific
+    - host: "dataqa-api-rs.{{ .SUBDOMAIN }}example.{{ .TLD }}"
+      http:
+        paths:
+          - backend:
+              service:
+                name: example-dataqa-api-rs
+                port:
+                  number: 80
+            path: /
+            pathType: ImplementationSpecific
   tls:
-  - hosts:
-    - dataqa-api-rs.{{ .SUBDOMAIN }}example.{{ .TLD }}
-    secretName: dataqa-api-rs-ingress-tls
+    - hosts:
+        - "dataqa-api-rs.{{ .SUBDOMAIN }}example.{{ .TLD }}"
+      secretName: dataqa-api-rs-ingress-tls
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -550,73 +550,73 @@ spec:
   template:
     spec:
       containers:
-      - image: nginx:1.21.1-alpine
-        imagePullPolicy: IfNotPresent
-        env:
-        - name: SOURCE_VERSION
-          valueFrom:
-            configMapKeyRef:
-              name: example-monorepo-revision-sync
-              key: monorepo-revision
-        livenessProbe:
-          failureThreshold: 3
-          httpGet:
-            path: /index.html
-            port: http
-            scheme: HTTP
-          periodSeconds: 10
-          successThreshold: 1
-          timeoutSeconds: 1
-        name: dataqa-web
-        ports:
-        - containerPort: 80
-          name: http
-          protocol: TCP
-        readinessProbe:
-          failureThreshold: 3
-          httpGet:
-            path: /index.html
-            port: http
-            scheme: HTTP
-          periodSeconds: 10
-          successThreshold: 1
-          timeoutSeconds: 1
-        volumeMounts:
-        - mountPath: /tmp/www
-          name: dataqa-web-www
-        - mountPath: /etc/nginx/conf.d
-          name: dataqa-web-nginx-conf
+        - image: nginx:1.21.1-alpine
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: SOURCE_VERSION
+              valueFrom:
+                configMapKeyRef:
+                  name: example-monorepo-revision-sync
+                  key: monorepo-revision
+          livenessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /index.html
+              port: http
+              scheme: HTTP
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 1
+          name: dataqa-web
+          ports:
+            - containerPort: 80
+              name: http
+              protocol: TCP
+          readinessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /index.html
+              port: http
+              scheme: HTTP
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 1
+          volumeMounts:
+            - mountPath: /tmp/www
+              name: dataqa-web-www
+            - mountPath: /etc/nginx/conf.d
+              name: dataqa-web-nginx-conf
       initContainers:
-      - env:
-        - name: API_URL
-          value: https://api.{{ .SUBDOMAIN }}example.{{ .TLD }}
-        - name: APP_URL
-          value: https://dataqa.{{ .SUBDOMAIN }}example.{{ .TLD }}
-        - name: DATAQA_API_RS_URL
-          value: https://dataqa-api-rs.{{ .SUBDOMAIN }}example.{{ .TLD }}
-        - name: SOURCE_PATH
-          value: /app/dist/
-        - name: ASSET_URL
-          value: https://cdn.example.com/assets/dataqa/
-        - name: DEST_PATH
-          value: /tmp/www/dataqa-web
-        - name: DATAQA_API_URL
-        image: dataqa-web-image
-        imagePullPolicy: IfNotPresent
-        name: dataqa-web-init
-        volumeMounts:
-        - mountPath: /tmp/www
-          name: dataqa-web-www
-        - mountPath: /etc/nginx/conf.d
-          name: dataqa-web-nginx-conf
+        - env:
+            - name: API_URL
+              value: "https://api.{{ .SUBDOMAIN }}example.{{ .TLD }}"
+            - name: APP_URL
+              value: "https://dataqa.{{ .SUBDOMAIN }}example.{{ .TLD }}"
+            - name: DATAQA_API_RS_URL
+              value: "https://dataqa-api-rs.{{ .SUBDOMAIN }}example.{{ .TLD }}"
+            - name: SOURCE_PATH
+              value: /app/dist/
+            - name: ASSET_URL
+              value: https://cdn.example.com/assets/dataqa/
+            - name: DEST_PATH
+              value: /tmp/www/dataqa-web
+            - name: DATAQA_API_URL
+          image: dataqa-web-image
+          imagePullPolicy: IfNotPresent
+          name: dataqa-web-init
+          volumeMounts:
+            - mountPath: /tmp/www
+              name: dataqa-web-www
+            - mountPath: /etc/nginx/conf.d
+              name: dataqa-web-nginx-conf
       volumes:
-      - name: dataqa-web-www
-      - configMap:
-          defaultMode: 420
+        - name: dataqa-web-www
+        - configMap:
+            defaultMode: 420
+            name: dataqa-web-nginx-conf
           name: dataqa-web-nginx-conf
-        name: dataqa-web-nginx-conf
       imagePullSecrets:
-      - name: dockerhub-example-pull
+        - name: dockerhub-example-pull
     metadata:
       labels:
         app.kubernetes.io/name: dataqa-web
@@ -633,13 +633,13 @@ metadata:
     app.kubernetes.io/name: dataqa-web
 spec:
   ipFamilies:
-  - IPv4
+    - IPv4
   ipFamilyPolicy: SingleStack
   ports:
-  - name: http
-    port: 80
-    protocol: TCP
-    targetPort: http
+    - name: http
+      port: 80
+      protocol: TCP
+      targetPort: http
   type: ClusterIP
   selector:
     app.kubernetes.io/name: dataqa-web
@@ -652,29 +652,7 @@ metadata:
   labels:
     app.kubernetes.io/name: dataqa-web
 data:
-  default.conf: |
-    server {
-            listen 80 default_server;
-            listen [::]:80 default_server;
-
-            root /tmp/www/dataqa-web;
-
-            location ~* \.(png|jpeg|jpg|gif|svg|ttf|woff|js|json|ico|css|mp3|mp4)$ {
-                add_header Cache-Control public;
-                expires 14d;
-                etag on;
-                try_files $uri $uri =404;
-            }
-
-            location ~ ^/(index.html) {
-                add_header Cache-Control must-revalidate;
-                etag on;
-            }
-
-            location / {
-                rewrite /?$ /index.html last;
-            }
-    }
+  default.conf: "server {\n        listen 80 default_server;\n        listen [::]:80 default_server;\n\n        root /tmp/www/dataqa-web;\n\n        location ~* \\.(png|jpeg|jpg|gif|svg|ttf|woff|js|json|ico|css|mp3|mp4)$ {\n            add_header Cache-Control public;\n            expires 14d;\n            etag on;\n            try_files $uri $uri =404;\n        }\n\n        location ~ ^/(index.html) {\n            add_header Cache-Control must-revalidate;\n            etag on;\n        }\n\n        location / {\n            rewrite /?$ /index.html last;\n        }\n}\n"
 ---
 apiVersion: networking.k8s.io/v1
 kind: Ingress
@@ -685,28 +663,28 @@ metadata:
     app.kubernetes.io/name: dataqa-web
   annotations:
     cert-manager.io/cluster-issuer: letsencrypt-prod
-    nginx.ingress.kubernetes.io/cors-allow-methods: GET,OPTIONS,POST,PUT,DELETE
-    nginx.ingress.kubernetes.io/cors-allow-origin: '*'
-    nginx.ingress.kubernetes.io/cors-allow-headers: Accept,Authorization,Cache-Control,Content-Type,DNT,If-Modified-Since,Keep-Alive,Origin,User-Agent,X-Requested-With,x-agx-device-type,x-agx-device-id,x-agx-guest-token,x-agx-store-alias,x-api-key,x-ga-client-id,example-store-id,example-graphql-operation,example-accept-currency,example-organization-id,example-storefront-key,example-uvdb-region-id,baggage,Sentry-Trace,traceparent
-    nginx.ingress.kubernetes.io/enable-cors: 'true'
-    nginx.ingress.kubernetes.io/cors-allow-credentials: 'true'
+    nginx.ingress.kubernetes.io/cors-allow-methods: "GET,OPTIONS,POST,PUT,DELETE"
+    nginx.ingress.kubernetes.io/cors-allow-origin: "*"
+    nginx.ingress.kubernetes.io/cors-allow-headers: "Accept,Authorization,Cache-Control,Content-Type,DNT,If-Modified-Since,Keep-Alive,Origin,User-Agent,X-Requested-With,x-agx-device-type,x-agx-device-id,x-agx-guest-token,x-agx-store-alias,x-api-key,x-ga-client-id,example-store-id,example-graphql-operation,example-accept-currency,example-organization-id,example-storefront-key,example-uvdb-region-id,baggage,Sentry-Trace,traceparent"
+    nginx.ingress.kubernetes.io/enable-cors: "true"
+    nginx.ingress.kubernetes.io/cors-allow-credentials: "true"
 spec:
   ingressClassName: nginx
   rules:
-  - host: dataqa.{{ .SUBDOMAIN }}example.{{ .TLD }}
-    http:
-      paths:
-      - backend:
-          service:
-            name: example-dataqa-web
-            port:
-              number: 80
-        path: /
-        pathType: ImplementationSpecific
+    - host: "dataqa.{{ .SUBDOMAIN }}example.{{ .TLD }}"
+      http:
+        paths:
+          - backend:
+              service:
+                name: example-dataqa-web
+                port:
+                  number: 80
+            path: /
+            pathType: ImplementationSpecific
   tls:
-  - hosts:
-    - dataqa.{{ .SUBDOMAIN }}example.{{ .TLD }}
-    secretName: dataqa-web-ingress-tls
+    - hosts:
+        - "dataqa.{{ .SUBDOMAIN }}example.{{ .TLD }}"
+      secretName: dataqa-web-ingress-tls
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -722,33 +700,33 @@ spec:
   template:
     spec:
       containers:
-      - env:
-        - name: OTEL_SERVICE_NAME
-          value: driftdb-server
-        - name: SOURCE_VERSION
-          valueFrom:
-            configMapKeyRef:
-              name: example-monorepo-revision-sync
-              key: monorepo-revision
-        envFrom:
-        - secretRef:
-            name: base-secrets-62htgm2m82
-        - configMapRef:
-            name: base-configs-m228kf585k
-        image: driftdb-server-image
-        imagePullPolicy: IfNotPresent
-        name: driftdb-server
-        ports:
-        - containerPort: 6540
-          name: http
-          protocol: TCP
-        resources:
-          limits:
-            memory: 512Mi
-          requests:
-            memory: 128Mi
+        - env:
+            - name: OTEL_SERVICE_NAME
+              value: driftdb-server
+            - name: SOURCE_VERSION
+              valueFrom:
+                configMapKeyRef:
+                  name: example-monorepo-revision-sync
+                  key: monorepo-revision
+          envFrom:
+            - secretRef:
+                name: base-secrets-62htgm2m82
+            - configMapRef:
+                name: base-configs-m228kf585k
+          image: driftdb-server-image
+          imagePullPolicy: IfNotPresent
+          name: driftdb-server
+          ports:
+            - containerPort: 6540
+              name: http
+              protocol: TCP
+          resources:
+            limits:
+              memory: 512Mi
+            requests:
+              memory: 128Mi
       imagePullSecrets:
-      - name: dockerhub-example-pull
+        - name: dockerhub-example-pull
     metadata:
       labels:
         app.kubernetes.io/name: driftdb-server
@@ -765,13 +743,13 @@ metadata:
     app.kubernetes.io/name: driftdb-server
 spec:
   ipFamilies:
-  - IPv4
+    - IPv4
   ipFamilyPolicy: SingleStack
   ports:
-  - name: http
-    port: 80
-    protocol: TCP
-    targetPort: http
+    - name: http
+      port: 80
+      protocol: TCP
+      targetPort: http
   type: ClusterIP
   selector:
     app.kubernetes.io/name: driftdb-server
@@ -785,28 +763,28 @@ metadata:
     app.kubernetes.io/name: driftdb-server
   annotations:
     cert-manager.io/cluster-issuer: letsencrypt-prod
-    nginx.ingress.kubernetes.io/cors-allow-methods: GET,OPTIONS,POST,PUT,DELETE
-    nginx.ingress.kubernetes.io/cors-allow-origin: '*'
-    nginx.ingress.kubernetes.io/cors-allow-headers: Accept,Authorization,Cache-Control,Content-Type,DNT,If-Modified-Since,Keep-Alive,Origin,User-Agent,X-Requested-With,x-agx-device-type,x-agx-device-id,x-agx-guest-token,x-agx-store-alias,x-api-key,x-ga-client-id,example-store-id,example-graphql-operation,example-accept-currency,example-organization-id,example-storefront-key,example-uvdb-region-id,baggage,Sentry-Trace,traceparent
-    nginx.ingress.kubernetes.io/enable-cors: 'true'
-    nginx.ingress.kubernetes.io/cors-allow-credentials: 'true'
+    nginx.ingress.kubernetes.io/cors-allow-methods: "GET,OPTIONS,POST,PUT,DELETE"
+    nginx.ingress.kubernetes.io/cors-allow-origin: "*"
+    nginx.ingress.kubernetes.io/cors-allow-headers: "Accept,Authorization,Cache-Control,Content-Type,DNT,If-Modified-Since,Keep-Alive,Origin,User-Agent,X-Requested-With,x-agx-device-type,x-agx-device-id,x-agx-guest-token,x-agx-store-alias,x-api-key,x-ga-client-id,example-store-id,example-graphql-operation,example-accept-currency,example-organization-id,example-storefront-key,example-uvdb-region-id,baggage,Sentry-Trace,traceparent"
+    nginx.ingress.kubernetes.io/enable-cors: "true"
+    nginx.ingress.kubernetes.io/cors-allow-credentials: "true"
 spec:
   ingressClassName: nginx
   rules:
-  - host: api.{{ .SUBDOMAIN }}example.{{ .TLD }}
-    http:
-      paths:
-      - backend:
-          service:
-            name: example-driftdb-server
-            port:
-              number: 80
-        path: /api/v1-experimental-async
-        pathType: ImplementationSpecific
+    - host: "api.{{ .SUBDOMAIN }}example.{{ .TLD }}"
+      http:
+        paths:
+          - backend:
+              service:
+                name: example-driftdb-server
+                port:
+                  number: 80
+            path: /api/v1-experimental-async
+            pathType: ImplementationSpecific
   tls:
-  - hosts:
-    - api.{{ .SUBDOMAIN }}example.{{ .TLD }}
-    secretName: driftdb-server-ingress-tls
+    - hosts:
+        - "api.{{ .SUBDOMAIN }}example.{{ .TLD }}"
+      secretName: driftdb-server-ingress-tls
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -822,57 +800,57 @@ spec:
   template:
     spec:
       containers:
-      - env:
-        - name: OTEL_SERVICE_NAME
-          value: elasticsearch-ingestor
-        - name: NODE_OPTIONS
-          value: --max-old-space-size=3072
-        - name: ELASTICSEARCH_INGESTOR_HIGH_PRIORITY
-          value: '1'
-        - name: SOURCE_VERSION
-          valueFrom:
-            configMapKeyRef:
-              name: example-monorepo-revision-sync
-              key: monorepo-revision
-        envFrom:
-        - secretRef:
-            name: base-secrets-62htgm2m82
-        - configMapRef:
-            name: base-configs-m228kf585k
-        image: elasticsearch-ingestor-image
-        imagePullPolicy: IfNotPresent
-        livenessProbe:
-          failureThreshold: 3
-          httpGet:
-            path: /healthy-check
-            port: http
-            scheme: HTTP
-          initialDelaySeconds: 120
-          periodSeconds: 60
-          successThreshold: 1
-          timeoutSeconds: 60
-        name: elasticsearch-ingestor-high
-        ports:
-        - containerPort: 3333
-          name: http
-          protocol: TCP
-        readinessProbe:
-          failureThreshold: 3
-          httpGet:
-            path: /healthy-check
-            port: http
-            scheme: HTTP
-          initialDelaySeconds: 120
-          periodSeconds: 60
-          successThreshold: 1
-          timeoutSeconds: 60
-        resources:
-          limits:
-            memory: 1Gi
-          requests:
-            memory: 512Mi
+        - env:
+            - name: OTEL_SERVICE_NAME
+              value: elasticsearch-ingestor
+            - name: NODE_OPTIONS
+              value: "--max-old-space-size=3072"
+            - name: ELASTICSEARCH_INGESTOR_HIGH_PRIORITY
+              value: "1"
+            - name: SOURCE_VERSION
+              valueFrom:
+                configMapKeyRef:
+                  name: example-monorepo-revision-sync
+                  key: monorepo-revision
+          envFrom:
+            - secretRef:
+                name: base-secrets-62htgm2m82
+            - configMapRef:
+                name: base-configs-m228kf585k
+          image: elasticsearch-ingestor-image
+          imagePullPolicy: IfNotPresent
+          livenessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /healthy-check
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 120
+            periodSeconds: 60
+            successThreshold: 1
+            timeoutSeconds: 60
+          name: elasticsearch-ingestor-high
+          ports:
+            - containerPort: 3333
+              name: http
+              protocol: TCP
+          readinessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /healthy-check
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 120
+            periodSeconds: 60
+            successThreshold: 1
+            timeoutSeconds: 60
+          resources:
+            limits:
+              memory: 1Gi
+            requests:
+              memory: 512Mi
       imagePullSecrets:
-      - name: dockerhub-example-pull
+        - name: dockerhub-example-pull
     metadata:
       labels:
         app.kubernetes.io/name: elasticsearch-ingestor-high
@@ -889,13 +867,13 @@ metadata:
     app.kubernetes.io/name: elasticsearch-ingestor-high
 spec:
   ipFamilies:
-  - IPv4
+    - IPv4
   ipFamilyPolicy: SingleStack
   ports:
-  - name: http
-    port: 80
-    protocol: TCP
-    targetPort: http
+    - name: http
+      port: 80
+      protocol: TCP
+      targetPort: http
   type: ClusterIP
   selector:
     app.kubernetes.io/name: elasticsearch-ingestor-high
@@ -914,57 +892,57 @@ spec:
   template:
     spec:
       containers:
-      - env:
-        - name: OTEL_SERVICE_NAME
-          value: elasticsearch-ingestor
-        - name: NODE_OPTIONS
-          value: --max-old-space-size=1024
-        - name: ELASTICSEARCH_INGESTOR_LOW_PRIORITY
-          value: '1'
-        - name: SOURCE_VERSION
-          valueFrom:
-            configMapKeyRef:
-              name: example-monorepo-revision-sync
-              key: monorepo-revision
-        envFrom:
-        - secretRef:
-            name: base-secrets-62htgm2m82
-        - configMapRef:
-            name: base-configs-m228kf585k
-        image: elasticsearch-ingestor-image
-        imagePullPolicy: IfNotPresent
-        livenessProbe:
-          failureThreshold: 3
-          httpGet:
-            path: /healthy-check
-            port: http
-            scheme: HTTP
-          initialDelaySeconds: 120
-          periodSeconds: 60
-          successThreshold: 1
-          timeoutSeconds: 60
-        name: elasticsearch-ingestor-low
-        ports:
-        - containerPort: 3333
-          name: http
-          protocol: TCP
-        readinessProbe:
-          failureThreshold: 3
-          httpGet:
-            path: /healthy-check
-            port: http
-            scheme: HTTP
-          initialDelaySeconds: 120
-          periodSeconds: 60
-          successThreshold: 1
-          timeoutSeconds: 60
-        resources:
-          limits:
-            memory: 1Gi
-          requests:
-            memory: 512Mi
+        - env:
+            - name: OTEL_SERVICE_NAME
+              value: elasticsearch-ingestor
+            - name: NODE_OPTIONS
+              value: "--max-old-space-size=1024"
+            - name: ELASTICSEARCH_INGESTOR_LOW_PRIORITY
+              value: "1"
+            - name: SOURCE_VERSION
+              valueFrom:
+                configMapKeyRef:
+                  name: example-monorepo-revision-sync
+                  key: monorepo-revision
+          envFrom:
+            - secretRef:
+                name: base-secrets-62htgm2m82
+            - configMapRef:
+                name: base-configs-m228kf585k
+          image: elasticsearch-ingestor-image
+          imagePullPolicy: IfNotPresent
+          livenessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /healthy-check
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 120
+            periodSeconds: 60
+            successThreshold: 1
+            timeoutSeconds: 60
+          name: elasticsearch-ingestor-low
+          ports:
+            - containerPort: 3333
+              name: http
+              protocol: TCP
+          readinessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /healthy-check
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 120
+            periodSeconds: 60
+            successThreshold: 1
+            timeoutSeconds: 60
+          resources:
+            limits:
+              memory: 1Gi
+            requests:
+              memory: 512Mi
       imagePullSecrets:
-      - name: dockerhub-example-pull
+        - name: dockerhub-example-pull
     metadata:
       labels:
         app.kubernetes.io/name: elasticsearch-ingestor-low
@@ -981,13 +959,13 @@ metadata:
     app.kubernetes.io/name: elasticsearch-ingestor-low
 spec:
   ipFamilies:
-  - IPv4
+    - IPv4
   ipFamilyPolicy: SingleStack
   ports:
-  - name: http
-    port: 80
-    protocol: TCP
-    targetPort: http
+    - name: http
+      port: 80
+      protocol: TCP
+      targetPort: http
   type: ClusterIP
   selector:
     app.kubernetes.io/name: elasticsearch-ingestor-low
@@ -1006,53 +984,53 @@ spec:
   template:
     spec:
       containers:
-      - env:
-        - name: OTEL_SERVICE_NAME
-          value: elasticsearch-ingestor-rs
-        - name: SOURCE_VERSION
-          valueFrom:
-            configMapKeyRef:
-              name: example-monorepo-revision-sync
-              key: monorepo-revision
-        envFrom:
-        - secretRef:
-            name: base-secrets-62htgm2m82
-        - configMapRef:
-            name: base-configs-m228kf585k
-        image: elasticsearch-ingestor-rs-image
-        imagePullPolicy: IfNotPresent
-        livenessProbe:
-          failureThreshold: 3
-          httpGet:
-            path: /api/internal/system.liveness.get
-            port: http
-            scheme: HTTP
-          initialDelaySeconds: 6
-          periodSeconds: 10
-          successThreshold: 1
-          timeoutSeconds: 5
-        name: elasticsearch-ingestor-rs
-        ports:
-        - containerPort: 4050
-          name: http
-          protocol: TCP
-        readinessProbe:
-          failureThreshold: 3
-          httpGet:
-            path: /api/internal/system.readiness.get
-            port: http
-            scheme: HTTP
-          initialDelaySeconds: 10
-          periodSeconds: 5
-          successThreshold: 1
-          timeoutSeconds: 3
-        resources:
-          limits:
-            memory: 1Gi
-          requests:
-            memory: 256Mi
+        - env:
+            - name: OTEL_SERVICE_NAME
+              value: elasticsearch-ingestor-rs
+            - name: SOURCE_VERSION
+              valueFrom:
+                configMapKeyRef:
+                  name: example-monorepo-revision-sync
+                  key: monorepo-revision
+          envFrom:
+            - secretRef:
+                name: base-secrets-62htgm2m82
+            - configMapRef:
+                name: base-configs-m228kf585k
+          image: elasticsearch-ingestor-rs-image
+          imagePullPolicy: IfNotPresent
+          livenessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /api/internal/system.liveness.get
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 6
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 5
+          name: elasticsearch-ingestor-rs
+          ports:
+            - containerPort: 4050
+              name: http
+              protocol: TCP
+          readinessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /api/internal/system.readiness.get
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            successThreshold: 1
+            timeoutSeconds: 3
+          resources:
+            limits:
+              memory: 1Gi
+            requests:
+              memory: 256Mi
       imagePullSecrets:
-      - name: dockerhub-example-pull
+        - name: dockerhub-example-pull
     metadata:
       labels:
         app.kubernetes.io/name: elasticsearch-ingestor-rs
@@ -1069,13 +1047,13 @@ metadata:
     app.kubernetes.io/name: elasticsearch-ingestor-rs
 spec:
   ipFamilies:
-  - IPv4
+    - IPv4
   ipFamilyPolicy: SingleStack
   ports:
-  - name: http
-    port: 80
-    protocol: TCP
-    targetPort: http
+    - name: http
+      port: 80
+      protocol: TCP
+      targetPort: http
   type: ClusterIP
   selector:
     app.kubernetes.io/name: elasticsearch-ingestor-rs
@@ -1094,48 +1072,48 @@ spec:
   template:
     spec:
       containers:
-      - env:
-        - name: OTEL_SERVICE_NAME
-          value: email-integration
-        - name: SOURCE_VERSION
-          valueFrom:
-            configMapKeyRef:
-              name: example-monorepo-revision-sync
-              key: monorepo-revision
-        envFrom:
-        - secretRef:
-            name: base-secrets-62htgm2m82
-        - configMapRef:
-            name: base-configs-m228kf585k
-        image: email-integration-image
-        imagePullPolicy: IfNotPresent
-        livenessProbe:
-          failureThreshold: 3
-          httpGet:
-            path: /health_check
-            port: http
-            scheme: HTTP
-          initialDelaySeconds: 30
-          periodSeconds: 5
-          successThreshold: 1
-          timeoutSeconds: 3
-        name: email-integration
-        ports:
-        - containerPort: 4407
-          name: http
-          protocol: TCP
-        readinessProbe:
-          failureThreshold: 3
-          httpGet:
-            path: /health_check
-            port: http
-            scheme: HTTP
-          initialDelaySeconds: 5
-          periodSeconds: 5
-          successThreshold: 1
-          timeoutSeconds: 3
+        - env:
+            - name: OTEL_SERVICE_NAME
+              value: email-integration
+            - name: SOURCE_VERSION
+              valueFrom:
+                configMapKeyRef:
+                  name: example-monorepo-revision-sync
+                  key: monorepo-revision
+          envFrom:
+            - secretRef:
+                name: base-secrets-62htgm2m82
+            - configMapRef:
+                name: base-configs-m228kf585k
+          image: email-integration-image
+          imagePullPolicy: IfNotPresent
+          livenessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /health_check
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 30
+            periodSeconds: 5
+            successThreshold: 1
+            timeoutSeconds: 3
+          name: email-integration
+          ports:
+            - containerPort: 4407
+              name: http
+              protocol: TCP
+          readinessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /health_check
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            successThreshold: 1
+            timeoutSeconds: 3
       imagePullSecrets:
-      - name: dockerhub-example-pull
+        - name: dockerhub-example-pull
     metadata:
       labels:
         app.kubernetes.io/name: email-integration
@@ -1152,13 +1130,13 @@ metadata:
     app.kubernetes.io/name: email-integration
 spec:
   ipFamilies:
-  - IPv4
+    - IPv4
   ipFamilyPolicy: SingleStack
   ports:
-  - name: http
-    port: 80
-    protocol: TCP
-    targetPort: http
+    - name: http
+      port: 80
+      protocol: TCP
+      targetPort: http
   type: ClusterIP
   selector:
     app.kubernetes.io/name: email-integration
@@ -1177,53 +1155,53 @@ spec:
   template:
     spec:
       containers:
-      - env:
-        - name: OTEL_SERVICE_NAME
-          value: file-ingestor
-        - name: SOURCE_VERSION
-          valueFrom:
-            configMapKeyRef:
-              name: example-monorepo-revision-sync
-              key: monorepo-revision
-        envFrom:
-        - secretRef:
-            name: base-secrets-62htgm2m82
-        - configMapRef:
-            name: base-configs-m228kf585k
-        image: file-ingestor-image
-        imagePullPolicy: IfNotPresent
-        livenessProbe:
-          failureThreshold: 3
-          httpGet:
-            path: /api/internal/system.readiness.get
-            port: http
-            scheme: HTTP
-          initialDelaySeconds: 60
-          periodSeconds: 5
-          successThreshold: 1
-          timeoutSeconds: 3
-        name: file-ingestor
-        ports:
-        - containerPort: 7050
-          name: http
-          protocol: TCP
-        readinessProbe:
-          failureThreshold: 3
-          httpGet:
-            path: /api/internal/system.readiness.get
-            port: http
-            scheme: HTTP
-          initialDelaySeconds: 5
-          periodSeconds: 5
-          successThreshold: 1
-          timeoutSeconds: 3
-        resources:
-          limits:
-            memory: 2Gi
-          requests:
-            memory: 512Mi
+        - env:
+            - name: OTEL_SERVICE_NAME
+              value: file-ingestor
+            - name: SOURCE_VERSION
+              valueFrom:
+                configMapKeyRef:
+                  name: example-monorepo-revision-sync
+                  key: monorepo-revision
+          envFrom:
+            - secretRef:
+                name: base-secrets-62htgm2m82
+            - configMapRef:
+                name: base-configs-m228kf585k
+          image: file-ingestor-image
+          imagePullPolicy: IfNotPresent
+          livenessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /api/internal/system.readiness.get
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 60
+            periodSeconds: 5
+            successThreshold: 1
+            timeoutSeconds: 3
+          name: file-ingestor
+          ports:
+            - containerPort: 7050
+              name: http
+              protocol: TCP
+          readinessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /api/internal/system.readiness.get
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            successThreshold: 1
+            timeoutSeconds: 3
+          resources:
+            limits:
+              memory: 2Gi
+            requests:
+              memory: 512Mi
       imagePullSecrets:
-      - name: dockerhub-example-pull
+        - name: dockerhub-example-pull
     metadata:
       labels:
         app.kubernetes.io/name: file-ingestor
@@ -1240,13 +1218,13 @@ metadata:
     app.kubernetes.io/name: file-ingestor
 spec:
   ipFamilies:
-  - IPv4
+    - IPv4
   ipFamilyPolicy: SingleStack
   ports:
-  - name: http
-    port: 80
-    protocol: TCP
-    targetPort: http
+    - name: http
+      port: 80
+      protocol: TCP
+      targetPort: http
   type: ClusterIP
   selector:
     app.kubernetes.io/name: file-ingestor
@@ -1269,16 +1247,16 @@ spec:
         spec:
           restartPolicy: OnFailure
           containers:
-          - env:
-            - name: OTEL_SERVICE_NAME
-              value: garbage-collector
-            envFrom:
-            - secretRef:
-                name: base-secrets-62htgm2m82
-            - configMapRef:
-                name: base-configs-m228kf585k
-            image: garbage-collector-image
-            name: garbage-collector
+            - env:
+                - name: OTEL_SERVICE_NAME
+                  value: garbage-collector
+              envFrom:
+                - secretRef:
+                    name: base-secrets-62htgm2m82
+                - configMapRef:
+                    name: base-configs-m228kf585k
+              image: garbage-collector-image
+              name: garbage-collector
         metadata:
           labels:
             app.kubernetes.io/name: garbage-collector
@@ -1300,57 +1278,57 @@ spec:
   template:
     spec:
       containers:
-      - env:
-        - name: PORT
-          value: '9394'
-        - name: OTEL_SERVICE_NAME
-          value: hca-notion-sync
-        - name: NODE_OPTIONS
-          value: --max-old-space-size=1500
-        - name: SOURCE_VERSION
-          valueFrom:
-            configMapKeyRef:
-              name: example-monorepo-revision-sync
-              key: monorepo-revision
-        envFrom:
-        - secretRef:
-            name: base-secrets-62htgm2m82
-        - configMapRef:
-            name: base-configs-m228kf585k
-        image: hca-notion-sync-image
-        imagePullPolicy: IfNotPresent
-        livenessProbe:
-          failureThreshold: 3
-          httpGet:
-            path: /internal/system.readiness.get
-            port: http
-            scheme: HTTP
-          initialDelaySeconds: 30
-          periodSeconds: 30
-          successThreshold: 1
-          timeoutSeconds: 360
-        name: hca-notion-sync
-        ports:
-        - containerPort: 9394
-          name: http
-          protocol: TCP
-        readinessProbe:
-          failureThreshold: 5
-          httpGet:
-            path: /internal/system.readiness.get
-            port: http
-            scheme: HTTP
-          initialDelaySeconds: 30
-          periodSeconds: 30
-          successThreshold: 1
-          timeoutSeconds: 360
-        resources:
-          limits:
-            memory: 256Mi
-          requests:
-            memory: 128Mi
+        - env:
+            - name: PORT
+              value: "9394"
+            - name: OTEL_SERVICE_NAME
+              value: hca-notion-sync
+            - name: NODE_OPTIONS
+              value: "--max-old-space-size=1500"
+            - name: SOURCE_VERSION
+              valueFrom:
+                configMapKeyRef:
+                  name: example-monorepo-revision-sync
+                  key: monorepo-revision
+          envFrom:
+            - secretRef:
+                name: base-secrets-62htgm2m82
+            - configMapRef:
+                name: base-configs-m228kf585k
+          image: hca-notion-sync-image
+          imagePullPolicy: IfNotPresent
+          livenessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /internal/system.readiness.get
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 30
+            periodSeconds: 30
+            successThreshold: 1
+            timeoutSeconds: 360
+          name: hca-notion-sync
+          ports:
+            - containerPort: 9394
+              name: http
+              protocol: TCP
+          readinessProbe:
+            failureThreshold: 5
+            httpGet:
+              path: /internal/system.readiness.get
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 30
+            periodSeconds: 30
+            successThreshold: 1
+            timeoutSeconds: 360
+          resources:
+            limits:
+              memory: 256Mi
+            requests:
+              memory: 128Mi
       imagePullSecrets:
-      - name: dockerhub-example-pull
+        - name: dockerhub-example-pull
     metadata:
       labels:
         app.kubernetes.io/name: hca-notion-sync
@@ -1367,13 +1345,13 @@ metadata:
     app.kubernetes.io/name: hca-notion-sync
 spec:
   ipFamilies:
-  - IPv4
+    - IPv4
   ipFamilyPolicy: SingleStack
   ports:
-  - name: http
-    port: 80
-    protocol: TCP
-    targetPort: http
+    - name: http
+      port: 80
+      protocol: TCP
+      targetPort: http
   type: ClusterIP
   selector:
     app.kubernetes.io/name: hca-notion-sync
@@ -1392,61 +1370,61 @@ spec:
   template:
     spec:
       containers:
-      - env:
-        - name: OTEL_SERVICE_NAME
-          value: lookup-scanner
-        - name: LOOKUP_SCANNER__SYSTEM__MINIO_OPTIONS__ENABLE_MINIO
-          value: 'false'
-        - name: LOOKUP_SCANNER__SYSTEM__AWS_OPTIONS__S3_REGION
-          value: ap-southeast-2
-        - name: LOOKUP_SCANNER__SYSTEM__AWS_OPTIONS__S3_BUCKET_PUBLIC
-          value: example-staging-cdn
-        - name: LOOKUP_SCANNER__SYSTEM__AWS_OPTIONS__CDN_BASE_URL
-          value: https://cdn.example.com/
-        - name: SOURCE_VERSION
-          valueFrom:
-            configMapKeyRef:
-              name: example-monorepo-revision-sync
-              key: monorepo-revision
-        envFrom:
-        - secretRef:
-            name: base-secrets-62htgm2m82
-        - configMapRef:
-            name: base-configs-m228kf585k
-        image: lookup-scanner-image
-        imagePullPolicy: IfNotPresent
-        livenessProbe:
-          failureThreshold: 3
-          httpGet:
-            path: /api/internal/system.liveness.get
-            port: http
-            scheme: HTTP
-          initialDelaySeconds: 6
-          periodSeconds: 10
-          successThreshold: 1
-          timeoutSeconds: 5
-        name: lookup-scanner
-        ports:
-        - containerPort: 4030
-          name: http
-          protocol: TCP
-        readinessProbe:
-          failureThreshold: 3
-          httpGet:
-            path: /api/internal/system.readiness.get
-            port: http
-            scheme: HTTP
-          initialDelaySeconds: 10
-          periodSeconds: 5
-          successThreshold: 1
-          timeoutSeconds: 3
-        resources:
-          limits:
-            memory: 512Mi
-          requests:
-            memory: 128Mi
+        - env:
+            - name: OTEL_SERVICE_NAME
+              value: lookup-scanner
+            - name: LOOKUP_SCANNER__SYSTEM__MINIO_OPTIONS__ENABLE_MINIO
+              value: "false"
+            - name: LOOKUP_SCANNER__SYSTEM__AWS_OPTIONS__S3_REGION
+              value: ap-southeast-2
+            - name: LOOKUP_SCANNER__SYSTEM__AWS_OPTIONS__S3_BUCKET_PUBLIC
+              value: example-staging-cdn
+            - name: LOOKUP_SCANNER__SYSTEM__AWS_OPTIONS__CDN_BASE_URL
+              value: https://cdn.example.com/
+            - name: SOURCE_VERSION
+              valueFrom:
+                configMapKeyRef:
+                  name: example-monorepo-revision-sync
+                  key: monorepo-revision
+          envFrom:
+            - secretRef:
+                name: base-secrets-62htgm2m82
+            - configMapRef:
+                name: base-configs-m228kf585k
+          image: lookup-scanner-image
+          imagePullPolicy: IfNotPresent
+          livenessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /api/internal/system.liveness.get
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 6
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 5
+          name: lookup-scanner
+          ports:
+            - containerPort: 4030
+              name: http
+              protocol: TCP
+          readinessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /api/internal/system.readiness.get
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            successThreshold: 1
+            timeoutSeconds: 3
+          resources:
+            limits:
+              memory: 512Mi
+            requests:
+              memory: 128Mi
       imagePullSecrets:
-      - name: dockerhub-example-pull
+        - name: dockerhub-example-pull
     metadata:
       labels:
         app.kubernetes.io/name: lookup-scanner
@@ -1463,13 +1441,13 @@ metadata:
     app.kubernetes.io/name: lookup-scanner
 spec:
   ipFamilies:
-  - IPv4
+    - IPv4
   ipFamilyPolicy: SingleStack
   ports:
-  - name: http
-    port: 80
-    protocol: TCP
-    targetPort: http
+    - name: http
+      port: 80
+      protocol: TCP
+      targetPort: http
   type: ClusterIP
   selector:
     app.kubernetes.io/name: lookup-scanner
@@ -1488,66 +1466,66 @@ spec:
   template:
     spec:
       containers:
-      - env:
-        - name: OTEL_SERVICE_NAME
-          value: lookup-server
-        - name: LOOKUP_SERVER__LOGGING__LEVEL
-          value: info
-        - name: SOURCE_VERSION
-          valueFrom:
-            configMapKeyRef:
-              name: example-monorepo-revision-sync
-              key: monorepo-revision
-        envFrom:
-        - secretRef:
-            name: base-secrets-62htgm2m82
-        - configMapRef:
-            name: base-configs-m228kf585k
-        image: lookup-server-image
-        imagePullPolicy: IfNotPresent
-        livenessProbe:
-          failureThreshold: 3
-          httpGet:
-            path: /api/status/readiness
-            port: http
-            scheme: HTTP
-          initialDelaySeconds: 120
-          periodSeconds: 3
-          successThreshold: 1
-          timeoutSeconds: 1
-        name: lookup-server
-        ports:
-        - containerPort: 4000
-          name: http
-          protocol: TCP
-        readinessProbe:
-          failureThreshold: 90
-          httpGet:
-            path: /api/status/readiness
-            port: http
-            scheme: HTTP
-          initialDelaySeconds: 1
-          periodSeconds: 3
-          successThreshold: 1
-          timeoutSeconds: 1
-        resources:
-          limits:
-            memory: 2Gi
-          requests:
-            memory: 1Gi
-        startupProbe:
-          failureThreshold: 120
-          httpGet:
-            path: /api/status/readiness
-            port: http
-            scheme: HTTP
-          initialDelaySeconds: 20
-          periodSeconds: 3
-          successThreshold: 1
-          timeoutSeconds: 1
+        - env:
+            - name: OTEL_SERVICE_NAME
+              value: lookup-server
+            - name: LOOKUP_SERVER__LOGGING__LEVEL
+              value: info
+            - name: SOURCE_VERSION
+              valueFrom:
+                configMapKeyRef:
+                  name: example-monorepo-revision-sync
+                  key: monorepo-revision
+          envFrom:
+            - secretRef:
+                name: base-secrets-62htgm2m82
+            - configMapRef:
+                name: base-configs-m228kf585k
+          image: lookup-server-image
+          imagePullPolicy: IfNotPresent
+          livenessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /api/status/readiness
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 120
+            periodSeconds: 3
+            successThreshold: 1
+            timeoutSeconds: 1
+          name: lookup-server
+          ports:
+            - containerPort: 4000
+              name: http
+              protocol: TCP
+          readinessProbe:
+            failureThreshold: 90
+            httpGet:
+              path: /api/status/readiness
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 1
+            periodSeconds: 3
+            successThreshold: 1
+            timeoutSeconds: 1
+          resources:
+            limits:
+              memory: 2Gi
+            requests:
+              memory: 1Gi
+          startupProbe:
+            failureThreshold: 120
+            httpGet:
+              path: /api/status/readiness
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 20
+            periodSeconds: 3
+            successThreshold: 1
+            timeoutSeconds: 1
       terminationGracePeriodSeconds: 120
       imagePullSecrets:
-      - name: dockerhub-example-pull
+        - name: dockerhub-example-pull
     metadata:
       labels:
         app.kubernetes.io/name: lookup-server
@@ -1564,13 +1542,13 @@ metadata:
     app.kubernetes.io/name: lookup-server
 spec:
   ipFamilies:
-  - IPv4
+    - IPv4
   ipFamilyPolicy: SingleStack
   ports:
-  - name: http
-    port: 80
-    protocol: TCP
-    targetPort: http
+    - name: http
+      port: 80
+      protocol: TCP
+      targetPort: http
   type: ClusterIP
   selector:
     app.kubernetes.io/name: lookup-server
@@ -1589,53 +1567,53 @@ spec:
   template:
     spec:
       containers:
-      - env:
-        - name: OTEL_SERVICE_NAME
-          value: lookup-server-cdc
-        - name: SOURCE_VERSION
-          valueFrom:
-            configMapKeyRef:
-              name: example-monorepo-revision-sync
-              key: monorepo-revision
-        envFrom:
-        - secretRef:
-            name: base-secrets-62htgm2m82
-        - configMapRef:
-            name: base-configs-m228kf585k
-        image: lookup-server-cdc-image
-        imagePullPolicy: IfNotPresent
-        livenessProbe:
-          failureThreshold: 3
-          httpGet:
-            path: /api/internal/system.liveness.get
-            port: http
-            scheme: HTTP
-          initialDelaySeconds: 6
-          periodSeconds: 10
-          successThreshold: 1
-          timeoutSeconds: 5
-        name: lookup-server-cdc
-        ports:
-        - containerPort: 4000
-          name: http
-          protocol: TCP
-        readinessProbe:
-          failureThreshold: 3
-          httpGet:
-            path: /api/internal/system.readiness.get
-            port: http
-            scheme: HTTP
-          initialDelaySeconds: 10
-          periodSeconds: 5
-          successThreshold: 1
-          timeoutSeconds: 3
-        resources:
-          limits:
-            memory: 512Mi
-          requests:
-            memory: 128Mi
+        - env:
+            - name: OTEL_SERVICE_NAME
+              value: lookup-server-cdc
+            - name: SOURCE_VERSION
+              valueFrom:
+                configMapKeyRef:
+                  name: example-monorepo-revision-sync
+                  key: monorepo-revision
+          envFrom:
+            - secretRef:
+                name: base-secrets-62htgm2m82
+            - configMapRef:
+                name: base-configs-m228kf585k
+          image: lookup-server-cdc-image
+          imagePullPolicy: IfNotPresent
+          livenessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /api/internal/system.liveness.get
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 6
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 5
+          name: lookup-server-cdc
+          ports:
+            - containerPort: 4000
+              name: http
+              protocol: TCP
+          readinessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /api/internal/system.readiness.get
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            successThreshold: 1
+            timeoutSeconds: 3
+          resources:
+            limits:
+              memory: 512Mi
+            requests:
+              memory: 128Mi
       imagePullSecrets:
-      - name: dockerhub-example-pull
+        - name: dockerhub-example-pull
     metadata:
       labels:
         app.kubernetes.io/name: lookup-server-cdc
@@ -1652,13 +1630,13 @@ metadata:
     app.kubernetes.io/name: lookup-server-cdc
 spec:
   ipFamilies:
-  - IPv4
+    - IPv4
   ipFamilyPolicy: SingleStack
   ports:
-  - name: http
-    port: 80
-    protocol: TCP
-    targetPort: http
+    - name: http
+      port: 80
+      protocol: TCP
+      targetPort: http
   type: ClusterIP
   selector:
     app.kubernetes.io/name: lookup-server-cdc
@@ -1672,7 +1650,7 @@ metadata:
     app.kubernetes.io/name: migrations-scylla
   annotations:
     argocd.argoproj.io/hook: Sync
-    argocd.argoproj.io/sync-wave: '-2'
+    argocd.argoproj.io/sync-wave: "-2"
     argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
 spec:
   activeDeadlineSeconds: 10800
@@ -1687,30 +1665,30 @@ spec:
         app.kubernetes.io/name: migrations-scylla
       annotations:
         argocd.argoproj.io/hook: Sync
-        argocd.argoproj.io/sync-wave: '-2'
+        argocd.argoproj.io/sync-wave: "-2"
         argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
     spec:
       containers:
-      - envFrom:
-        - secretRef:
-            name: base-secrets-62htgm2m82
-        - configMapRef:
-            name: base-configs-m228kf585k
-        image: migrations-scylla-image
-        imagePullPolicy: IfNotPresent
-        name: migrations-scylla
-        resources:
-          limits:
-            cpu: 500m
-            memory: 3Gi
-          requests:
-            cpu: 200m
-            memory: 1Gi
-        terminationMessagePath: /dev/termination-log
-        terminationMessagePolicy: File
+        - envFrom:
+            - secretRef:
+                name: base-secrets-62htgm2m82
+            - configMapRef:
+                name: base-configs-m228kf585k
+          image: migrations-scylla-image
+          imagePullPolicy: IfNotPresent
+          name: migrations-scylla
+          resources:
+            limits:
+              cpu: 500m
+              memory: 3Gi
+            requests:
+              cpu: 200m
+              memory: 1Gi
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
       dnsPolicy: ClusterFirst
       imagePullSecrets:
-      - name: dockerhub-example-pull
+        - name: dockerhub-example-pull
       restartPolicy: Never
       schedulerName: default-scheduler
       securityContext: {}
@@ -1725,7 +1703,7 @@ metadata:
     app.kubernetes.io/name: migrations-elastic
   annotations:
     argocd.argoproj.io/hook: Sync
-    argocd.argoproj.io/sync-wave: '-2'
+    argocd.argoproj.io/sync-wave: "-2"
     argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
 spec:
   activeDeadlineSeconds: 10800
@@ -1735,35 +1713,35 @@ spec:
         app.kubernetes.io/name: migrations-elastic
       annotations:
         argocd.argoproj.io/hook: Sync
-        argocd.argoproj.io/sync-wave: '-2'
+        argocd.argoproj.io/sync-wave: "-2"
         argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
     spec:
       containers:
-      - name: migrations-elastic
-        image: migrations-image
-        imagePullPolicy: null
-        envFrom:
-        - secretRef:
-            name: base-secrets-62htgm2m82
-        - configMapRef:
-            name: base-configs-m228kf585k
-        env:
-        - name: NODE_OPTIONS
-          value: --max-old-space-size=2048
-        - name: MIGRATE_DB
-          value: ES
-        - name: MIGRATE_ENV
-          value: development
-        resources:
-          limits:
-            cpu: 500m
-            memory: 3072Mi
-          requests:
-            cpu: 200m
-            memory: 1024Mi
+        - name: migrations-elastic
+          image: migrations-image
+          imagePullPolicy: null
+          envFrom:
+            - secretRef:
+                name: base-secrets-62htgm2m82
+            - configMapRef:
+                name: base-configs-m228kf585k
+          env:
+            - name: NODE_OPTIONS
+              value: "--max-old-space-size=2048"
+            - name: MIGRATE_DB
+              value: ES
+            - name: MIGRATE_ENV
+              value: development
+          resources:
+            limits:
+              cpu: 500m
+              memory: 3072Mi
+            requests:
+              cpu: 200m
+              memory: 1024Mi
       dnsPolicy: ClusterFirst
       imagePullSecrets:
-      - name: dockerhub-example-pull
+        - name: dockerhub-example-pull
       restartPolicy: Never
       schedulerName: default-scheduler
       securityContext: {}
@@ -1778,7 +1756,7 @@ metadata:
     app.kubernetes.io/name: migrations-postgres
   annotations:
     argocd.argoproj.io/hook: Sync
-    argocd.argoproj.io/sync-wave: '-2'
+    argocd.argoproj.io/sync-wave: "-2"
     argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
 spec:
   activeDeadlineSeconds: 10800
@@ -1788,35 +1766,35 @@ spec:
         app.kubernetes.io/name: migrations-postgres
       annotations:
         argocd.argoproj.io/hook: Sync
-        argocd.argoproj.io/sync-wave: '-2'
+        argocd.argoproj.io/sync-wave: "-2"
         argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
     spec:
       containers:
-      - name: migrations-postgres
-        image: migrations-image
-        imagePullPolicy: null
-        envFrom:
-        - secretRef:
-            name: base-secrets-62htgm2m82
-        - configMapRef:
-            name: base-configs-m228kf585k
-        env:
-        - name: NODE_OPTIONS
-          value: --max-old-space-size=2048
-        - name: MIGRATE_DB
-          value: PG
-        - name: MIGRATE_ENV
-          value: development
-        resources:
-          limits:
-            cpu: 500m
-            memory: 3072Mi
-          requests:
-            cpu: 200m
-            memory: 1024Mi
+        - name: migrations-postgres
+          image: migrations-image
+          imagePullPolicy: null
+          envFrom:
+            - secretRef:
+                name: base-secrets-62htgm2m82
+            - configMapRef:
+                name: base-configs-m228kf585k
+          env:
+            - name: NODE_OPTIONS
+              value: "--max-old-space-size=2048"
+            - name: MIGRATE_DB
+              value: PG
+            - name: MIGRATE_ENV
+              value: development
+          resources:
+            limits:
+              cpu: 500m
+              memory: 3072Mi
+            requests:
+              cpu: 200m
+              memory: 1024Mi
       dnsPolicy: ClusterFirst
       imagePullSecrets:
-      - name: dockerhub-example-pull
+        - name: dockerhub-example-pull
       restartPolicy: Never
       schedulerName: default-scheduler
       securityContext: {}
@@ -1831,7 +1809,7 @@ metadata:
     app.kubernetes.io/name: migrations-background
   annotations:
     argocd.argoproj.io/hook: PostSync
-    argocd.argoproj.io/sync-wave: '1'
+    argocd.argoproj.io/sync-wave: "1"
     argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
 spec:
   activeDeadlineSeconds: 864000
@@ -1841,33 +1819,33 @@ spec:
         app.kubernetes.io/name: migrations-background
       annotations:
         argocd.argoproj.io/hook: PostSync
-        argocd.argoproj.io/sync-wave: '1'
+        argocd.argoproj.io/sync-wave: "1"
         argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
     spec:
       imagePullSecrets:
-      - name: dockerhub-example-pull
+        - name: dockerhub-example-pull
       restartPolicy: Never
       containers:
-      - name: migrations-background
-        image: migrations-background-image
-        imagePullPolicy: Always
-        envFrom:
-        - secretRef:
-            name: base-secrets-62htgm2m82
-        - configMapRef:
-            name: base-configs-m228kf585k
-        env:
-        - name: NODE_OPTIONS
-          value: --max-old-space-size=2048
-        - name: MIGRATIONS_SCOPE
-          value: sql_async
-        resources:
-          limits:
-            cpu: 2000m
-            memory: 3072Mi
-          requests:
-            cpu: 200m
-            memory: 3072Mi
+        - name: migrations-background
+          image: migrations-background-image
+          imagePullPolicy: Always
+          envFrom:
+            - secretRef:
+                name: base-secrets-62htgm2m82
+            - configMapRef:
+                name: base-configs-m228kf585k
+          env:
+            - name: NODE_OPTIONS
+              value: "--max-old-space-size=2048"
+            - name: MIGRATIONS_SCOPE
+              value: sql_async
+          resources:
+            limits:
+              cpu: 2000m
+              memory: 3072Mi
+            requests:
+              cpu: 200m
+              memory: 3072Mi
 ---
 apiVersion: v1
 kind: Secret
@@ -1876,9 +1854,9 @@ metadata:
   namespace: example
 type: Opaque
 stringData:
-  ENVIRONMENT: '{{ .ENV }}'
-  CORE_API_URL: https://api.{{ .SUBDOMAIN }}example.{{ .TLD }}
-  REPAIRER_API_URL: https://api.{{ .SUBDOMAIN }}repairer.example.{{ .TLD }}
+  ENVIRONMENT: "{{ .ENV }}"
+  CORE_API_URL: "https://api.{{ .SUBDOMAIN }}example.{{ .TLD }}"
+  REPAIRER_API_URL: "https://api.{{ .SUBDOMAIN }}repairer.example.{{ .TLD }}"
 ---
 apiVersion: cloudflare.example.com/v1
 kind: CloudflareWorker
@@ -1898,12 +1876,12 @@ spec:
     APP_VERSIONS:
       placeholder: placeholder
   secretsFrom:
-  - secretRef:
-      name: mfe-router-secrets
+    - secretRef:
+        name: mfe-router-secrets
   d1Databases:
-  - binding: DB
-    databaseName: mfe
-    databaseId: 400c566e-0f1d-4cfb-9fe5-4d57bb6af75c
+    - binding: DB
+      databaseName: mfe
+      databaseId: 400c566e-0f1d-4cfb-9fe5-4d57bb6af75c
 ---
 apiVersion: v1
 kind: ConfigMap
@@ -1911,12 +1889,7 @@ metadata:
   name: mfe-router-worker
   namespace: example
 data:
-  worker.js: |
-    export default {
-      async fetch(req, env, ctx) {
-        return new Response('Hello from Cloudflare Worker!', { status: 200 });
-      },
-    };
+  worker.js: "export default {\n  async fetch(req, env, ctx) {\n    return new Response('Hello from Cloudflare Worker!', { status: 200 });\n  },\n};\n"
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -1930,377 +1903,48 @@ spec:
   template:
     spec:
       containers:
-      - args:
-        - ml_server.main:app
-        - --port
-        - '5003'
-        - --host
-        - 0.0.0.0
-        command:
-        - uvicorn
-        env:
-        - name: OTEL_SERVICE_NAME
-          value: ml-server
-        - name: ML_SERVER_LOG_LEVEL
-          valueFrom:
-            configMapKeyRef:
-              key: ML_SERVER_LOG_LEVEL
-              name: base-configs-m228kf585k
-        - name: PYROSCOPE_INGEST_URL
-          valueFrom:
-            configMapKeyRef:
-              name: base-configs-m228kf585k
-              key: PYROSCOPE_INGEST_URL
-        - name: POD_NAME
-          valueFrom:
-            fieldRef:
-              fieldPath: metadata.name
-        - name: example_ENVIRONMENT
-          valueFrom:
-            configMapKeyRef:
-              key: example_ENVIRONMENT
-              name: base-configs-m228kf585k
-        - name: GOOGLE_APPLICATION_CREDENTIALS
-          value: /var/gcp-credentials/credentials.json
-        - name: PG_DB_PASSWORD
-          valueFrom:
-            secretKeyRef:
-              key: PG_DB_PASSWORD_MLSERVER
-              name: base-secrets-62htgm2m82
-        - name: OPENAI_API_KEY
-          valueFrom:
-            secretKeyRef:
-              key: OPENAI_API_KEY
-              name: base-secrets-62htgm2m82
-        - name: PG_DB_HOST
-          valueFrom:
-            configMapKeyRef:
-              key: PG_DB_HOST
-              name: base-configs-m228kf585k
-        - name: PG_DB_PORT
-          valueFrom:
-            configMapKeyRef:
-              key: PG_DB_PORT
-              name: base-configs-m228kf585k
-        - name: PG_DB_USERNAME
-          valueFrom:
-            configMapKeyRef:
-              key: PG_DB_USERNAME_MLSERVER
-              name: base-configs-m228kf585k
-        - name: PG_DB_DATABASE
-          valueFrom:
-            configMapKeyRef:
-              key: PG_DB_DATABASE
-              name: base-configs-m228kf585k
-        - name: OTEL_EXPORTER_OTLP_ENDPOINT
-          valueFrom:
-            configMapKeyRef:
-              key: OTEL_EXPORTER_OTLP_ENDPOINT
-              name: base-configs-m228kf585k
-        - name: KAFKA_BROKER_HOST_LIST
-          valueFrom:
-            configMapKeyRef:
-              key: KAFKA_BROKER_HOST_LIST
-              name: base-configs-m228kf585k
-        - name: S3_BUCKET_PUBLIC
-          valueFrom:
-            configMapKeyRef:
-              key: S3_BUCKET_PUBLIC
-              name: base-configs-m228kf585k
-        - name: S3_REGION
-          valueFrom:
-            configMapKeyRef:
-              key: S3_REGION
-              name: base-configs-m228kf585k
-        - name: S3_KEY
-          valueFrom:
-            secretKeyRef:
-              key: S3_KEY
-              name: base-secrets-62htgm2m82
-        - name: S3_SECRET
-          valueFrom:
-            secretKeyRef:
-              key: S3_SECRET
-              name: base-secrets-62htgm2m82
-        - name: SOURCE_VERSION
-          valueFrom:
-            configMapKeyRef:
-              name: example-monorepo-revision-sync
-              key: monorepo-revision
-        image: ml-server-image
-        livenessProbe:
-          failureThreshold: 5
-          httpGet:
-            path: /api/v1/liveness
-            port: http
-            scheme: HTTP
-          initialDelaySeconds: 180
-          periodSeconds: 10
-          successThreshold: 1
-          timeoutSeconds: 10
-        name: ml-server
-        ports:
-        - containerPort: 5003
-          name: http
-          protocol: TCP
-        - containerPort: 9102
-          name: metrics
-          protocol: TCP
-        readinessProbe:
-          failureThreshold: 5
-          httpGet:
-            path: /api/v1/liveness
-            port: http
-            scheme: HTTP
-          initialDelaySeconds: 180
-          periodSeconds: 10
-          successThreshold: 1
-          timeoutSeconds: 3
-        resources:
-          limits:
-            memory: 2Gi
-          requests:
-            memory: 512Mi
-        volumeMounts:
-        - mountPath: /var/gcp-credentials
-          name: google-credentials
-          readOnly: true
-      volumes:
-      - name: google-credentials
-        secret:
-          defaultMode: 420
-          secretName: ml-server-secret
-      imagePullSecrets:
-      - name: dockerhub-example-pull
-    metadata:
-      labels:
-        app.kubernetes.io/name: ml-server-api
-  selector:
-    matchLabels:
-      app.kubernetes.io/name: ml-server-api
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: example-ml-server
-  namespace: example
-  labels:
-    app.kubernetes.io/name: ml-server-api
-spec:
-  ipFamilies:
-  - IPv4
-  ipFamilyPolicy: SingleStack
-  ports:
-  - name: http
-    port: 80
-    protocol: TCP
-    targetPort: http
-  - name: metrics
-    port: 9090
-    protocol: TCP
-    targetPort: metrics
-  selector:
-    app.kubernetes.io/name: ml-server-api
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: example-ml-server-workers
-  namespace: example
-  labels:
-    app.kubernetes.io/name: ml-server-workers
-spec:
-  replicas: 1
-  template:
-    spec:
-      containers:
-      - args:
-        - ml_server.workers.main:app
-        - --port
-        - '5003'
-        - --host
-        - 0.0.0.0
-        command:
-        - uvicorn
-        env:
-        - name: OTEL_SERVICE_NAME
-          value: ml-server-workers
-        - name: CDN_BASE_URL
-          value: http://cdn.example.com
-        - name: ML_SERVER_LOG_LEVEL
-          valueFrom:
-            configMapKeyRef:
-              key: ML_SERVER_LOG_LEVEL
-              name: base-configs-m228kf585k
-        - name: example_ENVIRONMENT
-          valueFrom:
-            configMapKeyRef:
-              key: example_ENVIRONMENT
-              name: base-configs-m228kf585k
-        - name: GOOGLE_APPLICATION_CREDENTIALS
-          value: /var/gcp-credentials/credentials.json
-        - name: PG_DB_PASSWORD
-          valueFrom:
-            secretKeyRef:
-              key: PG_DB_PASSWORD_MLSERVER
-              name: base-secrets-62htgm2m82
-        - name: OPENAI_API_KEY
-          valueFrom:
-            secretKeyRef:
-              key: OPENAI_API_KEY
-              name: base-secrets-62htgm2m82
-        - name: PG_DB_HOST
-          valueFrom:
-            configMapKeyRef:
-              key: PG_DB_HOST
-              name: base-configs-m228kf585k
-        - name: PG_DB_PORT
-          valueFrom:
-            configMapKeyRef:
-              key: PG_DB_PORT
-              name: base-configs-m228kf585k
-        - name: PG_DB_USERNAME
-          valueFrom:
-            configMapKeyRef:
-              key: PG_DB_USERNAME_MLSERVER
-              name: base-configs-m228kf585k
-        - name: PG_DB_DATABASE
-          valueFrom:
-            configMapKeyRef:
-              key: PG_DB_DATABASE
-              name: base-configs-m228kf585k
-        - name: OTEL_EXPORTER_OTLP_ENDPOINT
-          valueFrom:
-            configMapKeyRef:
-              key: OTEL_EXPORTER_OTLP_ENDPOINT
-              name: base-configs-m228kf585k
-        - name: KAFKA_BROKER_HOST_LIST
-          valueFrom:
-            configMapKeyRef:
-              key: KAFKA_BROKER_HOST_LIST
-              name: base-configs-m228kf585k
-        - name: S3_BUCKET_PUBLIC
-          valueFrom:
-            configMapKeyRef:
-              key: S3_BUCKET_PUBLIC
-              name: base-configs-m228kf585k
-        - name: S3_REGION
-          valueFrom:
-            configMapKeyRef:
-              key: S3_REGION
-              name: base-configs-m228kf585k
-        - name: S3_KEY
-          valueFrom:
-            secretKeyRef:
-              key: S3_KEY
-              name: base-secrets-62htgm2m82
-        - name: S3_SECRET
-          valueFrom:
-            secretKeyRef:
-              key: S3_SECRET
-              name: base-secrets-62htgm2m82
-        - name: SOURCE_VERSION
-          valueFrom:
-            configMapKeyRef:
-              name: example-monorepo-revision-sync
-              key: monorepo-revision
-        image: ml-server-image
-        livenessProbe:
-          failureThreshold: 3
-          httpGet:
-            path: /api/v1/liveness
-            port: http
-            scheme: HTTP
-          initialDelaySeconds: 180
-          periodSeconds: 10
-          successThreshold: 1
-          timeoutSeconds: 20
-        name: ml-server-workers
-        ports:
-        - containerPort: 5003
-          name: http
-          protocol: TCP
-        - containerPort: 9102
-          name: metrics
-          protocol: TCP
-        readinessProbe:
-          failureThreshold: 3
-          httpGet:
-            path: /api/v1/liveness
-            port: http
-            scheme: HTTP
-          initialDelaySeconds: 180
-          periodSeconds: 10
-          successThreshold: 1
-          timeoutSeconds: 6
-        resources:
-          limits:
-            memory: 1Gi
-          requests:
-            memory: 256Mi
-        volumeMounts:
-        - mountPath: /var/gcp-credentials
-          name: google-credentials
-          readOnly: true
-      volumes:
-      - name: google-credentials
-        secret:
-          defaultMode: 420
-          secretName: ml-server-secret
-      imagePullSecrets:
-      - name: dockerhub-example-pull
-    metadata:
-      labels:
-        app.kubernetes.io/name: ml-server-workers
-  selector:
-    matchLabels:
-      app.kubernetes.io/name: ml-server-workers
----
-apiVersion: batch/v1
-kind: CronJob
-metadata:
-  name: example-ml-server-cron
-  namespace: example
-  labels:
-    app.kubernetes.io/name: ml-server-cron
-spec:
-  concurrencyPolicy: Allow
-  failedJobsHistoryLimit: 1
-  jobTemplate:
-    metadata:
-      annotations:
-        argocd.argoproj.io/ignore-resource-updates: 'true'
-      labels:
-        app.kubernetes.io/name: ml-server-cron
-    spec:
-      template:
-        metadata:
-          annotations:
-            argocd.argoproj.io/ignore-resource-updates: 'true'
-          labels:
-            app.kubernetes.io/name: ml-server-cron
-        spec:
-          restartPolicy: OnFailure
-          containers:
-          - args:
-            - -m
-            - load_overrides
-            - --update
-            command:
-            - python
-            env:
+        - args:
+            - ml_server.main:app
+            - "--port"
+            - "5003"
+            - "--host"
+            - 0.0.0.0
+          command:
+            - uvicorn
+          env:
             - name: OTEL_SERVICE_NAME
-              value: ml-server-cron
-            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: ml-server
+            - name: ML_SERVER_LOG_LEVEL
               valueFrom:
                 configMapKeyRef:
-                  key: OTEL_EXPORTER_OTLP_ENDPOINT
+                  key: ML_SERVER_LOG_LEVEL
                   name: base-configs-m228kf585k
+            - name: PYROSCOPE_INGEST_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: base-configs-m228kf585k
+                  key: PYROSCOPE_INGEST_URL
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
             - name: example_ENVIRONMENT
               valueFrom:
                 configMapKeyRef:
                   key: example_ENVIRONMENT
                   name: base-configs-m228kf585k
+            - name: GOOGLE_APPLICATION_CREDENTIALS
+              value: /var/gcp-credentials/credentials.json
+            - name: PG_DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  key: PG_DB_PASSWORD_MLSERVER
+                  name: base-secrets-62htgm2m82
+            - name: OPENAI_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  key: OPENAI_API_KEY
+                  name: base-secrets-62htgm2m82
             - name: PG_DB_HOST
               valueFrom:
                 configMapKeyRef:
@@ -2321,25 +1965,354 @@ spec:
                 configMapKeyRef:
                   key: PG_DB_DATABASE
                   name: base-configs-m228kf585k
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              valueFrom:
+                configMapKeyRef:
+                  key: OTEL_EXPORTER_OTLP_ENDPOINT
+                  name: base-configs-m228kf585k
+            - name: KAFKA_BROKER_HOST_LIST
+              valueFrom:
+                configMapKeyRef:
+                  key: KAFKA_BROKER_HOST_LIST
+                  name: base-configs-m228kf585k
+            - name: S3_BUCKET_PUBLIC
+              valueFrom:
+                configMapKeyRef:
+                  key: S3_BUCKET_PUBLIC
+                  name: base-configs-m228kf585k
+            - name: S3_REGION
+              valueFrom:
+                configMapKeyRef:
+                  key: S3_REGION
+                  name: base-configs-m228kf585k
+            - name: S3_KEY
+              valueFrom:
+                secretKeyRef:
+                  key: S3_KEY
+                  name: base-secrets-62htgm2m82
+            - name: S3_SECRET
+              valueFrom:
+                secretKeyRef:
+                  key: S3_SECRET
+                  name: base-secrets-62htgm2m82
+            - name: SOURCE_VERSION
+              valueFrom:
+                configMapKeyRef:
+                  name: example-monorepo-revision-sync
+                  key: monorepo-revision
+          image: ml-server-image
+          livenessProbe:
+            failureThreshold: 5
+            httpGet:
+              path: /api/v1/liveness
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 180
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 10
+          name: ml-server
+          ports:
+            - containerPort: 5003
+              name: http
+              protocol: TCP
+            - containerPort: 9102
+              name: metrics
+              protocol: TCP
+          readinessProbe:
+            failureThreshold: 5
+            httpGet:
+              path: /api/v1/liveness
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 180
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 3
+          resources:
+            limits:
+              memory: 2Gi
+            requests:
+              memory: 512Mi
+          volumeMounts:
+            - mountPath: /var/gcp-credentials
+              name: google-credentials
+              readOnly: true
+      volumes:
+        - name: google-credentials
+          secret:
+            defaultMode: 420
+            secretName: ml-server-secret
+      imagePullSecrets:
+        - name: dockerhub-example-pull
+    metadata:
+      labels:
+        app.kubernetes.io/name: ml-server-api
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: ml-server-api
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: example-ml-server
+  namespace: example
+  labels:
+    app.kubernetes.io/name: ml-server-api
+spec:
+  ipFamilies:
+    - IPv4
+  ipFamilyPolicy: SingleStack
+  ports:
+    - name: http
+      port: 80
+      protocol: TCP
+      targetPort: http
+    - name: metrics
+      port: 9090
+      protocol: TCP
+      targetPort: metrics
+  selector:
+    app.kubernetes.io/name: ml-server-api
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: example-ml-server-workers
+  namespace: example
+  labels:
+    app.kubernetes.io/name: ml-server-workers
+spec:
+  replicas: 1
+  template:
+    spec:
+      containers:
+        - args:
+            - ml_server.workers.main:app
+            - "--port"
+            - "5003"
+            - "--host"
+            - 0.0.0.0
+          command:
+            - uvicorn
+          env:
+            - name: OTEL_SERVICE_NAME
+              value: ml-server-workers
+            - name: CDN_BASE_URL
+              value: http://cdn.example.com
+            - name: ML_SERVER_LOG_LEVEL
+              valueFrom:
+                configMapKeyRef:
+                  key: ML_SERVER_LOG_LEVEL
+                  name: base-configs-m228kf585k
+            - name: example_ENVIRONMENT
+              valueFrom:
+                configMapKeyRef:
+                  key: example_ENVIRONMENT
+                  name: base-configs-m228kf585k
+            - name: GOOGLE_APPLICATION_CREDENTIALS
+              value: /var/gcp-credentials/credentials.json
             - name: PG_DB_PASSWORD
               valueFrom:
                 secretKeyRef:
                   key: PG_DB_PASSWORD_MLSERVER
                   name: base-secrets-62htgm2m82
-            - name: GOOGLE_APPLICATION_CREDENTIALS
-              value: /var/gcp-credentials/credentials.json
-            image: ml-server-image
-            name: example-ml-server-cron
-            volumeMounts:
+            - name: OPENAI_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  key: OPENAI_API_KEY
+                  name: base-secrets-62htgm2m82
+            - name: PG_DB_HOST
+              valueFrom:
+                configMapKeyRef:
+                  key: PG_DB_HOST
+                  name: base-configs-m228kf585k
+            - name: PG_DB_PORT
+              valueFrom:
+                configMapKeyRef:
+                  key: PG_DB_PORT
+                  name: base-configs-m228kf585k
+            - name: PG_DB_USERNAME
+              valueFrom:
+                configMapKeyRef:
+                  key: PG_DB_USERNAME_MLSERVER
+                  name: base-configs-m228kf585k
+            - name: PG_DB_DATABASE
+              valueFrom:
+                configMapKeyRef:
+                  key: PG_DB_DATABASE
+                  name: base-configs-m228kf585k
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              valueFrom:
+                configMapKeyRef:
+                  key: OTEL_EXPORTER_OTLP_ENDPOINT
+                  name: base-configs-m228kf585k
+            - name: KAFKA_BROKER_HOST_LIST
+              valueFrom:
+                configMapKeyRef:
+                  key: KAFKA_BROKER_HOST_LIST
+                  name: base-configs-m228kf585k
+            - name: S3_BUCKET_PUBLIC
+              valueFrom:
+                configMapKeyRef:
+                  key: S3_BUCKET_PUBLIC
+                  name: base-configs-m228kf585k
+            - name: S3_REGION
+              valueFrom:
+                configMapKeyRef:
+                  key: S3_REGION
+                  name: base-configs-m228kf585k
+            - name: S3_KEY
+              valueFrom:
+                secretKeyRef:
+                  key: S3_KEY
+                  name: base-secrets-62htgm2m82
+            - name: S3_SECRET
+              valueFrom:
+                secretKeyRef:
+                  key: S3_SECRET
+                  name: base-secrets-62htgm2m82
+            - name: SOURCE_VERSION
+              valueFrom:
+                configMapKeyRef:
+                  name: example-monorepo-revision-sync
+                  key: monorepo-revision
+          image: ml-server-image
+          livenessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /api/v1/liveness
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 180
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 20
+          name: ml-server-workers
+          ports:
+            - containerPort: 5003
+              name: http
+              protocol: TCP
+            - containerPort: 9102
+              name: metrics
+              protocol: TCP
+          readinessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /api/v1/liveness
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 180
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 6
+          resources:
+            limits:
+              memory: 1Gi
+            requests:
+              memory: 256Mi
+          volumeMounts:
             - mountPath: /var/gcp-credentials
               name: google-credentials
               readOnly: true
+      volumes:
+        - name: google-credentials
+          secret:
+            defaultMode: 420
+            secretName: ml-server-secret
+      imagePullSecrets:
+        - name: dockerhub-example-pull
+    metadata:
+      labels:
+        app.kubernetes.io/name: ml-server-workers
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: ml-server-workers
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: example-ml-server-cron
+  namespace: example
+  labels:
+    app.kubernetes.io/name: ml-server-cron
+spec:
+  concurrencyPolicy: Allow
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    metadata:
+      annotations:
+        argocd.argoproj.io/ignore-resource-updates: "true"
+      labels:
+        app.kubernetes.io/name: ml-server-cron
+    spec:
+      template:
+        metadata:
+          annotations:
+            argocd.argoproj.io/ignore-resource-updates: "true"
+          labels:
+            app.kubernetes.io/name: ml-server-cron
+        spec:
+          restartPolicy: OnFailure
+          containers:
+            - args:
+                - "-m"
+                - load_overrides
+                - "--update"
+              command:
+                - python
+              env:
+                - name: OTEL_SERVICE_NAME
+                  value: ml-server-cron
+                - name: OTEL_EXPORTER_OTLP_ENDPOINT
+                  valueFrom:
+                    configMapKeyRef:
+                      key: OTEL_EXPORTER_OTLP_ENDPOINT
+                      name: base-configs-m228kf585k
+                - name: example_ENVIRONMENT
+                  valueFrom:
+                    configMapKeyRef:
+                      key: example_ENVIRONMENT
+                      name: base-configs-m228kf585k
+                - name: PG_DB_HOST
+                  valueFrom:
+                    configMapKeyRef:
+                      key: PG_DB_HOST
+                      name: base-configs-m228kf585k
+                - name: PG_DB_PORT
+                  valueFrom:
+                    configMapKeyRef:
+                      key: PG_DB_PORT
+                      name: base-configs-m228kf585k
+                - name: PG_DB_USERNAME
+                  valueFrom:
+                    configMapKeyRef:
+                      key: PG_DB_USERNAME_MLSERVER
+                      name: base-configs-m228kf585k
+                - name: PG_DB_DATABASE
+                  valueFrom:
+                    configMapKeyRef:
+                      key: PG_DB_DATABASE
+                      name: base-configs-m228kf585k
+                - name: PG_DB_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      key: PG_DB_PASSWORD_MLSERVER
+                      name: base-secrets-62htgm2m82
+                - name: GOOGLE_APPLICATION_CREDENTIALS
+                  value: /var/gcp-credentials/credentials.json
+              image: ml-server-image
+              name: example-ml-server-cron
+              volumeMounts:
+                - mountPath: /var/gcp-credentials
+                  name: google-credentials
+                  readOnly: true
           volumes:
-          - name: google-credentials
-            secret:
-              defaultMode: 420
-              secretName: ml-server-secret
-  schedule: '*/5 * * * *'
+            - name: google-credentials
+              secret:
+                defaultMode: 420
+                secretName: ml-server-secret
+  schedule: "*/5 * * * *"
   successfulJobsHistoryLimit: 3
 ---
 apiVersion: networking.k8s.io/v1
@@ -2349,28 +2322,28 @@ metadata:
   namespace: example
   annotations:
     cert-manager.io/cluster-issuer: letsencrypt-prod
-    nginx.ingress.kubernetes.io/cors-allow-methods: GET,OPTIONS,POST,PUT,DELETE
-    nginx.ingress.kubernetes.io/cors-allow-origin: '*'
-    nginx.ingress.kubernetes.io/cors-allow-headers: Accept,Authorization,Cache-Control,Content-Type,DNT,If-Modified-Since,Keep-Alive,Origin,User-Agent,X-Requested-With,x-agx-device-type,x-agx-device-id,x-agx-guest-token,x-agx-store-alias,x-api-key,x-ga-client-id,example-store-id,example-graphql-operation,example-accept-currency,example-organization-id,example-storefront-key,example-uvdb-region-id,baggage,Sentry-Trace,traceparent
-    nginx.ingress.kubernetes.io/enable-cors: 'true'
-    nginx.ingress.kubernetes.io/cors-allow-credentials: 'true'
+    nginx.ingress.kubernetes.io/cors-allow-methods: "GET,OPTIONS,POST,PUT,DELETE"
+    nginx.ingress.kubernetes.io/cors-allow-origin: "*"
+    nginx.ingress.kubernetes.io/cors-allow-headers: "Accept,Authorization,Cache-Control,Content-Type,DNT,If-Modified-Since,Keep-Alive,Origin,User-Agent,X-Requested-With,x-agx-device-type,x-agx-device-id,x-agx-guest-token,x-agx-store-alias,x-api-key,x-ga-client-id,example-store-id,example-graphql-operation,example-accept-currency,example-organization-id,example-storefront-key,example-uvdb-region-id,baggage,Sentry-Trace,traceparent"
+    nginx.ingress.kubernetes.io/enable-cors: "true"
+    nginx.ingress.kubernetes.io/cors-allow-credentials: "true"
 spec:
   ingressClassName: nginx
   rules:
-  - host: mls.{{ .SUBDOMAIN }}example.{{ .TLD }}
-    http:
-      paths:
-      - backend:
-          service:
-            name: example-ml-server
-            port:
-              number: 80
-        path: /
-        pathType: ImplementationSpecific
+    - host: "mls.{{ .SUBDOMAIN }}example.{{ .TLD }}"
+      http:
+        paths:
+          - backend:
+              service:
+                name: example-ml-server
+                port:
+                  number: 80
+            path: /
+            pathType: ImplementationSpecific
   tls:
-  - hosts:
-    - mls.{{ .SUBDOMAIN }}example.{{ .TLD }}
-    secretName: ml-server-ingress-tls
+    - hosts:
+        - "mls.{{ .SUBDOMAIN }}example.{{ .TLD }}"
+      secretName: ml-server-ingress-tls
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -2386,75 +2359,76 @@ spec:
   template:
     spec:
       containers:
-      - env:
-        - name: OTEL_SERVICE_NAME
-          value: node-api
-        - name: PG_DB_HOST
-          valueFrom:
-            configMapKeyRef:
-              key: PG_DB_BOUNCER_HOST
-              name: base-configs-m228kf585k
-        - name: PRISMA_DB_URL
-          value: postgresql://$(PG_DB_USERNAME_NODE_API):$(PG_DB_PASSWORD_NODE_API)@$(PG_DB_HOST):$(PG_DB_PORT)/$(PG_DB_DATABASE)?schema=example&application_name=node-api&connection_limit=100&pool_timeout=120&pgbouncer=true
-        - name: NODE_OPTIONS
-          value: --max-old-space-size=3072
-        - name: APOLLO_SERVER_PLATFORM
-          value: kubernetes
-        - name: APOLLO_SERVER_ID
-          valueFrom:
-            fieldRef:
-              apiVersion: v1
-              fieldPath: metadata.name
-        - name: APOLLO_SERVER_USER_VERSION
-          value: latest
-        - name: APOLLO_GRAPH_REF
-          value: example-core@prod
-        - name: SOURCE_VERSION
-          valueFrom:
-            configMapKeyRef:
-              name: example-monorepo-revision-sync
-              key: monorepo-revision
-        envFrom:
-        - secretRef:
-            name: base-secrets-62htgm2m82
-        - configMapRef:
-            name: base-configs-m228kf585k
-        image: api-image
-        imagePullPolicy: IfNotPresent
-        livenessProbe:
-          failureThreshold: 3
-          httpGet:
-            path: /node-api/healthy-check
-            port: http
-            scheme: HTTP
-          initialDelaySeconds: 180
-          periodSeconds: 20
-          successThreshold: 1
-          timeoutSeconds: 7
-        name: node
-        ports:
-        - containerPort: 3000
-          name: http
-          protocol: TCP
-        readinessProbe:
-          failureThreshold: 3
-          httpGet:
-            path: /node-api/healthy-check
-            port: http
-            scheme: HTTP
-          initialDelaySeconds: 30
-          periodSeconds: 5
-          successThreshold: 1
-          timeoutSeconds: 3
-        resources:
-          limits:
-            cpu: 500m
-            memory: 3Gi
-          requests:
-            cpu: 100m
-            memory: 800Mi
+        - env:
+            - name: OTEL_SERVICE_NAME
+              value: node-api
+            - name: PG_DB_HOST
+              valueFrom:
+                configMapKeyRef:
+                  key: PG_DB_BOUNCER_HOST
+                  name: base-configs-m228kf585k
+            - name: PRISMA_DB_URL
+              value: >-
+                postgresql://$(PG_DB_USERNAME_NODE_API):$(PG_DB_PASSWORD_NODE_API)@$(PG_DB_HOST):$(PG_DB_PORT)/$(PG_DB_DATABASE)?schema=example&application_name=node-api&connection_limit=100&pool_timeout=120&pgbouncer=true
+            - name: NODE_OPTIONS
+              value: "--max-old-space-size=3072"
+            - name: APOLLO_SERVER_PLATFORM
+              value: kubernetes
+            - name: APOLLO_SERVER_ID
+              valueFrom:
+                fieldRef:
+                  apiVersion: v1
+                  fieldPath: metadata.name
+            - name: APOLLO_SERVER_USER_VERSION
+              value: latest
+            - name: APOLLO_GRAPH_REF
+              value: example-core@prod
+            - name: SOURCE_VERSION
+              valueFrom:
+                configMapKeyRef:
+                  name: example-monorepo-revision-sync
+                  key: monorepo-revision
+          envFrom:
+            - secretRef:
+                name: base-secrets-62htgm2m82
+            - configMapRef:
+                name: base-configs-m228kf585k
+          image: api-image
+          imagePullPolicy: IfNotPresent
+          livenessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /node-api/healthy-check
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 180
+            periodSeconds: 20
+            successThreshold: 1
+            timeoutSeconds: 7
+          name: node
+          ports:
+            - containerPort: 3000
+              name: http
+              protocol: TCP
+          readinessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /node-api/healthy-check
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 30
+            periodSeconds: 5
+            successThreshold: 1
+            timeoutSeconds: 3
+          resources:
+            limits:
+              cpu: 500m
+              memory: 3Gi
+            requests:
+              cpu: 100m
+              memory: 800Mi
       imagePullSecrets:
-      - name: dockerhub-example-pull
+        - name: dockerhub-example-pull
     metadata:
       labels:
         app.kubernetes.io/name: node
@@ -2471,13 +2445,13 @@ metadata:
     app.kubernetes.io/name: node
 spec:
   ipFamilies:
-  - IPv4
+    - IPv4
   ipFamilyPolicy: SingleStack
   ports:
-  - name: http
-    port: 80
-    protocol: TCP
-    targetPort: http
+    - name: http
+      port: 80
+      protocol: TCP
+      targetPort: http
   type: ClusterIP
   selector:
     app.kubernetes.io/name: node
@@ -2491,38 +2465,38 @@ metadata:
     app.kubernetes.io/name: node
   annotations:
     cert-manager.io/cluster-issuer: letsencrypt-prod
-    nginx.ingress.kubernetes.io/limit-rpm: '100'
-    nginx.ingress.kubernetes.io/limit-rps: '15'
+    nginx.ingress.kubernetes.io/limit-rpm: "100"
+    nginx.ingress.kubernetes.io/limit-rps: "15"
     nginx.ingress.kubernetes.io/proxy-body-size: 1024m
-    nginx.ingress.kubernetes.io/cors-allow-methods: GET,OPTIONS,POST,PUT,DELETE
-    nginx.ingress.kubernetes.io/cors-allow-origin: '*'
-    nginx.ingress.kubernetes.io/cors-allow-headers: Accept,Authorization,Cache-Control,Content-Type,DNT,If-Modified-Since,Keep-Alive,Origin,User-Agent,X-Requested-With,x-agx-device-type,x-agx-device-id,x-agx-guest-token,x-agx-store-alias,x-api-key,x-ga-client-id,example-store-id,example-graphql-operation,example-accept-currency,example-organization-id,example-storefront-key,example-uvdb-region-id,baggage,Sentry-Trace,traceparent
-    nginx.ingress.kubernetes.io/enable-cors: 'true'
-    nginx.ingress.kubernetes.io/cors-allow-credentials: 'true'
+    nginx.ingress.kubernetes.io/cors-allow-methods: "GET,OPTIONS,POST,PUT,DELETE"
+    nginx.ingress.kubernetes.io/cors-allow-origin: "*"
+    nginx.ingress.kubernetes.io/cors-allow-headers: "Accept,Authorization,Cache-Control,Content-Type,DNT,If-Modified-Since,Keep-Alive,Origin,User-Agent,X-Requested-With,x-agx-device-type,x-agx-device-id,x-agx-guest-token,x-agx-store-alias,x-api-key,x-ga-client-id,example-store-id,example-graphql-operation,example-accept-currency,example-organization-id,example-storefront-key,example-uvdb-region-id,baggage,Sentry-Trace,traceparent"
+    nginx.ingress.kubernetes.io/enable-cors: "true"
+    nginx.ingress.kubernetes.io/cors-allow-credentials: "true"
 spec:
   ingressClassName: nginx
   rules:
-  - host: api.{{ .SUBDOMAIN }}example.{{ .TLD }}
-    http:
-      paths:
-      - backend:
-          service:
-            name: example-node
-            port:
-              number: 80
-        path: /node-api
-        pathType: ImplementationSpecific
-      - backend:
-          service:
-            name: example-node
-            port:
-              number: 80
-        path: /socket.io
-        pathType: ImplementationSpecific
+    - host: "api.{{ .SUBDOMAIN }}example.{{ .TLD }}"
+      http:
+        paths:
+          - backend:
+              service:
+                name: example-node
+                port:
+                  number: 80
+            path: /node-api
+            pathType: ImplementationSpecific
+          - backend:
+              service:
+                name: example-node
+                port:
+                  number: 80
+            path: /socket.io
+            pathType: ImplementationSpecific
   tls:
-  - hosts:
-    - api.{{ .SUBDOMAIN }}example.{{ .TLD }}
-    secretName: node-ingress-tls
+    - hosts:
+        - "api.{{ .SUBDOMAIN }}example.{{ .TLD }}"
+      secretName: node-ingress-tls
 ---
 apiVersion: networking.k8s.io/v1
 kind: Ingress
@@ -2534,28 +2508,28 @@ metadata:
   annotations:
     cert-manager.io/cluster-issuer: letsencrypt-prod
     nginx.ingress.kubernetes.io/proxy-body-size: 1024m
-    nginx.ingress.kubernetes.io/cors-allow-methods: GET,OPTIONS,POST,PUT,DELETE
-    nginx.ingress.kubernetes.io/cors-allow-origin: '*'
-    nginx.ingress.kubernetes.io/cors-allow-headers: Accept,Authorization,Cache-Control,Content-Type,DNT,If-Modified-Since,Keep-Alive,Origin,User-Agent,X-Requested-With,x-agx-device-type,x-agx-device-id,x-agx-guest-token,x-agx-store-alias,x-api-key,x-ga-client-id,example-store-id,example-graphql-operation,example-accept-currency,example-organization-id,example-storefront-key,example-uvdb-region-id,baggage,Sentry-Trace,traceparent
-    nginx.ingress.kubernetes.io/enable-cors: 'true'
-    nginx.ingress.kubernetes.io/cors-allow-credentials: 'true'
+    nginx.ingress.kubernetes.io/cors-allow-methods: "GET,OPTIONS,POST,PUT,DELETE"
+    nginx.ingress.kubernetes.io/cors-allow-origin: "*"
+    nginx.ingress.kubernetes.io/cors-allow-headers: "Accept,Authorization,Cache-Control,Content-Type,DNT,If-Modified-Since,Keep-Alive,Origin,User-Agent,X-Requested-With,x-agx-device-type,x-agx-device-id,x-agx-guest-token,x-agx-store-alias,x-api-key,x-ga-client-id,example-store-id,example-graphql-operation,example-accept-currency,example-organization-id,example-storefront-key,example-uvdb-region-id,baggage,Sentry-Trace,traceparent"
+    nginx.ingress.kubernetes.io/enable-cors: "true"
+    nginx.ingress.kubernetes.io/cors-allow-credentials: "true"
 spec:
   ingressClassName: nginx
   rules:
-  - host: api.{{ .SUBDOMAIN }}example.{{ .TLD }}
-    http:
-      paths:
-      - backend:
-          service:
-            name: example-node-internal
-            port:
-              number: 80
-        path: /node-api/internal
-        pathType: ImplementationSpecific
+    - host: "api.{{ .SUBDOMAIN }}example.{{ .TLD }}"
+      http:
+        paths:
+          - backend:
+              service:
+                name: example-node-internal
+                port:
+                  number: 80
+            path: /node-api/internal
+            pathType: ImplementationSpecific
   tls:
-  - hosts:
-    - api.{{ .SUBDOMAIN }}example.{{ .TLD }}
-    secretName: node-internal-ingress-tls
+    - hosts:
+        - "api.{{ .SUBDOMAIN }}example.{{ .TLD }}"
+      secretName: node-internal-ingress-tls
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -2571,85 +2545,85 @@ spec:
   template:
     metadata:
       annotations:
-        cluster-autoscaler.kubernetes.io/safe-to-evict: 'true'
-        cpu.hpa.autoscaling.banzaicloud.io/targetAverageUtilization: '80'
-        hpa.autoscaling.banzaicloud.io/maxReplicas: '5'
-        hpa.autoscaling.banzaicloud.io/minReplicas: '2'
+        cluster-autoscaler.kubernetes.io/safe-to-evict: "true"
+        cpu.hpa.autoscaling.banzaicloud.io/targetAverageUtilization: "80"
+        hpa.autoscaling.banzaicloud.io/maxReplicas: "5"
+        hpa.autoscaling.banzaicloud.io/minReplicas: "2"
       labels:
         app.kubernetes.io/name: pim-web
     spec:
       containers:
-      - image: nginx:1.25.3-alpine3.18
-        imagePullPolicy: IfNotPresent
-        env:
-        - name: SOURCE_VERSION
-          valueFrom:
-            configMapKeyRef:
-              name: example-monorepo-revision-sync
-              key: monorepo-revision
-        livenessProbe:
-          failureThreshold: 3
-          httpGet:
-            path: /assets/images/svgs/example-mark.svg
-            port: http
-            scheme: HTTP
-          initialDelaySeconds: 30
-          periodSeconds: 10
-          successThreshold: 1
-          timeoutSeconds: 1
-        name: pim-web
-        ports:
-        - containerPort: 80
-          name: http
-          protocol: TCP
-        readinessProbe:
-          failureThreshold: 3
-          httpGet:
-            path: /assets/images/svgs/example-mark.svg
-            port: http
-            scheme: HTTP
-          initialDelaySeconds: 10
-          periodSeconds: 10
-          successThreshold: 1
-          timeoutSeconds: 1
-        resources:
-          requests:
-            memory: 128Mi
-        volumeMounts:
-        - mountPath: /tmp/www
-          name: pim-web-www
-        - mountPath: /etc/nginx/conf.d
-          name: pim-web-nginx-conf
+        - image: nginx:1.25.3-alpine3.18
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: SOURCE_VERSION
+              valueFrom:
+                configMapKeyRef:
+                  name: example-monorepo-revision-sync
+                  key: monorepo-revision
+          livenessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /assets/images/svgs/example-mark.svg
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 1
+          name: pim-web
+          ports:
+            - containerPort: 80
+              name: http
+              protocol: TCP
+          readinessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /assets/images/svgs/example-mark.svg
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 1
+          resources:
+            requests:
+              memory: 128Mi
+          volumeMounts:
+            - mountPath: /tmp/www
+              name: pim-web-www
+            - mountPath: /etc/nginx/conf.d
+              name: pim-web-nginx-conf
       initContainers:
-      - env:
-        - name: API_URL
-          value: https://api.{{ .SUBDOMAIN }}example.{{ .TLD }}
-        - name: APP_URL
-          value: https://pim.{{ .SUBDOMAIN }}example.{{ .TLD }}
-        - name: SOCKET_URL
-          value: https://api.{{ .SUBDOMAIN }}example.{{ .TLD }}
-        - name: SOURCE_PATH
-          value: /app/dist/
-        - name: ASSET_URL
-          value: https://cdn.example.parts/assets/pim-web/
-        - name: DEST_PATH
-          value: /tmp/www/pim-web
-        image: pim-web-image
-        imagePullPolicy: IfNotPresent
-        name: pim-web-init
-        volumeMounts:
-        - mountPath: /tmp/www
-          name: pim-web-www
-        - mountPath: /etc/nginx/conf.d
-          name: pim-web-nginx-conf
+        - env:
+            - name: API_URL
+              value: "https://api.{{ .SUBDOMAIN }}example.{{ .TLD }}"
+            - name: APP_URL
+              value: "https://pim.{{ .SUBDOMAIN }}example.{{ .TLD }}"
+            - name: SOCKET_URL
+              value: "https://api.{{ .SUBDOMAIN }}example.{{ .TLD }}"
+            - name: SOURCE_PATH
+              value: /app/dist/
+            - name: ASSET_URL
+              value: https://cdn.example.parts/assets/pim-web/
+            - name: DEST_PATH
+              value: /tmp/www/pim-web
+          image: pim-web-image
+          imagePullPolicy: IfNotPresent
+          name: pim-web-init
+          volumeMounts:
+            - mountPath: /tmp/www
+              name: pim-web-www
+            - mountPath: /etc/nginx/conf.d
+              name: pim-web-nginx-conf
       volumes:
-      - name: pim-web-www
-      - configMap:
-          defaultMode: 420
+        - name: pim-web-www
+        - configMap:
+            defaultMode: 420
+            name: pim-web-nginx-conf
           name: pim-web-nginx-conf
-        name: pim-web-nginx-conf
       imagePullSecrets:
-      - name: dockerhub-example-pull
+        - name: dockerhub-example-pull
   selector:
     matchLabels:
       app.kubernetes.io/name: pim-web
@@ -2663,13 +2637,13 @@ metadata:
     app.kubernetes.io/name: pim-web
 spec:
   ipFamilies:
-  - IPv4
+    - IPv4
   ipFamilyPolicy: SingleStack
   ports:
-  - name: http
-    port: 80
-    protocol: TCP
-    targetPort: http
+    - name: http
+      port: 80
+      protocol: TCP
+      targetPort: http
   type: ClusterIP
   selector:
     app.kubernetes.io/name: pim-web
@@ -2682,29 +2656,7 @@ metadata:
   labels:
     app.kubernetes.io/name: pim-web
 data:
-  default.conf: |-
-    server {
-            listen 80 default_server;
-            listen [::]:80 default_server;
-
-            root /tmp/www/pim-web;
-
-            location ~* \.(png|jpeg|jpg|gif|svg|ttf|woff|js|json|ico|css|mp3|mp4)$ {
-                add_header Cache-Control public;
-                expires 14d;
-                etag on;
-                try_files $uri $uri =404;
-            }
-
-            location ~ ^/(index.html) {
-                add_header Cache-Control must-revalidate;
-                etag on;
-            }
-
-            location / {
-                rewrite /?$ /index.html last;
-            }
-    }
+  default.conf: "server {\n        listen 80 default_server;\n        listen [::]:80 default_server;\n\n        root /tmp/www/pim-web;\n\n        location ~* \\.(png|jpeg|jpg|gif|svg|ttf|woff|js|json|ico|css|mp3|mp4)$ {\n            add_header Cache-Control public;\n            expires 14d;\n            etag on;\n            try_files $uri $uri =404;\n        }\n\n        location ~ ^/(index.html) {\n            add_header Cache-Control must-revalidate;\n            etag on;\n        }\n\n        location / {\n            rewrite /?$ /index.html last;\n        }\n}"
 ---
 apiVersion: networking.k8s.io/v1
 kind: Ingress
@@ -2715,28 +2667,28 @@ metadata:
     app.kubernetes.io/name: pim-web
   annotations:
     cert-manager.io/cluster-issuer: letsencrypt-prod
-    nginx.ingress.kubernetes.io/cors-allow-methods: GET,OPTIONS,POST,PUT,DELETE
-    nginx.ingress.kubernetes.io/cors-allow-origin: '*'
-    nginx.ingress.kubernetes.io/cors-allow-headers: Accept,Authorization,Cache-Control,Content-Type,DNT,If-Modified-Since,Keep-Alive,Origin,User-Agent,X-Requested-With,x-agx-device-type,x-agx-device-id,x-agx-guest-token,x-agx-store-alias,x-api-key,x-ga-client-id,example-store-id,example-graphql-operation,example-accept-currency,example-organization-id,example-storefront-key,example-uvdb-region-id,baggage,Sentry-Trace,traceparent
-    nginx.ingress.kubernetes.io/enable-cors: 'true'
-    nginx.ingress.kubernetes.io/cors-allow-credentials: 'true'
+    nginx.ingress.kubernetes.io/cors-allow-methods: "GET,OPTIONS,POST,PUT,DELETE"
+    nginx.ingress.kubernetes.io/cors-allow-origin: "*"
+    nginx.ingress.kubernetes.io/cors-allow-headers: "Accept,Authorization,Cache-Control,Content-Type,DNT,If-Modified-Since,Keep-Alive,Origin,User-Agent,X-Requested-With,x-agx-device-type,x-agx-device-id,x-agx-guest-token,x-agx-store-alias,x-api-key,x-ga-client-id,example-store-id,example-graphql-operation,example-accept-currency,example-organization-id,example-storefront-key,example-uvdb-region-id,baggage,Sentry-Trace,traceparent"
+    nginx.ingress.kubernetes.io/enable-cors: "true"
+    nginx.ingress.kubernetes.io/cors-allow-credentials: "true"
 spec:
   ingressClassName: nginx
   rules:
-  - host: pim.{{ .SUBDOMAIN }}example.{{ .TLD }}
-    http:
-      paths:
-      - backend:
-          service:
-            name: example-pim-web
-            port:
-              number: 80
-        path: /
-        pathType: ImplementationSpecific
+    - host: "pim.{{ .SUBDOMAIN }}example.{{ .TLD }}"
+      http:
+        paths:
+          - backend:
+              service:
+                name: example-pim-web
+                port:
+                  number: 80
+            path: /
+            pathType: ImplementationSpecific
   tls:
-  - hosts:
-    - pim.{{ .SUBDOMAIN }}example.{{ .TLD }}
-    secretName: pim-web-ingress-tls
+    - hosts:
+        - "pim.{{ .SUBDOMAIN }}example.{{ .TLD }}"
+      secretName: pim-web-ingress-tls
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -2755,68 +2707,68 @@ spec:
       securityContext:
         fsGroup: 1001
       volumes:
-      - name: pgbouncer-certs
-        emptyDir: {}
+        - name: pgbouncer-certs
+          emptyDir: {}
       initContainers:
-      - name: cert-generator
-        image: alpine/openssl:3.5.1
-        command:
-        - sh
-        - -c
-        - |
-          openssl req -x509 -newkey rsa:4096 -keyout /certs/server.key -out /certs/server.crt -days 365 -nodes -subj '/CN=pgbouncer'
-          chmod 640 /certs/server.key
-          chmod 644 /certs/server.crt
-        volumeMounts:
-        - name: pgbouncer-certs
-          mountPath: /certs
+        - name: cert-generator
+          image: alpine/openssl:3.5.1
+          command:
+            - sh
+            - "-c"
+            - |
+              openssl req -x509 -newkey rsa:4096 -keyout /certs/server.key -out /certs/server.crt -days 365 -nodes -subj '/CN=pgbouncer'
+              chmod 640 /certs/server.key
+              chmod 644 /certs/server.crt
+          volumeMounts:
+            - name: pgbouncer-certs
+              mountPath: /certs
       containers:
-      - name: pgbouncer
-        image: bitnami/pgbouncer:1.24.1
-        securityContext:
-          runAsUser: 1001
-          runAsNonRoot: true
-        ports:
-        - containerPort: 6432
-        resources:
-          requests:
-            cpu: 100m
-            memory: 256Mi
-        env:
-        - name: PGBOUNCER_PORT
-          value: '6432'
-        - name: POSTGRESQL_DATABASE
-          value: example
-        - name: PGBOUNCER_DATABASE
-          value: example
-        - name: POSTGRESQL_HOST
-          valueFrom:
-            configMapKeyRef:
-              name: base-configs-m228kf585k
-              key: PG_DB_HOST
-        - name: POSTGRESQL_USERNAME
-          valueFrom:
-            configMapKeyRef:
-              name: base-configs-m228kf585k
-              key: PG_DB_USERNAME
-        - name: POSTGRESQL_PASSWORD
-          valueFrom:
-            secretKeyRef:
-              name: base-secrets-62htgm2m82
-              key: PG_DB_PASSWORD
-        - name: PGBOUNCER_SERVER_TLS_SSLMODE
-          value: prefer
-        - name: PGBOUNCER_CLIENT_TLS_SSLMODE
-          value: prefer
-        - name: PGBOUNCER_CLIENT_TLS_KEY_FILE
-          value: /certs/server.key
-        - name: PGBOUNCER_CLIENT_TLS_CERT_FILE
-          value: /certs/server.crt
-        volumeMounts:
-        - name: pgbouncer-certs
-          mountPath: /certs
+        - name: pgbouncer
+          image: bitnami/pgbouncer:1.24.1
+          securityContext:
+            runAsUser: 1001
+            runAsNonRoot: true
+          ports:
+            - containerPort: 6432
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+          env:
+            - name: PGBOUNCER_PORT
+              value: "6432"
+            - name: POSTGRESQL_DATABASE
+              value: example
+            - name: PGBOUNCER_DATABASE
+              value: example
+            - name: POSTGRESQL_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: base-configs-m228kf585k
+                  key: PG_DB_HOST
+            - name: POSTGRESQL_USERNAME
+              valueFrom:
+                configMapKeyRef:
+                  name: base-configs-m228kf585k
+                  key: PG_DB_USERNAME
+            - name: POSTGRESQL_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: base-secrets-62htgm2m82
+                  key: PG_DB_PASSWORD
+            - name: PGBOUNCER_SERVER_TLS_SSLMODE
+              value: prefer
+            - name: PGBOUNCER_CLIENT_TLS_SSLMODE
+              value: prefer
+            - name: PGBOUNCER_CLIENT_TLS_KEY_FILE
+              value: /certs/server.key
+            - name: PGBOUNCER_CLIENT_TLS_CERT_FILE
+              value: /certs/server.crt
+          volumeMounts:
+            - name: pgbouncer-certs
+              mountPath: /certs
       imagePullSecrets:
-      - name: dockerhub-example-pull
+        - name: dockerhub-example-pull
 ---
 apiVersion: v1
 kind: Service
@@ -2827,8 +2779,8 @@ metadata:
     app.kubernetes.io/name: pgbouncer
 spec:
   ports:
-  - port: 5432
-    targetPort: 6432
+    - port: 5432
+      targetPort: 6432
   selector:
     app.kubernetes.io/name: pgbouncer
   type: ClusterIP
@@ -2839,7 +2791,7 @@ metadata:
   name: redis-secrets
   namespace: example
   annotations:
-    argocd.argoproj.io/sync-wave: '-5'
+    argocd.argoproj.io/sync-wave: "-5"
 type: Opaque
 data:
   REDIS_PASSWORD: Ym9icGF0Y2g=
@@ -2858,46 +2810,46 @@ spec:
   template:
     spec:
       containers:
-      - env:
-        - name: OTEL_SERVICE_NAME
-          value: repair-jobs-feed-integration
-        - name: repair_jobs_feed_integration__LOGGING__LEVEL
-          value: info
-        - name: SOURCE_VERSION
-          valueFrom:
-            configMapKeyRef:
-              name: example-monorepo-revision-sync
-              key: monorepo-revision
-        envFrom:
-        - secretRef:
-            name: base-secrets-62htgm2m82
-        - configMapRef:
-            name: base-configs-m228kf585k
-        image: repair-jobs-feed-integration-image
-        imagePullPolicy: IfNotPresent
-        name: repair-jobs-feed-integration
-        ports:
-        - containerPort: 4111
-          name: http
-          protocol: TCP
-        readinessProbe:
-          failureThreshold: 3
-          httpGet:
-            path: /api/internal/system.readiness.get
-            port: http
-            scheme: HTTP
-          initialDelaySeconds: 10
-          periodSeconds: 5
-          successThreshold: 1
-          timeoutSeconds: 3
-        resources:
-          limits:
-            memory: 256Mi
-          requests:
-            cpu: 50m
-            memory: 128Mi
+        - env:
+            - name: OTEL_SERVICE_NAME
+              value: repair-jobs-feed-integration
+            - name: repair_jobs_feed_integration__LOGGING__LEVEL
+              value: info
+            - name: SOURCE_VERSION
+              valueFrom:
+                configMapKeyRef:
+                  name: example-monorepo-revision-sync
+                  key: monorepo-revision
+          envFrom:
+            - secretRef:
+                name: base-secrets-62htgm2m82
+            - configMapRef:
+                name: base-configs-m228kf585k
+          image: repair-jobs-feed-integration-image
+          imagePullPolicy: IfNotPresent
+          name: repair-jobs-feed-integration
+          ports:
+            - containerPort: 4111
+              name: http
+              protocol: TCP
+          readinessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /api/internal/system.readiness.get
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            successThreshold: 1
+            timeoutSeconds: 3
+          resources:
+            limits:
+              memory: 256Mi
+            requests:
+              cpu: 50m
+              memory: 128Mi
       imagePullSecrets:
-      - name: dockerhub-example-pull
+        - name: dockerhub-example-pull
     metadata:
       labels:
         app.kubernetes.io/name: repair-jobs-feed-integration
@@ -2914,13 +2866,13 @@ metadata:
     app.kubernetes.io/name: repair-jobs-feed-integration
 spec:
   ipFamilies:
-  - IPv4
+    - IPv4
   ipFamilyPolicy: SingleStack
   ports:
-  - name: http
-    port: 80
-    protocol: TCP
-    targetPort: http
+    - name: http
+      port: 80
+      protocol: TCP
+      targetPort: http
   type: ClusterIP
   selector:
     app.kubernetes.io/name: repair-jobs-feed-integration
@@ -2934,28 +2886,28 @@ metadata:
     app.kubernetes.io/name: repair-jobs-feed-integration
   annotations:
     cert-manager.io/cluster-issuer: letsencrypt-prod
-    nginx.ingress.kubernetes.io/cors-allow-methods: GET,OPTIONS,POST,PUT,DELETE
-    nginx.ingress.kubernetes.io/cors-allow-origin: '*'
-    nginx.ingress.kubernetes.io/cors-allow-headers: Accept,Authorization,Cache-Control,Content-Type,DNT,If-Modified-Since,Keep-Alive,Origin,User-Agent,X-Requested-With,x-agx-device-type,x-agx-device-id,x-agx-guest-token,x-agx-store-alias,x-api-key,x-ga-client-id,example-store-id,example-graphql-operation,example-accept-currency,example-organization-id,example-storefront-key,example-uvdb-region-id,baggage,Sentry-Trace,traceparent
-    nginx.ingress.kubernetes.io/enable-cors: 'true'
-    nginx.ingress.kubernetes.io/cors-allow-credentials: 'true'
+    nginx.ingress.kubernetes.io/cors-allow-methods: "GET,OPTIONS,POST,PUT,DELETE"
+    nginx.ingress.kubernetes.io/cors-allow-origin: "*"
+    nginx.ingress.kubernetes.io/cors-allow-headers: "Accept,Authorization,Cache-Control,Content-Type,DNT,If-Modified-Since,Keep-Alive,Origin,User-Agent,X-Requested-With,x-agx-device-type,x-agx-device-id,x-agx-guest-token,x-agx-store-alias,x-api-key,x-ga-client-id,example-store-id,example-graphql-operation,example-accept-currency,example-organization-id,example-storefront-key,example-uvdb-region-id,baggage,Sentry-Trace,traceparent"
+    nginx.ingress.kubernetes.io/enable-cors: "true"
+    nginx.ingress.kubernetes.io/cors-allow-credentials: "true"
 spec:
   ingressClassName: nginx
   rules:
-  - host: repair-jobs-feed-integration.{{ .SUBDOMAIN }}example.{{ .TLD }}
-    http:
-      paths:
-      - backend:
-          service:
-            name: example-repair-jobs-feed-integration
-            port:
-              number: 80
-        path: /
-        pathType: ImplementationSpecific
+    - host: "repair-jobs-feed-integration.{{ .SUBDOMAIN }}example.{{ .TLD }}"
+      http:
+        paths:
+          - backend:
+              service:
+                name: example-repair-jobs-feed-integration
+                port:
+                  number: 80
+            path: /
+            pathType: ImplementationSpecific
   tls:
-  - hosts:
-    - repair-jobs-feed-integration.{{ .SUBDOMAIN }}example.{{ .TLD }}
-    secretName: repair-jobs-feed-integration-ingress-tls
+    - hosts:
+        - "repair-jobs-feed-integration.{{ .SUBDOMAIN }}example.{{ .TLD }}"
+      secretName: repair-jobs-feed-integration-ingress-tls
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -2974,53 +2926,54 @@ spec:
         app.kubernetes.io/name: repairer-server
     spec:
       containers:
-      - env:
-        - name: OTEL_SERVICE_NAME
-          value: repairer-server
-        envFrom:
-        - configMapRef:
-            name: base-configs-m228kf585k
-        - secretRef:
-            name: base-secrets-62htgm2m82
-        image: repairer-server-image
-        imagePullPolicy: IfNotPresent
-        livenessProbe:
-          failureThreshold: 3
-          httpGet:
-            path: /healthz
-            port: http
-            scheme: HTTP
-          initialDelaySeconds: 5
-          periodSeconds: 3
-          successThreshold: 1
-          timeoutSeconds: 1
-        name: repairer-server
-        ports:
-        - containerPort: 7172
-          name: http
-          protocol: TCP
-        readinessProbe:
-          failureThreshold: 30
-          httpGet:
-            path: /healthz
-            port: http
-            scheme: HTTP
-          initialDelaySeconds: 5
-          periodSeconds: 3
-          successThreshold: 1
-          timeoutSeconds: 1
-        resources: {}
-        startupProbe:
-          failureThreshold: 30
-          httpGet:
-            path: /healthz
-            port: http
-            scheme: HTTP
-          periodSeconds: 10
-          successThreshold: 1
-          timeoutSeconds: 1
+        - env:
+            - name: OTEL_SERVICE_NAME
+              value: repairer-server
+          envFrom:
+            - configMapRef:
+                name: base-configs-m228kf585k
+            - secretRef:
+                name: base-secrets-62htgm2m82
+          image: repairer-server-image
+          imagePullPolicy: IfNotPresent
+          livenessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /healthz
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 5
+            periodSeconds: 3
+            successThreshold: 1
+            timeoutSeconds: 1
+          name: repairer-server
+          ports:
+            - containerPort: 7172
+              name: http
+              protocol: TCP
+          readinessProbe:
+            failureThreshold: 30
+            httpGet:
+              path: /healthz
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 5
+            periodSeconds: 3
+            successThreshold: 1
+            timeoutSeconds: 1
+          resources:
+            {}
+          startupProbe:
+            failureThreshold: 30
+            httpGet:
+              path: /healthz
+              port: http
+              scheme: HTTP
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 1
       imagePullSecrets:
-      - name: dockerhub-example-pull
+        - name: dockerhub-example-pull
       terminationGracePeriodSeconds: 30
   selector:
     matchLabels:
@@ -3035,13 +2988,13 @@ metadata:
     app.kubernetes.io/name: repairer-server
 spec:
   ipFamilies:
-  - IPv4
+    - IPv4
   ipFamilyPolicy: SingleStack
   ports:
-  - name: http
-    port: 80
-    protocol: TCP
-    targetPort: http
+    - name: http
+      port: 80
+      protocol: TCP
+      targetPort: http
   type: ClusterIP
   selector:
     app.kubernetes.io/name: repairer-server
@@ -3055,28 +3008,28 @@ metadata:
     app.kubernetes.io/name: repairer-server
   annotations:
     cert-manager.io/cluster-issuer: letsencrypt-prod
-    nginx.ingress.kubernetes.io/cors-allow-methods: GET,OPTIONS,POST,PUT,DELETE
-    nginx.ingress.kubernetes.io/cors-allow-origin: '*'
-    nginx.ingress.kubernetes.io/cors-allow-headers: Accept,Authorization,Cache-Control,Content-Type,DNT,If-Modified-Since,Keep-Alive,Origin,User-Agent,X-Requested-With,x-agx-device-type,x-agx-device-id,x-agx-guest-token,x-agx-store-alias,x-api-key,x-ga-client-id,example-store-id,example-graphql-operation,example-accept-currency,example-organization-id,example-storefront-key,example-uvdb-region-id,baggage,Sentry-Trace,traceparent
-    nginx.ingress.kubernetes.io/enable-cors: 'true'
-    nginx.ingress.kubernetes.io/cors-allow-credentials: 'true'
+    nginx.ingress.kubernetes.io/cors-allow-methods: "GET,OPTIONS,POST,PUT,DELETE"
+    nginx.ingress.kubernetes.io/cors-allow-origin: "*"
+    nginx.ingress.kubernetes.io/cors-allow-headers: "Accept,Authorization,Cache-Control,Content-Type,DNT,If-Modified-Since,Keep-Alive,Origin,User-Agent,X-Requested-With,x-agx-device-type,x-agx-device-id,x-agx-guest-token,x-agx-store-alias,x-api-key,x-ga-client-id,example-store-id,example-graphql-operation,example-accept-currency,example-organization-id,example-storefront-key,example-uvdb-region-id,baggage,Sentry-Trace,traceparent"
+    nginx.ingress.kubernetes.io/enable-cors: "true"
+    nginx.ingress.kubernetes.io/cors-allow-credentials: "true"
 spec:
   ingressClassName: nginx
   rules:
-  - host: api.repairer.{{ .SUBDOMAIN }}example.{{ .TLD }}
-    http:
-      paths:
-      - backend:
-          service:
-            name: storefront-repairer-server
-            port:
-              number: 80
-        path: /api
-        pathType: ImplementationSpecific
+    - host: "api.repairer.{{ .SUBDOMAIN }}example.{{ .TLD }}"
+      http:
+        paths:
+          - backend:
+              service:
+                name: storefront-repairer-server
+                port:
+                  number: 80
+            path: /api
+            pathType: ImplementationSpecific
   tls:
-  - hosts:
-    - api.repairer.{{ .SUBDOMAIN }}example.{{ .TLD }}
-    secretName: repairer-server-ingress-tls
+    - hosts:
+        - "api.repairer.{{ .SUBDOMAIN }}example.{{ .TLD }}"
+      secretName: repairer-server-ingress-tls
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -3092,57 +3045,57 @@ spec:
   template:
     spec:
       containers:
-      - env:
-        - name: OTEL_SERVICE_NAME
-          value: sample-integration
-        - name: SAMPLE_INTEGRATION_BASE_URL
-          value: sample-integration.integrations.example.com
-        - name: SAMPLE_INTEGRATION_PROTOCOL
-          value: https
-        - name: SOURCE_VERSION
-          valueFrom:
-            configMapKeyRef:
-              name: example-monorepo-revision-sync
-              key: monorepo-revision
-        envFrom:
-        - secretRef:
-            name: base-secrets-62htgm2m82
-        - configMapRef:
-            name: base-configs-m228kf585k
-        image: sample-integration-image
-        imagePullPolicy: IfNotPresent
-        livenessProbe:
-          failureThreshold: 3
-          httpGet:
-            path: /api/v1/internal/system.liveness.get
-            port: http
-            scheme: HTTP
-          initialDelaySeconds: 6
-          periodSeconds: 10
-          successThreshold: 1
-          timeoutSeconds: 5
-        name: sample-integration
-        ports:
-        - containerPort: 4001
-          name: http
-          protocol: TCP
-        readinessProbe:
-          failureThreshold: 3
-          httpGet:
-            path: /api/v1/internal/system.readiness.get
-            port: http
-            scheme: HTTP
-          initialDelaySeconds: 10
-          periodSeconds: 5
-          successThreshold: 1
-          timeoutSeconds: 3
-        resources:
-          limits:
-            memory: 512Mi
-          requests:
-            memory: 128Mi
+        - env:
+            - name: OTEL_SERVICE_NAME
+              value: sample-integration
+            - name: SAMPLE_INTEGRATION_BASE_URL
+              value: sample-integration.integrations.example.com
+            - name: SAMPLE_INTEGRATION_PROTOCOL
+              value: https
+            - name: SOURCE_VERSION
+              valueFrom:
+                configMapKeyRef:
+                  name: example-monorepo-revision-sync
+                  key: monorepo-revision
+          envFrom:
+            - secretRef:
+                name: base-secrets-62htgm2m82
+            - configMapRef:
+                name: base-configs-m228kf585k
+          image: sample-integration-image
+          imagePullPolicy: IfNotPresent
+          livenessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /api/v1/internal/system.liveness.get
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 6
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 5
+          name: sample-integration
+          ports:
+            - containerPort: 4001
+              name: http
+              protocol: TCP
+          readinessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /api/v1/internal/system.readiness.get
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            successThreshold: 1
+            timeoutSeconds: 3
+          resources:
+            limits:
+              memory: 512Mi
+            requests:
+              memory: 128Mi
       imagePullSecrets:
-      - name: dockerhub-example-pull
+        - name: dockerhub-example-pull
     metadata:
       labels:
         app.kubernetes.io/name: sample-integration
@@ -3159,13 +3112,13 @@ metadata:
     app.kubernetes.io/name: sample-integration
 spec:
   ipFamilies:
-  - IPv4
+    - IPv4
   ipFamilyPolicy: SingleStack
   ports:
-  - name: http
-    port: 80
-    protocol: TCP
-    targetPort: http
+    - name: http
+      port: 80
+      protocol: TCP
+      targetPort: http
   type: ClusterIP
   selector:
     app.kubernetes.io/name: sample-integration
@@ -3179,28 +3132,28 @@ metadata:
     app.kubernetes.io/name: sample-integration
   annotations:
     cert-manager.io/cluster-issuer: letsencrypt-prod
-    nginx.ingress.kubernetes.io/cors-allow-methods: GET,OPTIONS,POST,PUT,DELETE
-    nginx.ingress.kubernetes.io/cors-allow-origin: '*'
-    nginx.ingress.kubernetes.io/cors-allow-headers: Accept,Authorization,Cache-Control,Content-Type,DNT,If-Modified-Since,Keep-Alive,Origin,User-Agent,X-Requested-With,x-agx-device-type,x-agx-device-id,x-agx-guest-token,x-agx-store-alias,x-api-key,x-ga-client-id,example-store-id,example-graphql-operation,example-accept-currency,example-organization-id,example-storefront-key,example-uvdb-region-id,baggage,Sentry-Trace,traceparent
-    nginx.ingress.kubernetes.io/enable-cors: 'true'
-    nginx.ingress.kubernetes.io/cors-allow-credentials: 'true'
+    nginx.ingress.kubernetes.io/cors-allow-methods: "GET,OPTIONS,POST,PUT,DELETE"
+    nginx.ingress.kubernetes.io/cors-allow-origin: "*"
+    nginx.ingress.kubernetes.io/cors-allow-headers: "Accept,Authorization,Cache-Control,Content-Type,DNT,If-Modified-Since,Keep-Alive,Origin,User-Agent,X-Requested-With,x-agx-device-type,x-agx-device-id,x-agx-guest-token,x-agx-store-alias,x-api-key,x-ga-client-id,example-store-id,example-graphql-operation,example-accept-currency,example-organization-id,example-storefront-key,example-uvdb-region-id,baggage,Sentry-Trace,traceparent"
+    nginx.ingress.kubernetes.io/enable-cors: "true"
+    nginx.ingress.kubernetes.io/cors-allow-credentials: "true"
 spec:
   ingressClassName: nginx
   rules:
-  - host: sample-integration.{{ .SUBDOMAIN }}example.{{ .TLD }}
-    http:
-      paths:
-      - backend:
-          service:
-            name: example-sample-integration
-            port:
-              number: 80
-        path: /
-        pathType: ImplementationSpecific
+    - host: "sample-integration.{{ .SUBDOMAIN }}example.{{ .TLD }}"
+      http:
+        paths:
+          - backend:
+              service:
+                name: example-sample-integration
+                port:
+                  number: 80
+            path: /
+            pathType: ImplementationSpecific
   tls:
-  - hosts:
-    - sample-integration.{{ .SUBDOMAIN }}example.{{ .TLD }}
-    secretName: sample-integration-ingress-tls
+    - hosts:
+        - "sample-integration.{{ .SUBDOMAIN }}example.{{ .TLD }}"
+      secretName: sample-integration-ingress-tls
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -3216,59 +3169,59 @@ spec:
   template:
     spec:
       containers:
-      - env:
-        - name: OTEL_SERVICE_NAME
-          value: shopify-integration2
-        - name: shopify_integration2__LOGGING__LEVEL
-          value: info
-        - name: SHOPIFY_INTEGRATION2_BASE_URL
-          value: https://shopify-integration.integrations.example.com
-        - name: SHOPIFY_INTEGRATION_SCEHMA_ID
-          value: SHOPIFY_2
-        - name: SHOPIFY_INTEGRATION_ENABLE_WEBHOOKS
-          value: 'true'
-        - name: SHOPIFY_INTEGRATION__KAFKA__SELLABLE_PARTITIONS
-          value: '10'
-        - name: SHOPIFY_INTEGRATION__KAFKA__RETRY_PARTITIONS
-          value: '1'
-        - name: SHOPIFY_INTEGRATION__KAFKA__NOTIFICATION_BATCH_SIZE
-          value: '50'
-        - name: SOURCE_VERSION
-          valueFrom:
-            configMapKeyRef:
-              name: example-monorepo-revision-sync
-              key: monorepo-revision
-        envFrom:
-        - secretRef:
-            name: base-secrets-62htgm2m82
-        - configMapRef:
-            name: base-configs-m228kf585k
-        image: shopify-integration2-image
-        imagePullPolicy: IfNotPresent
-        name: shopify-integration2
-        ports:
-        - containerPort: 4011
-          name: http
-          protocol: TCP
-        readinessProbe:
-          failureThreshold: 3
-          httpGet:
-            path: /api/internal/system.readiness.get
-            port: http
-            scheme: HTTP
-          initialDelaySeconds: 10
-          periodSeconds: 5
-          successThreshold: 1
-          timeoutSeconds: 3
-        resources:
-          limits:
-            cpu: 1500m
-            memory: 1Gi
-          requests:
-            cpu: 250m
-            memory: 128Mi
+        - env:
+            - name: OTEL_SERVICE_NAME
+              value: shopify-integration2
+            - name: shopify_integration2__LOGGING__LEVEL
+              value: info
+            - name: SHOPIFY_INTEGRATION2_BASE_URL
+              value: https://shopify-integration.integrations.example.com
+            - name: SHOPIFY_INTEGRATION_SCEHMA_ID
+              value: SHOPIFY_2
+            - name: SHOPIFY_INTEGRATION_ENABLE_WEBHOOKS
+              value: "true"
+            - name: SHOPIFY_INTEGRATION__KAFKA__SELLABLE_PARTITIONS
+              value: "10"
+            - name: SHOPIFY_INTEGRATION__KAFKA__RETRY_PARTITIONS
+              value: "1"
+            - name: SHOPIFY_INTEGRATION__KAFKA__NOTIFICATION_BATCH_SIZE
+              value: "50"
+            - name: SOURCE_VERSION
+              valueFrom:
+                configMapKeyRef:
+                  name: example-monorepo-revision-sync
+                  key: monorepo-revision
+          envFrom:
+            - secretRef:
+                name: base-secrets-62htgm2m82
+            - configMapRef:
+                name: base-configs-m228kf585k
+          image: shopify-integration2-image
+          imagePullPolicy: IfNotPresent
+          name: shopify-integration2
+          ports:
+            - containerPort: 4011
+              name: http
+              protocol: TCP
+          readinessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /api/internal/system.readiness.get
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            successThreshold: 1
+            timeoutSeconds: 3
+          resources:
+            limits:
+              cpu: 1500m
+              memory: 1Gi
+            requests:
+              cpu: 250m
+              memory: 128Mi
       imagePullSecrets:
-      - name: dockerhub-example-pull
+        - name: dockerhub-example-pull
     metadata:
       labels:
         app.kubernetes.io/name: shopify-integration2
@@ -3285,13 +3238,13 @@ metadata:
     app.kubernetes.io/name: shopify-integration2
 spec:
   ipFamilies:
-  - IPv4
+    - IPv4
   ipFamilyPolicy: SingleStack
   ports:
-  - name: http
-    port: 80
-    protocol: TCP
-    targetPort: http
+    - name: http
+      port: 80
+      protocol: TCP
+      targetPort: http
   type: ClusterIP
   selector:
     app.kubernetes.io/name: shopify-integration2
@@ -3305,28 +3258,28 @@ metadata:
     app.kubernetes.io/name: shopify-integration2
   annotations:
     cert-manager.io/cluster-issuer: letsencrypt-prod
-    nginx.ingress.kubernetes.io/cors-allow-methods: GET,OPTIONS,POST,PUT,DELETE
-    nginx.ingress.kubernetes.io/cors-allow-origin: '*'
-    nginx.ingress.kubernetes.io/cors-allow-headers: Accept,Authorization,Cache-Control,Content-Type,DNT,If-Modified-Since,Keep-Alive,Origin,User-Agent,X-Requested-With,x-agx-device-type,x-agx-device-id,x-agx-guest-token,x-agx-store-alias,x-api-key,x-ga-client-id,example-store-id,example-graphql-operation,example-accept-currency,example-organization-id,example-storefront-key,example-uvdb-region-id,baggage,Sentry-Trace,traceparent
-    nginx.ingress.kubernetes.io/enable-cors: 'true'
-    nginx.ingress.kubernetes.io/cors-allow-credentials: 'true'
+    nginx.ingress.kubernetes.io/cors-allow-methods: "GET,OPTIONS,POST,PUT,DELETE"
+    nginx.ingress.kubernetes.io/cors-allow-origin: "*"
+    nginx.ingress.kubernetes.io/cors-allow-headers: "Accept,Authorization,Cache-Control,Content-Type,DNT,If-Modified-Since,Keep-Alive,Origin,User-Agent,X-Requested-With,x-agx-device-type,x-agx-device-id,x-agx-guest-token,x-agx-store-alias,x-api-key,x-ga-client-id,example-store-id,example-graphql-operation,example-accept-currency,example-organization-id,example-storefront-key,example-uvdb-region-id,baggage,Sentry-Trace,traceparent"
+    nginx.ingress.kubernetes.io/enable-cors: "true"
+    nginx.ingress.kubernetes.io/cors-allow-credentials: "true"
 spec:
   ingressClassName: nginx
   rules:
-  - host: shopify-integration2.{{ .SUBDOMAIN }}example.{{ .TLD }}
-    http:
-      paths:
-      - backend:
-          service:
-            name: example-shopify-integration2
-            port:
-              number: 80
-        path: /
-        pathType: ImplementationSpecific
+    - host: "shopify-integration2.{{ .SUBDOMAIN }}example.{{ .TLD }}"
+      http:
+        paths:
+          - backend:
+              service:
+                name: example-shopify-integration2
+                port:
+                  number: 80
+            path: /
+            pathType: ImplementationSpecific
   tls:
-  - hosts:
-    - shopify-integration2.{{ .SUBDOMAIN }}example.{{ .TLD }}
-    secretName: shopify-integration2-ingress-tls
+    - hosts:
+        - "shopify-integration2.{{ .SUBDOMAIN }}example.{{ .TLD }}"
+      secretName: shopify-integration2-ingress-tls
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -3342,62 +3295,62 @@ spec:
   template:
     spec:
       containers:
-      - env:
-        - name: OTEL_SERVICE_NAME
-          value: subscription-updater
-        - name: NODE_OPTIONS
-          value: --max-old-space-size=1024
-        - name: APOLLO_SERVER_PLATFORM
-          value: kubernetes
-        - name: APOLLO_SERVER_ID
-          valueFrom:
-            fieldRef:
-              apiVersion: v1
-              fieldPath: metadata.name
-        - name: APOLLO_SERVER_USER_VERSION
-          value: latest
-        - name: SOURCE_VERSION
-          valueFrom:
-            configMapKeyRef:
-              name: example-monorepo-revision-sync
-              key: monorepo-revision
-        envFrom:
-        - secretRef:
-            name: base-secrets-62htgm2m82
-        - configMapRef:
-            name: base-configs-m228kf585k
-        image: subscription-updater-image
-        imagePullPolicy: IfNotPresent
-        livenessProbe:
-          failureThreshold: 3
-          httpGet:
-            path: /healthy-check
-            port: http
-            scheme: HTTP
-          initialDelaySeconds: 180
-          periodSeconds: 20
-          successThreshold: 1
-          timeoutSeconds: 7
-        name: subscription-updater
-        ports:
-        - containerPort: 4000
-          name: http
-          protocol: TCP
-        readinessProbe:
-          failureThreshold: 3
-          httpGet:
-            path: /healthy-check
-            port: http
-            scheme: HTTP
-          initialDelaySeconds: 30
-          periodSeconds: 5
-          successThreshold: 1
-          timeoutSeconds: 3
-        resources:
-          requests:
-            memory: 128Mi
+        - env:
+            - name: OTEL_SERVICE_NAME
+              value: subscription-updater
+            - name: NODE_OPTIONS
+              value: "--max-old-space-size=1024"
+            - name: APOLLO_SERVER_PLATFORM
+              value: kubernetes
+            - name: APOLLO_SERVER_ID
+              valueFrom:
+                fieldRef:
+                  apiVersion: v1
+                  fieldPath: metadata.name
+            - name: APOLLO_SERVER_USER_VERSION
+              value: latest
+            - name: SOURCE_VERSION
+              valueFrom:
+                configMapKeyRef:
+                  name: example-monorepo-revision-sync
+                  key: monorepo-revision
+          envFrom:
+            - secretRef:
+                name: base-secrets-62htgm2m82
+            - configMapRef:
+                name: base-configs-m228kf585k
+          image: subscription-updater-image
+          imagePullPolicy: IfNotPresent
+          livenessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /healthy-check
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 180
+            periodSeconds: 20
+            successThreshold: 1
+            timeoutSeconds: 7
+          name: subscription-updater
+          ports:
+            - containerPort: 4000
+              name: http
+              protocol: TCP
+          readinessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /healthy-check
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 30
+            periodSeconds: 5
+            successThreshold: 1
+            timeoutSeconds: 3
+          resources:
+            requests:
+              memory: 128Mi
       imagePullSecrets:
-      - name: dockerhub-example-pull
+        - name: dockerhub-example-pull
     metadata:
       labels:
         app.kubernetes.io/name: subscription-updater
@@ -3414,13 +3367,13 @@ metadata:
     app.kubernetes.io/name: subscription-updater
 spec:
   ipFamilies:
-  - IPv4
+    - IPv4
   ipFamilyPolicy: SingleStack
   ports:
-  - name: http
-    port: 80
-    protocol: TCP
-    targetPort: http
+    - name: http
+      port: 80
+      protocol: TCP
+      targetPort: http
   type: ClusterIP
   selector:
     app.kubernetes.io/name: subscription-updater
@@ -3439,55 +3392,55 @@ spec:
   template:
     spec:
       containers:
-      - env:
-        - name: OTEL_SERVICE_NAME
-          value: vrm-search
-        - name: NODE_OPTIONS
-          value: --max-old-space-size=768
-        - name: SOURCE_VERSION
-          valueFrom:
-            configMapKeyRef:
-              name: example-monorepo-revision-sync
-              key: monorepo-revision
-        envFrom:
-        - secretRef:
-            name: base-secrets-62htgm2m82
-        - configMapRef:
-            name: base-configs-m228kf585k
-        image: vrm-search-image
-        imagePullPolicy: IfNotPresent
-        livenessProbe:
-          failureThreshold: 3
-          httpGet:
-            path: /healthy-check
-            port: http
-            scheme: HTTP
-          initialDelaySeconds: 30
-          periodSeconds: 10
-          successThreshold: 1
-          timeoutSeconds: 5
-        name: vrm-search
-        ports:
-        - containerPort: 3003
-          name: http
-          protocol: TCP
-        readinessProbe:
-          failureThreshold: 3
-          httpGet:
-            path: /healthy-check
-            port: http
-            scheme: HTTP
-          initialDelaySeconds: 30
-          periodSeconds: 5
-          successThreshold: 1
-          timeoutSeconds: 3
-        resources:
-          limits:
-            memory: 1Gi
-          requests:
-            memory: 256Mi
+        - env:
+            - name: OTEL_SERVICE_NAME
+              value: vrm-search
+            - name: NODE_OPTIONS
+              value: "--max-old-space-size=768"
+            - name: SOURCE_VERSION
+              valueFrom:
+                configMapKeyRef:
+                  name: example-monorepo-revision-sync
+                  key: monorepo-revision
+          envFrom:
+            - secretRef:
+                name: base-secrets-62htgm2m82
+            - configMapRef:
+                name: base-configs-m228kf585k
+          image: vrm-search-image
+          imagePullPolicy: IfNotPresent
+          livenessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /healthy-check
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 5
+          name: vrm-search
+          ports:
+            - containerPort: 3003
+              name: http
+              protocol: TCP
+          readinessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /healthy-check
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 30
+            periodSeconds: 5
+            successThreshold: 1
+            timeoutSeconds: 3
+          resources:
+            limits:
+              memory: 1Gi
+            requests:
+              memory: 256Mi
       imagePullSecrets:
-      - name: dockerhub-example-pull
+        - name: dockerhub-example-pull
     metadata:
       labels:
         app.kubernetes.io/name: vrm-search
@@ -3504,13 +3457,13 @@ metadata:
     app.kubernetes.io/name: vrm-search
 spec:
   ipFamilies:
-  - IPv4
+    - IPv4
   ipFamilyPolicy: SingleStack
   ports:
-  - name: http
-    port: 80
-    protocol: TCP
-    targetPort: http
+    - name: http
+      port: 80
+      protocol: TCP
+      targetPort: http
   type: ClusterIP
   selector:
     app.kubernetes.io/name: vrm-search
@@ -3529,55 +3482,55 @@ spec:
   template:
     spec:
       containers:
-      - env:
-        - name: OTEL_SERVICE_NAME
-          value: webhooks-notifier
-        - name: WEBHOOKS_NOTIFIER__LOGGING__LEVEL
-          value: info
-        - name: SOURCE_VERSION
-          valueFrom:
-            configMapKeyRef:
-              name: example-monorepo-revision-sync
-              key: monorepo-revision
-        envFrom:
-        - secretRef:
-            name: base-secrets-62htgm2m82
-        - configMapRef:
-            name: base-configs-m228kf585k
-        image: webhooks-notifier-image
-        imagePullPolicy: IfNotPresent
-        livenessProbe:
-          failureThreshold: 3
-          httpGet:
-            path: /api/status/readiness
-            port: http
-            scheme: HTTP
-          initialDelaySeconds: 6
-          periodSeconds: 10
-          successThreshold: 1
-          timeoutSeconds: 5
-        name: webhooks-notifier
-        ports:
-        - containerPort: 4200
-          name: http
-          protocol: TCP
-        readinessProbe:
-          failureThreshold: 3
-          httpGet:
-            path: /api/status/readiness
-            port: http
-            scheme: HTTP
-          initialDelaySeconds: 10
-          periodSeconds: 5
-          successThreshold: 1
-          timeoutSeconds: 3
-        resources:
-          limits:
-            memory: 1Gi
-          requests:
-            memory: 256Mi
+        - env:
+            - name: OTEL_SERVICE_NAME
+              value: webhooks-notifier
+            - name: WEBHOOKS_NOTIFIER__LOGGING__LEVEL
+              value: info
+            - name: SOURCE_VERSION
+              valueFrom:
+                configMapKeyRef:
+                  name: example-monorepo-revision-sync
+                  key: monorepo-revision
+          envFrom:
+            - secretRef:
+                name: base-secrets-62htgm2m82
+            - configMapRef:
+                name: base-configs-m228kf585k
+          image: webhooks-notifier-image
+          imagePullPolicy: IfNotPresent
+          livenessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /api/status/readiness
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 6
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 5
+          name: webhooks-notifier
+          ports:
+            - containerPort: 4200
+              name: http
+              protocol: TCP
+          readinessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /api/status/readiness
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            successThreshold: 1
+            timeoutSeconds: 3
+          resources:
+            limits:
+              memory: 1Gi
+            requests:
+              memory: 256Mi
       imagePullSecrets:
-      - name: dockerhub-example-pull
+        - name: dockerhub-example-pull
     metadata:
       labels:
         app.kubernetes.io/name: webhooks-notifier
@@ -3594,13 +3547,13 @@ metadata:
     app.kubernetes.io/name: webhooks-notifier
 spec:
   ipFamilies:
-  - IPv4
+    - IPv4
   ipFamilyPolicy: SingleStack
   ports:
-  - name: http
-    port: 80
-    protocol: TCP
-    targetPort: http
+    - name: http
+      port: 80
+      protocol: TCP
+      targetPort: http
   type: ClusterIP
   selector:
     app.kubernetes.io/name: webhooks-notifier
@@ -3622,31 +3575,32 @@ spec:
         app.kubernetes.io/name: example-external-job-integration
     spec:
       containers:
-      - env:
-        - name: SOURCE_VERSION
-          valueFrom:
-            configMapKeyRef:
-              name: example-monorepo-revision-sync
-              key: monorepo-revision
-        envFrom:
-        - configMapRef:
-            name: base-configs-m228kf585k
-        - configMapRef:
-            name: external-job-integration-9btb7f5kh2
-        - secretRef:
-            name: base-secrets-62htgm2m82
-        - secretRef:
-            name: audatex-secrets
-        image: external-job-integration-image
-        imagePullPolicy: IfNotPresent
-        name: external-job-integration
-        ports:
-        - containerPort: 7575
-          name: http
-          protocol: TCP
-        resources: {}
+        - env:
+            - name: SOURCE_VERSION
+              valueFrom:
+                configMapKeyRef:
+                  name: example-monorepo-revision-sync
+                  key: monorepo-revision
+          envFrom:
+            - configMapRef:
+                name: base-configs-m228kf585k
+            - configMapRef:
+                name: external-job-integration-9btb7f5kh2
+            - secretRef:
+                name: base-secrets-62htgm2m82
+            - secretRef:
+                name: audatex-secrets
+          image: external-job-integration-image
+          imagePullPolicy: IfNotPresent
+          name: external-job-integration
+          ports:
+            - containerPort: 7575
+              name: http
+              protocol: TCP
+          resources:
+            {}
       imagePullSecrets:
-      - name: dockerhub-example-pull
+        - name: dockerhub-example-pull
       terminationGracePeriodSeconds: 30
   selector:
     matchLabels:
@@ -3661,13 +3615,13 @@ metadata:
     app.kubernetes.io/name: example-external-job-integration
 spec:
   ipFamilies:
-  - IPv4
+    - IPv4
   ipFamilyPolicy: SingleStack
   ports:
-  - name: http
-    port: 80
-    protocol: TCP
-    targetPort: http
+    - name: http
+      port: 80
+      protocol: TCP
+      targetPort: http
   type: ClusterIP
   selector:
     app.kubernetes.io/name: example-external-job-integration
@@ -3681,28 +3635,28 @@ metadata:
     app.kubernetes.io/name: example-external-job-integration
   annotations:
     cert-manager.io/cluster-issuer: letsencrypt-prod
-    nginx.ingress.kubernetes.io/cors-allow-methods: GET,OPTIONS,POST,PUT,DELETE
-    nginx.ingress.kubernetes.io/cors-allow-origin: '*'
-    nginx.ingress.kubernetes.io/cors-allow-headers: Accept,Authorization,Cache-Control,Content-Type,DNT,If-Modified-Since,Keep-Alive,Origin,User-Agent,X-Requested-With,x-agx-device-type,x-agx-device-id,x-agx-guest-token,x-agx-store-alias,x-api-key,x-ga-client-id,example-store-id,example-graphql-operation,example-accept-currency,example-organization-id,example-storefront-key,example-uvdb-region-id,baggage,Sentry-Trace,traceparent
-    nginx.ingress.kubernetes.io/enable-cors: 'true'
-    nginx.ingress.kubernetes.io/cors-allow-credentials: 'true'
+    nginx.ingress.kubernetes.io/cors-allow-methods: "GET,OPTIONS,POST,PUT,DELETE"
+    nginx.ingress.kubernetes.io/cors-allow-origin: "*"
+    nginx.ingress.kubernetes.io/cors-allow-headers: "Accept,Authorization,Cache-Control,Content-Type,DNT,If-Modified-Since,Keep-Alive,Origin,User-Agent,X-Requested-With,x-agx-device-type,x-agx-device-id,x-agx-guest-token,x-agx-store-alias,x-api-key,x-ga-client-id,example-store-id,example-graphql-operation,example-accept-currency,example-organization-id,example-storefront-key,example-uvdb-region-id,baggage,Sentry-Trace,traceparent"
+    nginx.ingress.kubernetes.io/enable-cors: "true"
+    nginx.ingress.kubernetes.io/cors-allow-credentials: "true"
 spec:
   ingressClassName: nginx
   rules:
-  - host: external-job-integration.{{ .SUBDOMAIN }}example.{{ .TLD }}
-    http:
-      paths:
-      - backend:
-          service:
-            name: example-external-job-integration
-            port:
-              number: 80
-        path: /
-        pathType: ImplementationSpecific
+    - host: "external-job-integration.{{ .SUBDOMAIN }}example.{{ .TLD }}"
+      http:
+        paths:
+          - backend:
+              service:
+                name: example-external-job-integration
+                port:
+                  number: 80
+            path: /
+            pathType: ImplementationSpecific
   tls:
-  - hosts:
-    - external-job-integration.{{ .SUBDOMAIN }}example.{{ .TLD }}
-    secretName: external-job-integration-ingress-tls
+    - hosts:
+        - "external-job-integration.{{ .SUBDOMAIN }}example.{{ .TLD }}"
+      secretName: external-job-integration-ingress-tls
 ---
 apiVersion: v1
 kind: Secret
@@ -3734,7 +3688,7 @@ kind: ScyllaCluster
 metadata:
   name: scylla
   annotations:
-    argocd.argoproj.io/sync-wave: '-4'
+    argocd.argoproj.io/sync-wave: "-4"
 spec:
   repository: docker.io/scylladb/scylla
   version: 6.2.3
@@ -3742,51 +3696,49 @@ spec:
   developerMode: false
   automaticOrphanedNodeCleanup: true
   sysctls:
-  - fs.aio-max-nr=30000000
+    - fs.aio-max-nr=30000000
   datacenter:
     name: dc1
     racks:
-    - name: rack1
-      members: 1
-      storage:
-        capacity: 50Gi
-        storageClassName: longhorn
-      resources:
-        requests:
-          cpu: 1
-          memory: 4Gi
-        limits:
-          cpu: 1
-          memory: 4Gi
-      placement:
-        podAntiAffinity:
-          preferredDuringSchedulingIgnoredDuringExecution:
-          - weight: 100
-            podAffinityTerm:
-              labelSelector:
-                matchExpressions:
-                - key: app
-                  operator: In
-                  values:
-                  - scylla
-              topologyKey: kubernetes.io/hostname
-              namespaceSelector: {}
-        nodeAffinity:
-          requiredDuringSchedulingIgnoredDuringExecution:
-            nodeSelectorTerms:
-            - matchExpressions:
-              - key: kubernetes.io/os
-                operator: In
-                values:
-                - linux
+      - name: rack1
+        members: 1
+        storage:
+          capacity: 50Gi
+          storageClassName: longhorn
+        resources:
+          requests:
+            cpu: 1
+            memory: 4Gi
+          limits:
+            cpu: 1
+            memory: 4Gi
+        placement:
+          podAntiAffinity:
+            preferredDuringSchedulingIgnoredDuringExecution:
+              - weight: 100
+                podAffinityTerm:
+                  labelSelector:
+                    matchExpressions:
+                      - key: app
+                        operator: In
+                        values:
+                          - scylla
+                  topologyKey: kubernetes.io/hostname
+                  namespaceSelector: {}
+          nodeAffinity:
+            requiredDuringSchedulingIgnoredDuringExecution:
+              nodeSelectorTerms:
+                - matchExpressions:
+                    - key: kubernetes.io/os
+                      operator: In
+                      values:
+                        - linux
 ---
 apiVersion: v1
 kind: ConfigMap
 metadata:
   name: scylladb-config
   annotations:
-    argocd.argoproj.io/sync-wave: '-4'
+    argocd.argoproj.io/sync-wave: "-4"
 data:
-  scylla.yaml: |
-    authenticator: PasswordAuthenticator
-    authorizer: CassandraAuthorizer
+  scylla.yaml: "authenticator: PasswordAuthenticator\nauthorizer: CassandraAuthorizer\n"

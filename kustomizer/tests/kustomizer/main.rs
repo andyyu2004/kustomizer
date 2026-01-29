@@ -1,6 +1,7 @@
 use kustomizer::{
     PathExt,
     dbg::{diff_reference_impl, format_chunks},
+    yaml,
 };
 use std::path::Path;
 
@@ -31,7 +32,7 @@ async fn test(path: &Path) -> datatest_stable::Result<()> {
     let error_snapshot_path = base_path.join("error").with_extension("stderr");
 
     let data = std::fs::read_to_string(path).context("reading test manifest")?;
-    let TestManifest { kind } = serde_yaml::from_str(&data).context("parsing test manifest")?;
+    let TestManifest { kind } = yaml::from_str(&data).context("parsing test manifest")?;
 
     let res = kustomizer::build(base_path).await;
 

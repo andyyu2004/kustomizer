@@ -4,5 +4,5 @@ metadata:
   name: test-pod
 spec:
   containers:
-  - name: app
-    image: some-image:some-tag
+    - name: app
+      image: some-image:some-tag

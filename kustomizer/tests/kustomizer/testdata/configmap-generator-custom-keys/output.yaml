@@ -3,23 +3,8 @@ kind: ConfigMap
 metadata:
   name: custom-config
 data:
-  database-config: |-
-    [database]
-    host = localhost
-    port = 5432
-    name = myapp
-    user = admin
-  nginx-conf: |-
-    upstream backend {
-        server 127.0.0.1:8080;
-    }
-
-    server {
-        listen 80;
-        location / {
-            proxy_pass http://backend;
-        }
-    }
+  database-config: "[database]\nhost = localhost\nport = 5432\nname = myapp\nuser = admin"
+  nginx-conf: "upstream backend {\n    server 127.0.0.1:8080;\n}\n\nserver {\n    listen 80;\n    location / {\n        proxy_pass http://backend;\n    }\n}"
   plain-file.txt: |-
     This is a plain text file.
     It will use the filename as the key.

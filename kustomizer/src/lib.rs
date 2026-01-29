@@ -13,6 +13,7 @@ mod resmap;
 mod resource;
 mod serde_ex;
 mod transform;
+pub mod yaml;
 
 use core::fmt;
 use std::{ffi::OsStr, ops::Deref, path::Path};
@@ -78,7 +79,7 @@ where
 
     let file = std::fs::File::open(&path)
         .with_context(|| format!("loading manifest from path {}", path.pretty()))?;
-    let value = serde_yaml::from_reader(file)?;
+    let value = yaml::from_reader(file)?;
     Ok(Located {
         value,
         parent_path: PathId::make(path.parent().unwrap())?,
