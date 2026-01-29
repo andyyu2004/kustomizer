@@ -27,6 +27,7 @@ base64 = "0.22.1"
 regex = "1.11.2"
 tracing-chrome = "0.7.2"
 dashmap = "6.1.0"
+serde-saphyr = "0.0.16"
 
 [lints]
 workspace = true
