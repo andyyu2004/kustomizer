@@ -8,6 +8,7 @@ use crate::{
     manifest::{Manifest, Patch, Target},
     resmap::ResourceMap,
     resource::{GvkMatcher, Resource},
+    yaml,
 };
 
 use super::Transformer;
@@ -35,7 +36,7 @@ impl<'a, A, K> PatchTransformer<'a, A, K> {
                 let file = File::open(path).with_context(|| {
                     format!("opening JSON patch file at path `{}`", path.pretty())
                 })?;
-                let patch = serde_yaml::from_reader::<_, JsonPatch>(file)
+                let patch = yaml::from_reader::<JsonPatch>(file)
                     .with_context(|| format!("parsing JSON patch from file `{}`", path.pretty()))?;
                 Ok(patch)
             }

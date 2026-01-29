@@ -1,3 +1,5 @@
+use std::io::Read;
+
 use serde::de::DeserializeOwned;
 
 pub fn from_str<T>(s: &str) -> anyhow::Result<T>
@@ -14,9 +16,8 @@ where
     serde_saphyr::from_slice(s).map_err(Into::into)
 }
 
-pub fn from_reader<R, T>(reader: R) -> anyhow::Result<T>
+pub fn from_reader<T>(reader: impl Read) -> anyhow::Result<T>
 where
-    R: std::io::Read,
     T: DeserializeOwned,
 {
     serde_saphyr::from_reader(reader).map_err(Into::into)
