@@ -12,5 +12,5 @@ metadata:
   name: bob-79t79mt227
 data:
   fruit: Indian Gooseberry
-  year: '2020'
-  crisis: 'true'
+  year: "2020"
+  crisis: "true"

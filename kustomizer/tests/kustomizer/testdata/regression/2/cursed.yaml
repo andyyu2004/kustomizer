@@ -3,5 +3,5 @@ kind: ConfigMap
 metadata:
   name: cursed-configmap
 data:
-  NOPE: no
-  YES: yes
+  NOPE: "no"
+  YESS: "yes"

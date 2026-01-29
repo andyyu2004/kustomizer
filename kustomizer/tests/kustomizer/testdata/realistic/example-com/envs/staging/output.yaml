@@ -8,7 +8,7 @@ metadata:
     app.kubernetes.io/instance: example-staging-au
   annotations:
     argocd.argoproj.io/hook: Sync
-    argocd.argoproj.io/sync-wave: '-3'
+    argocd.argoproj.io/sync-wave: "-3"
     argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
 ---
 apiVersion: rbac.authorization.k8s.io/v1
@@ -20,15 +20,15 @@ metadata:
     app.kubernetes.io/instance: example-staging-au
   annotations:
     argocd.argoproj.io/hook: Sync
-    argocd.argoproj.io/sync-wave: '-3'
+    argocd.argoproj.io/sync-wave: "-3"
     argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
 rules:
-- apiGroups:
-  - ''
-  resources:
-  - configmaps
-  verbs:
-  - get
+  - apiGroups:
+      - ""
+    resources:
+      - configmaps
+    verbs:
+      - get
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
@@ -39,12 +39,12 @@ metadata:
     app.kubernetes.io/instance: example-staging-au
   annotations:
     argocd.argoproj.io/hook: Sync
-    argocd.argoproj.io/sync-wave: '-3'
+    argocd.argoproj.io/sync-wave: "-3"
     argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
 subjects:
-- kind: ServiceAccount
-  name: block-rollout
-  namespace: example
+  - kind: ServiceAccount
+    name: block-rollout
+    namespace: example
 roleRef:
   kind: Role
   name: configmap-getter
@@ -59,7 +59,7 @@ metadata:
     app.kubernetes.io/instance: example-staging-au
   annotations:
     argocd.argoproj.io/hook: Sync
-    argocd.argoproj.io/sync-wave: '-3'
+    argocd.argoproj.io/sync-wave: "-3"
     argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
 spec:
   backoffLimit: 4
@@ -68,24 +68,24 @@ spec:
     spec:
       serviceAccountName: block-rollout
       containers:
-      - name: kubectl-wait
-        image: bitnami/kubectl:1.31
-        command:
-        - /bin/sh
-        - -c
-        args:
-        - |
-          echo "Starting check for ConfigMap 'example-block-rollout'..."
-          while kubectl get configmap example-block-rollout > /dev/null 2>&1; do
-            echo "ConfigMap 'example-block-rollout' is still present. Waiting 10 seconds..."
-            sleep 10
-          done
-          echo "ConfigMap 'example-block-rollout' not found. Job completed successfully."
+        - name: kubectl-wait
+          image: bitnami/kubectl:1.31
+          command:
+            - /bin/sh
+            - "-c"
+          args:
+            - |
+              echo "Starting check for ConfigMap 'example-block-rollout'..."
+              while kubectl get configmap example-block-rollout > /dev/null 2>&1; do
+                echo "ConfigMap 'example-block-rollout' is still present. Waiting 10 seconds..."
+                sleep 10
+              done
+              echo "ConfigMap 'example-block-rollout' not found. Job completed successfully."
       restartPolicy: OnFailure
     metadata:
       annotations:
         argocd.argoproj.io/hook: Sync
-        argocd.argoproj.io/sync-wave: '-3'
+        argocd.argoproj.io/sync-wave: "-3"
         argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
 ---
 apiVersion: v1
@@ -96,12 +96,12 @@ metadata:
   labels:
     app.kubernetes.io/instance: example-staging-au
   annotations:
-    argocd.argoproj.io/sync-wave: '-5'
+    argocd.argoproj.io/sync-wave: "-5"
 data:
   ENV: base
   SCYLLA_ADDRESSES: scylla-client:9042
   SCYLLA_LOCAL_DATA_CENTER: dc1
-  SCYLLA_REPLICATION_FACTOR: '1'
+  SCYLLA_REPLICATION_FACTOR: "1"
   SCYLLA_SERVERS: scylla-client
   S3_BUCKET_PRIVATE: example-staging-private
   S3_BUCKET_PUBLIC: example-staging-cdn
@@ -121,7 +121,7 @@ metadata:
   labels:
     app.kubernetes.io/instance: example-staging-au
   annotations:
-    argocd.argoproj.io/sync-wave: '-5'
+    argocd.argoproj.io/sync-wave: "-5"
 data:
   POSTGRESQL_URL: ZmFrZV9wb3N0Z3Jlc3FsX3VybF8xMjM0NTY3OA==
   KNEX_DB_URL: ZmFrZV9rbmV4X3VybF84NzY1NDMyMQ==
@@ -144,53 +144,53 @@ spec:
   template:
     spec:
       containers:
-      - env:
-        - name: OTEL_SERVICE_NAME
-          value: core-server
-        - name: SOURCE_VERSION
-          valueFrom:
-            configMapKeyRef:
-              name: example-monorepo-revision-sync-968cb4dfd2
-              key: monorepo-revision
-        envFrom:
-        - secretRef:
-            name: base-secrets-bgdcccc7t4
-        - configMapRef:
-            name: base-configs-h9955f52m6
-        image: docker.io/example/core_server:f0493271df9745910c3197b6ccad437b2a068ffe
-        imagePullPolicy: IfNotPresent
-        livenessProbe:
-          failureThreshold: 3
-          httpGet:
-            path: /api/internal/system.readiness.get
-            port: http
-            scheme: HTTP
-          initialDelaySeconds: 60
-          periodSeconds: 5
-          successThreshold: 1
-          timeoutSeconds: 3
-        name: core-server
-        ports:
-        - containerPort: 7000
-          name: http
-          protocol: TCP
-        readinessProbe:
-          failureThreshold: 3
-          httpGet:
-            path: /api/internal/system.readiness.get
-            port: http
-            scheme: HTTP
-          initialDelaySeconds: 5
-          periodSeconds: 5
-          successThreshold: 1
-          timeoutSeconds: 3
-        resources:
-          limits:
-            memory: 2Gi
-          requests:
-            memory: 512Mi
+        - env:
+            - name: OTEL_SERVICE_NAME
+              value: core-server
+            - name: SOURCE_VERSION
+              valueFrom:
+                configMapKeyRef:
+                  name: example-monorepo-revision-sync-968cb4dfd2
+                  key: monorepo-revision
+          envFrom:
+            - secretRef:
+                name: base-secrets-bgdcccc7t4
+            - configMapRef:
+                name: base-configs-h9955f52m6
+          image: docker.io/example/core_server:f0493271df9745910c3197b6ccad437b2a068ffe
+          imagePullPolicy: IfNotPresent
+          livenessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /api/internal/system.readiness.get
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 60
+            periodSeconds: 5
+            successThreshold: 1
+            timeoutSeconds: 3
+          name: core-server
+          ports:
+            - containerPort: 7000
+              name: http
+              protocol: TCP
+          readinessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /api/internal/system.readiness.get
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            successThreshold: 1
+            timeoutSeconds: 3
+          resources:
+            limits:
+              memory: 2Gi
+            requests:
+              memory: 512Mi
       imagePullSecrets:
-      - name: dockerhub-example-pull
+        - name: dockerhub-example-pull
     metadata:
       labels:
         app.kubernetes.io/name: core-server
@@ -208,13 +208,13 @@ metadata:
     app.kubernetes.io/instance: example-staging-au
 spec:
   ipFamilies:
-  - IPv4
+    - IPv4
   ipFamilyPolicy: SingleStack
   ports:
-  - name: http
-    port: 80
-    protocol: TCP
-    targetPort: http
+    - name: http
+      port: 80
+      protocol: TCP
+      targetPort: http
   type: ClusterIP
   selector:
     app.kubernetes.io/name: core-server
@@ -230,24 +230,24 @@ metadata:
   annotations:
     cert-manager.io/cluster-issuer: letsencrypt-prod
     nginx.ingress.kubernetes.io/proxy-body-size: 128m
-    nginx.ingress.kubernetes.io/proxy-read-timeout: '90'
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "90"
 spec:
   ingressClassName: nginx
   rules:
-  - host: api.staging.example.pro
-    http:
-      paths:
-      - backend:
-          service:
-            name: example-core-server
-            port:
-              number: 80
-        path: /api/v1
-        pathType: ImplementationSpecific
+    - host: api.staging.example.pro
+      http:
+        paths:
+          - backend:
+              service:
+                name: example-core-server
+                port:
+                  number: 80
+            path: /api/v1
+            pathType: ImplementationSpecific
   tls:
-  - secretName: core-server-ingress-tls
-    hosts:
-    - api.staging.example.pro
+    - secretName: core-server-ingress-tls
+      hosts:
+        - api.staging.example.pro
 ---
 apiVersion: v1
 kind: Secret
@@ -282,16 +282,16 @@ spec:
         spec:
           restartPolicy: OnFailure
           containers:
-          - env:
-            - name: OTEL_SERVICE_NAME
-              value: currency-updater-cron
-            envFrom:
-            - secretRef:
-                name: base-secrets-bgdcccc7t4
-            - configMapRef:
-                name: base-configs-h9955f52m6
-            image: docker.io/example/currency_updater:218d32371c33efaff38cb681b7849db32924d7a2
-            name: example-currency-updater-cron
+            - env:
+                - name: OTEL_SERVICE_NAME
+                  value: currency-updater-cron
+              envFrom:
+                - secretRef:
+                    name: base-secrets-bgdcccc7t4
+                - configMapRef:
+                    name: base-configs-h9955f52m6
+              image: docker.io/example/currency_updater:218d32371c33efaff38cb681b7849db32924d7a2
+              name: example-currency-updater-cron
         metadata:
           labels:
             app.kubernetes.io/name: currency-updater
@@ -314,53 +314,53 @@ spec:
   template:
     spec:
       containers:
-      - env:
-        - name: OTEL_SERVICE_NAME
-          value: data-ingestor
-        - name: SOURCE_VERSION
-          valueFrom:
-            configMapKeyRef:
-              name: example-monorepo-revision-sync-968cb4dfd2
-              key: monorepo-revision
-        envFrom:
-        - secretRef:
-            name: base-secrets-bgdcccc7t4
-        - configMapRef:
-            name: base-configs-h9955f52m6
-        image: docker.io/example/data_ingestor:dfc02e2304c61baf72122f7dd12e404b3dbbf2bd
-        imagePullPolicy: IfNotPresent
-        livenessProbe:
-          failureThreshold: 3
-          httpGet:
-            path: /api/internal/system.readiness.get
-            port: http
-            scheme: HTTP
-          initialDelaySeconds: 60
-          periodSeconds: 5
-          successThreshold: 1
-          timeoutSeconds: 3
-        name: data-ingestor
-        ports:
-        - containerPort: 7060
-          name: http
-          protocol: TCP
-        readinessProbe:
-          failureThreshold: 3
-          httpGet:
-            path: /api/internal/system.readiness.get
-            port: http
-            scheme: HTTP
-          initialDelaySeconds: 5
-          periodSeconds: 5
-          successThreshold: 1
-          timeoutSeconds: 3
-        resources:
-          limits:
-            memory: 512Mi
-          requests:
-            memory: 256Mi
+        - env:
+            - name: OTEL_SERVICE_NAME
+              value: data-ingestor
+            - name: SOURCE_VERSION
+              valueFrom:
+                configMapKeyRef:
+                  name: example-monorepo-revision-sync-968cb4dfd2
+                  key: monorepo-revision
+          envFrom:
+            - secretRef:
+                name: base-secrets-bgdcccc7t4
+            - configMapRef:
+                name: base-configs-h9955f52m6
+          image: docker.io/example/data_ingestor:dfc02e2304c61baf72122f7dd12e404b3dbbf2bd
+          imagePullPolicy: IfNotPresent
+          livenessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /api/internal/system.readiness.get
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 60
+            periodSeconds: 5
+            successThreshold: 1
+            timeoutSeconds: 3
+          name: data-ingestor
+          ports:
+            - containerPort: 7060
+              name: http
+              protocol: TCP
+          readinessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /api/internal/system.readiness.get
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            successThreshold: 1
+            timeoutSeconds: 3
+          resources:
+            limits:
+              memory: 512Mi
+            requests:
+              memory: 256Mi
       imagePullSecrets:
-      - name: dockerhub-example-pull
+        - name: dockerhub-example-pull
     metadata:
       labels:
         app.kubernetes.io/name: data-ingestor
@@ -378,13 +378,13 @@ metadata:
     app.kubernetes.io/instance: example-staging-au
 spec:
   ipFamilies:
-  - IPv4
+    - IPv4
   ipFamilyPolicy: SingleStack
   ports:
-  - name: http
-    port: 80
-    protocol: TCP
-    targetPort: http
+    - name: http
+      port: 80
+      protocol: TCP
+      targetPort: http
   type: ClusterIP
   selector:
     app.kubernetes.io/name: data-ingestor
@@ -418,55 +418,55 @@ spec:
   template:
     spec:
       containers:
-      - env:
-        - name: OTEL_SERVICE_NAME
-          value: dataqa-api-rs
-        - name: DATAQA_API_RS__UPLOAD__AWS_OPTIONS__CDN_BASE_URL
-          value: https://cdn.example.com/
-        - name: SOURCE_VERSION
-          valueFrom:
-            configMapKeyRef:
-              name: example-monorepo-revision-sync-968cb4dfd2
-              key: monorepo-revision
-        envFrom:
-        - secretRef:
-            name: base-secrets-bgdcccc7t4
-        - configMapRef:
-            name: base-configs-h9955f52m6
-        image: docker.io/example/dataqa_api_rs:db2991ff9b9b89501084979002b9f736f975a2ca
-        imagePullPolicy: IfNotPresent
-        livenessProbe:
-          failureThreshold: 3
-          httpGet:
-            path: /healthy-check
-            port: http
-            scheme: HTTP
-          initialDelaySeconds: 600
-          periodSeconds: 3
-          successThreshold: 1
-          timeoutSeconds: 1
-        name: dataqa-api-rs
-        ports:
-        - containerPort: 17575
-          name: http
-          protocol: TCP
-        readinessProbe:
-          failureThreshold: 30
-          httpGet:
-            path: /healthy-check
-            port: http
-            scheme: HTTP
-          initialDelaySeconds: 1
-          periodSeconds: 3
-          successThreshold: 1
-          timeoutSeconds: 1
-        resources:
-          limits:
-            memory: 4Gi
-          requests:
-            memory: 512Mi
+        - env:
+            - name: OTEL_SERVICE_NAME
+              value: dataqa-api-rs
+            - name: DATAQA_API_RS__UPLOAD__AWS_OPTIONS__CDN_BASE_URL
+              value: https://cdn.example.com/
+            - name: SOURCE_VERSION
+              valueFrom:
+                configMapKeyRef:
+                  name: example-monorepo-revision-sync-968cb4dfd2
+                  key: monorepo-revision
+          envFrom:
+            - secretRef:
+                name: base-secrets-bgdcccc7t4
+            - configMapRef:
+                name: base-configs-h9955f52m6
+          image: docker.io/example/dataqa_api_rs:db2991ff9b9b89501084979002b9f736f975a2ca
+          imagePullPolicy: IfNotPresent
+          livenessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /healthy-check
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 600
+            periodSeconds: 3
+            successThreshold: 1
+            timeoutSeconds: 1
+          name: dataqa-api-rs
+          ports:
+            - containerPort: 17575
+              name: http
+              protocol: TCP
+          readinessProbe:
+            failureThreshold: 30
+            httpGet:
+              path: /healthy-check
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 1
+            periodSeconds: 3
+            successThreshold: 1
+            timeoutSeconds: 1
+          resources:
+            limits:
+              memory: 4Gi
+            requests:
+              memory: 512Mi
       imagePullSecrets:
-      - name: dockerhub-example-pull
+        - name: dockerhub-example-pull
     metadata:
       labels:
         app.kubernetes.io/name: dataqa-api-rs
@@ -484,13 +484,13 @@ metadata:
     app.kubernetes.io/instance: example-staging-au
 spec:
   ipFamilies:
-  - IPv4
+    - IPv4
   ipFamilyPolicy: SingleStack
   ports:
-  - name: http
-    port: 80
-    protocol: TCP
-    targetPort: http
+    - name: http
+      port: 80
+      protocol: TCP
+      targetPort: http
   type: ClusterIP
   selector:
     app.kubernetes.io/name: dataqa-api-rs
@@ -508,20 +508,20 @@ metadata:
 spec:
   ingressClassName: nginx
   rules:
-  - host: dataqa-api-rs.staging.example.pro
-    http:
-      paths:
-      - backend:
-          service:
-            name: example-dataqa-api-rs
-            port:
-              number: 80
-        path: /
-        pathType: ImplementationSpecific
+    - host: dataqa-api-rs.staging.example.pro
+      http:
+        paths:
+          - backend:
+              service:
+                name: example-dataqa-api-rs
+                port:
+                  number: 80
+            path: /
+            pathType: ImplementationSpecific
   tls:
-  - hosts:
-    - dataqa-api-rs.staging.example.pro
-    secretName: dataqa-api-rs-ingress-tls
+    - hosts:
+        - dataqa-api-rs.staging.example.pro
+      secretName: dataqa-api-rs-ingress-tls
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -538,73 +538,73 @@ spec:
   template:
     spec:
       containers:
-      - image: nginx:1.21.1-alpine
-        imagePullPolicy: IfNotPresent
-        env:
-        - name: SOURCE_VERSION
-          valueFrom:
-            configMapKeyRef:
-              name: example-monorepo-revision-sync-968cb4dfd2
-              key: monorepo-revision
-        livenessProbe:
-          failureThreshold: 3
-          httpGet:
-            path: /index.html
-            port: http
-            scheme: HTTP
-          periodSeconds: 10
-          successThreshold: 1
-          timeoutSeconds: 1
-        name: dataqa-web
-        ports:
-        - containerPort: 80
-          name: http
-          protocol: TCP
-        readinessProbe:
-          failureThreshold: 3
-          httpGet:
-            path: /index.html
-            port: http
-            scheme: HTTP
-          periodSeconds: 10
-          successThreshold: 1
-          timeoutSeconds: 1
-        volumeMounts:
-        - mountPath: /tmp/www
-          name: dataqa-web-www
-        - mountPath: /etc/nginx/conf.d
-          name: dataqa-web-nginx-conf
+        - image: nginx:1.21.1-alpine
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: SOURCE_VERSION
+              valueFrom:
+                configMapKeyRef:
+                  name: example-monorepo-revision-sync-968cb4dfd2
+                  key: monorepo-revision
+          livenessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /index.html
+              port: http
+              scheme: HTTP
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 1
+          name: dataqa-web
+          ports:
+            - containerPort: 80
+              name: http
+              protocol: TCP
+          readinessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /index.html
+              port: http
+              scheme: HTTP
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 1
+          volumeMounts:
+            - mountPath: /tmp/www
+              name: dataqa-web-www
+            - mountPath: /etc/nginx/conf.d
+              name: dataqa-web-nginx-conf
       initContainers:
-      - env:
-        - name: API_URL
-          value: https://api.staging.example.pro
-        - name: APP_URL
-          value: https://dataqa.staging.example.pro
-        - name: DATAQA_API_RS_URL
-          value: https://dataqa-api-rs.staging.example.pro
-        - name: SOURCE_PATH
-          value: /app/dist/
-        - name: ASSET_URL
-          value: https://cdn.example.com/assets/dataqa/
-        - name: DEST_PATH
-          value: /tmp/www/dataqa-web
-        - name: DATAQA_API_URL
-        image: docker.io/example/dataqa_web:bcb414ebea975ae17a204f006dae511be532ee22
-        imagePullPolicy: IfNotPresent
-        name: dataqa-web-init
-        volumeMounts:
-        - mountPath: /tmp/www
-          name: dataqa-web-www
-        - mountPath: /etc/nginx/conf.d
-          name: dataqa-web-nginx-conf
+        - env:
+            - name: API_URL
+              value: https://api.staging.example.pro
+            - name: APP_URL
+              value: https://dataqa.staging.example.pro
+            - name: DATAQA_API_RS_URL
+              value: https://dataqa-api-rs.staging.example.pro
+            - name: SOURCE_PATH
+              value: /app/dist/
+            - name: ASSET_URL
+              value: https://cdn.example.com/assets/dataqa/
+            - name: DEST_PATH
+              value: /tmp/www/dataqa-web
+            - name: DATAQA_API_URL
+          image: docker.io/example/dataqa_web:bcb414ebea975ae17a204f006dae511be532ee22
+          imagePullPolicy: IfNotPresent
+          name: dataqa-web-init
+          volumeMounts:
+            - mountPath: /tmp/www
+              name: dataqa-web-www
+            - mountPath: /etc/nginx/conf.d
+              name: dataqa-web-nginx-conf
       volumes:
-      - name: dataqa-web-www
-      - configMap:
-          defaultMode: 420
+        - name: dataqa-web-www
+        - configMap:
+            defaultMode: 420
+            name: dataqa-web-nginx-conf
           name: dataqa-web-nginx-conf
-        name: dataqa-web-nginx-conf
       imagePullSecrets:
-      - name: dockerhub-example-pull
+        - name: dockerhub-example-pull
     metadata:
       labels:
         app.kubernetes.io/name: dataqa-web
@@ -622,13 +622,13 @@ metadata:
     app.kubernetes.io/instance: example-staging-au
 spec:
   ipFamilies:
-  - IPv4
+    - IPv4
   ipFamilyPolicy: SingleStack
   ports:
-  - name: http
-    port: 80
-    protocol: TCP
-    targetPort: http
+    - name: http
+      port: 80
+      protocol: TCP
+      targetPort: http
   type: ClusterIP
   selector:
     app.kubernetes.io/name: dataqa-web
@@ -642,29 +642,7 @@ metadata:
     app.kubernetes.io/name: dataqa-web
     app.kubernetes.io/instance: example-staging-au
 data:
-  default.conf: |
-    server {
-            listen 80 default_server;
-            listen [::]:80 default_server;
-
-            root /tmp/www/dataqa-web;
-
-            location ~* \.(png|jpeg|jpg|gif|svg|ttf|woff|js|json|ico|css|mp3|mp4)$ {
-                add_header Cache-Control public;
-                expires 14d;
-                etag on;
-                try_files $uri $uri =404;
-            }
-
-            location ~ ^/(index.html) {
-                add_header Cache-Control must-revalidate;
-                etag on;
-            }
-
-            location / {
-                rewrite /?$ /index.html last;
-            }
-    }
+  default.conf: "server {\n        listen 80 default_server;\n        listen [::]:80 default_server;\n\n        root /tmp/www/dataqa-web;\n\n        location ~* \\.(png|jpeg|jpg|gif|svg|ttf|woff|js|json|ico|css|mp3|mp4)$ {\n            add_header Cache-Control public;\n            expires 14d;\n            etag on;\n            try_files $uri $uri =404;\n        }\n\n        location ~ ^/(index.html) {\n            add_header Cache-Control must-revalidate;\n            etag on;\n        }\n\n        location / {\n            rewrite /?$ /index.html last;\n        }\n}\n"
 ---
 apiVersion: networking.k8s.io/v1
 kind: Ingress
@@ -679,20 +657,20 @@ metadata:
 spec:
   ingressClassName: nginx
   rules:
-  - host: dataqa.staging.example.pro
-    http:
-      paths:
-      - backend:
-          service:
-            name: example-dataqa-web
-            port:
-              number: 80
-        path: /
-        pathType: ImplementationSpecific
+    - host: dataqa.staging.example.pro
+      http:
+        paths:
+          - backend:
+              service:
+                name: example-dataqa-web
+                port:
+                  number: 80
+            path: /
+            pathType: ImplementationSpecific
   tls:
-  - hosts:
-    - dataqa.staging.example.pro
-    secretName: dataqa-web-ingress-tls
+    - hosts:
+        - dataqa.staging.example.pro
+      secretName: dataqa-web-ingress-tls
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -709,33 +687,33 @@ spec:
   template:
     spec:
       containers:
-      - env:
-        - name: OTEL_SERVICE_NAME
-          value: driftdb-server
-        - name: SOURCE_VERSION
-          valueFrom:
-            configMapKeyRef:
-              name: example-monorepo-revision-sync-968cb4dfd2
-              key: monorepo-revision
-        envFrom:
-        - secretRef:
-            name: base-secrets-bgdcccc7t4
-        - configMapRef:
-            name: base-configs-h9955f52m6
-        image: docker.io/example/driftdb_server:002a1b3824705a191b6f61e9177c4697f783bf4e
-        imagePullPolicy: IfNotPresent
-        name: driftdb-server
-        ports:
-        - containerPort: 6540
-          name: http
-          protocol: TCP
-        resources:
-          limits:
-            memory: 512Mi
-          requests:
-            memory: 128Mi
+        - env:
+            - name: OTEL_SERVICE_NAME
+              value: driftdb-server
+            - name: SOURCE_VERSION
+              valueFrom:
+                configMapKeyRef:
+                  name: example-monorepo-revision-sync-968cb4dfd2
+                  key: monorepo-revision
+          envFrom:
+            - secretRef:
+                name: base-secrets-bgdcccc7t4
+            - configMapRef:
+                name: base-configs-h9955f52m6
+          image: docker.io/example/driftdb_server:002a1b3824705a191b6f61e9177c4697f783bf4e
+          imagePullPolicy: IfNotPresent
+          name: driftdb-server
+          ports:
+            - containerPort: 6540
+              name: http
+              protocol: TCP
+          resources:
+            limits:
+              memory: 512Mi
+            requests:
+              memory: 128Mi
       imagePullSecrets:
-      - name: dockerhub-example-pull
+        - name: dockerhub-example-pull
     metadata:
       labels:
         app.kubernetes.io/name: driftdb-server
@@ -753,13 +731,13 @@ metadata:
     app.kubernetes.io/instance: example-staging-au
 spec:
   ipFamilies:
-  - IPv4
+    - IPv4
   ipFamilyPolicy: SingleStack
   ports:
-  - name: http
-    port: 80
-    protocol: TCP
-    targetPort: http
+    - name: http
+      port: 80
+      protocol: TCP
+      targetPort: http
   type: ClusterIP
   selector:
     app.kubernetes.io/name: driftdb-server
@@ -777,20 +755,20 @@ metadata:
 spec:
   ingressClassName: nginx
   rules:
-  - host: api.staging.example.pro
-    http:
-      paths:
-      - backend:
-          service:
-            name: example-driftdb-server
-            port:
-              number: 80
-        path: /api/v1-experimental-async
-        pathType: ImplementationSpecific
+    - host: api.staging.example.pro
+      http:
+        paths:
+          - backend:
+              service:
+                name: example-driftdb-server
+                port:
+                  number: 80
+            path: /api/v1-experimental-async
+            pathType: ImplementationSpecific
   tls:
-  - hosts:
-    - api.staging.example.pro
-    secretName: driftdb-server-ingress-tls
+    - hosts:
+        - api.staging.example.pro
+      secretName: driftdb-server-ingress-tls
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -807,57 +785,58 @@ spec:
   template:
     spec:
       containers:
-      - env:
-        - name: OTEL_SERVICE_NAME
-          value: elasticsearch-ingestor
-        - name: NODE_OPTIONS
-          value: --max-old-space-size=3072
-        - name: ELASTICSEARCH_INGESTOR_HIGH_PRIORITY
-          value: '1'
-        - name: SOURCE_VERSION
-          valueFrom:
-            configMapKeyRef:
-              name: example-monorepo-revision-sync-968cb4dfd2
-              key: monorepo-revision
-        envFrom:
-        - secretRef:
-            name: base-secrets-bgdcccc7t4
-        - configMapRef:
-            name: base-configs-h9955f52m6
-        image: docker.io/example/elasticsearch_ingestor:2753e02a25091d9e7a3795c7aa1584a4c12298c8
-        imagePullPolicy: IfNotPresent
-        livenessProbe:
-          failureThreshold: 3
-          httpGet:
-            path: /healthy-check
-            port: http
-            scheme: HTTP
-          initialDelaySeconds: 120
-          periodSeconds: 60
-          successThreshold: 1
-          timeoutSeconds: 60
-        name: elasticsearch-ingestor-high
-        ports:
-        - containerPort: 3333
-          name: http
-          protocol: TCP
-        readinessProbe:
-          failureThreshold: 3
-          httpGet:
-            path: /healthy-check
-            port: http
-            scheme: HTTP
-          initialDelaySeconds: 120
-          periodSeconds: 60
-          successThreshold: 1
-          timeoutSeconds: 60
-        resources:
-          limits:
-            memory: 1Gi
-          requests:
-            memory: 512Mi
+        - env:
+            - name: OTEL_SERVICE_NAME
+              value: elasticsearch-ingestor
+            - name: NODE_OPTIONS
+              value: "--max-old-space-size=3072"
+            - name: ELASTICSEARCH_INGESTOR_HIGH_PRIORITY
+              value: "1"
+            - name: SOURCE_VERSION
+              valueFrom:
+                configMapKeyRef:
+                  name: example-monorepo-revision-sync-968cb4dfd2
+                  key: monorepo-revision
+          envFrom:
+            - secretRef:
+                name: base-secrets-bgdcccc7t4
+            - configMapRef:
+                name: base-configs-h9955f52m6
+          image: >-
+            docker.io/example/elasticsearch_ingestor:2753e02a25091d9e7a3795c7aa1584a4c12298c8
+          imagePullPolicy: IfNotPresent
+          livenessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /healthy-check
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 120
+            periodSeconds: 60
+            successThreshold: 1
+            timeoutSeconds: 60
+          name: elasticsearch-ingestor-high
+          ports:
+            - containerPort: 3333
+              name: http
+              protocol: TCP
+          readinessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /healthy-check
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 120
+            periodSeconds: 60
+            successThreshold: 1
+            timeoutSeconds: 60
+          resources:
+            limits:
+              memory: 1Gi
+            requests:
+              memory: 512Mi
       imagePullSecrets:
-      - name: dockerhub-example-pull
+        - name: dockerhub-example-pull
     metadata:
       labels:
         app.kubernetes.io/name: elasticsearch-ingestor-high
@@ -875,13 +854,13 @@ metadata:
     app.kubernetes.io/instance: example-staging-au
 spec:
   ipFamilies:
-  - IPv4
+    - IPv4
   ipFamilyPolicy: SingleStack
   ports:
-  - name: http
-    port: 80
-    protocol: TCP
-    targetPort: http
+    - name: http
+      port: 80
+      protocol: TCP
+      targetPort: http
   type: ClusterIP
   selector:
     app.kubernetes.io/name: elasticsearch-ingestor-high
@@ -901,57 +880,58 @@ spec:
   template:
     spec:
       containers:
-      - env:
-        - name: OTEL_SERVICE_NAME
-          value: elasticsearch-ingestor
-        - name: NODE_OPTIONS
-          value: --max-old-space-size=1024
-        - name: ELASTICSEARCH_INGESTOR_LOW_PRIORITY
-          value: '1'
-        - name: SOURCE_VERSION
-          valueFrom:
-            configMapKeyRef:
-              name: example-monorepo-revision-sync-968cb4dfd2
-              key: monorepo-revision
-        envFrom:
-        - secretRef:
-            name: base-secrets-bgdcccc7t4
-        - configMapRef:
-            name: base-configs-h9955f52m6
-        image: docker.io/example/elasticsearch_ingestor:2753e02a25091d9e7a3795c7aa1584a4c12298c8
-        imagePullPolicy: IfNotPresent
-        livenessProbe:
-          failureThreshold: 3
-          httpGet:
-            path: /healthy-check
-            port: http
-            scheme: HTTP
-          initialDelaySeconds: 120
-          periodSeconds: 60
-          successThreshold: 1
-          timeoutSeconds: 60
-        name: elasticsearch-ingestor-low
-        ports:
-        - containerPort: 3333
-          name: http
-          protocol: TCP
-        readinessProbe:
-          failureThreshold: 3
-          httpGet:
-            path: /healthy-check
-            port: http
-            scheme: HTTP
-          initialDelaySeconds: 120
-          periodSeconds: 60
-          successThreshold: 1
-          timeoutSeconds: 60
-        resources:
-          limits:
-            memory: 1Gi
-          requests:
-            memory: 512Mi
+        - env:
+            - name: OTEL_SERVICE_NAME
+              value: elasticsearch-ingestor
+            - name: NODE_OPTIONS
+              value: "--max-old-space-size=1024"
+            - name: ELASTICSEARCH_INGESTOR_LOW_PRIORITY
+              value: "1"
+            - name: SOURCE_VERSION
+              valueFrom:
+                configMapKeyRef:
+                  name: example-monorepo-revision-sync-968cb4dfd2
+                  key: monorepo-revision
+          envFrom:
+            - secretRef:
+                name: base-secrets-bgdcccc7t4
+            - configMapRef:
+                name: base-configs-h9955f52m6
+          image: >-
+            docker.io/example/elasticsearch_ingestor:2753e02a25091d9e7a3795c7aa1584a4c12298c8
+          imagePullPolicy: IfNotPresent
+          livenessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /healthy-check
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 120
+            periodSeconds: 60
+            successThreshold: 1
+            timeoutSeconds: 60
+          name: elasticsearch-ingestor-low
+          ports:
+            - containerPort: 3333
+              name: http
+              protocol: TCP
+          readinessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /healthy-check
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 120
+            periodSeconds: 60
+            successThreshold: 1
+            timeoutSeconds: 60
+          resources:
+            limits:
+              memory: 1Gi
+            requests:
+              memory: 512Mi
       imagePullSecrets:
-      - name: dockerhub-example-pull
+        - name: dockerhub-example-pull
     metadata:
       labels:
         app.kubernetes.io/name: elasticsearch-ingestor-low
@@ -969,13 +949,13 @@ metadata:
     app.kubernetes.io/instance: example-staging-au
 spec:
   ipFamilies:
-  - IPv4
+    - IPv4
   ipFamilyPolicy: SingleStack
   ports:
-  - name: http
-    port: 80
-    protocol: TCP
-    targetPort: http
+    - name: http
+      port: 80
+      protocol: TCP
+      targetPort: http
   type: ClusterIP
   selector:
     app.kubernetes.io/name: elasticsearch-ingestor-low
@@ -995,53 +975,54 @@ spec:
   template:
     spec:
       containers:
-      - env:
-        - name: OTEL_SERVICE_NAME
-          value: elasticsearch-ingestor-rs
-        - name: SOURCE_VERSION
-          valueFrom:
-            configMapKeyRef:
-              name: example-monorepo-revision-sync-968cb4dfd2
-              key: monorepo-revision
-        envFrom:
-        - secretRef:
-            name: base-secrets-bgdcccc7t4
-        - configMapRef:
-            name: base-configs-h9955f52m6
-        image: docker.io/example/elasticsearch_ingestor_rs:2f456dbc227292fccbd795d52ff2149dbb34a754
-        imagePullPolicy: IfNotPresent
-        livenessProbe:
-          failureThreshold: 3
-          httpGet:
-            path: /api/internal/system.liveness.get
-            port: http
-            scheme: HTTP
-          initialDelaySeconds: 6
-          periodSeconds: 10
-          successThreshold: 1
-          timeoutSeconds: 5
-        name: elasticsearch-ingestor-rs
-        ports:
-        - containerPort: 4050
-          name: http
-          protocol: TCP
-        readinessProbe:
-          failureThreshold: 3
-          httpGet:
-            path: /api/internal/system.readiness.get
-            port: http
-            scheme: HTTP
-          initialDelaySeconds: 10
-          periodSeconds: 5
-          successThreshold: 1
-          timeoutSeconds: 3
-        resources:
-          limits:
-            memory: 1Gi
-          requests:
-            memory: 256Mi
+        - env:
+            - name: OTEL_SERVICE_NAME
+              value: elasticsearch-ingestor-rs
+            - name: SOURCE_VERSION
+              valueFrom:
+                configMapKeyRef:
+                  name: example-monorepo-revision-sync-968cb4dfd2
+                  key: monorepo-revision
+          envFrom:
+            - secretRef:
+                name: base-secrets-bgdcccc7t4
+            - configMapRef:
+                name: base-configs-h9955f52m6
+          image: >-
+            docker.io/example/elasticsearch_ingestor_rs:2f456dbc227292fccbd795d52ff2149dbb34a754
+          imagePullPolicy: IfNotPresent
+          livenessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /api/internal/system.liveness.get
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 6
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 5
+          name: elasticsearch-ingestor-rs
+          ports:
+            - containerPort: 4050
+              name: http
+              protocol: TCP
+          readinessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /api/internal/system.readiness.get
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            successThreshold: 1
+            timeoutSeconds: 3
+          resources:
+            limits:
+              memory: 1Gi
+            requests:
+              memory: 256Mi
       imagePullSecrets:
-      - name: dockerhub-example-pull
+        - name: dockerhub-example-pull
     metadata:
       labels:
         app.kubernetes.io/name: elasticsearch-ingestor-rs
@@ -1059,13 +1040,13 @@ metadata:
     app.kubernetes.io/instance: example-staging-au
 spec:
   ipFamilies:
-  - IPv4
+    - IPv4
   ipFamilyPolicy: SingleStack
   ports:
-  - name: http
-    port: 80
-    protocol: TCP
-    targetPort: http
+    - name: http
+      port: 80
+      protocol: TCP
+      targetPort: http
   type: ClusterIP
   selector:
     app.kubernetes.io/name: elasticsearch-ingestor-rs
@@ -1085,48 +1066,48 @@ spec:
   template:
     spec:
       containers:
-      - env:
-        - name: OTEL_SERVICE_NAME
-          value: email-integration
-        - name: SOURCE_VERSION
-          valueFrom:
-            configMapKeyRef:
-              name: example-monorepo-revision-sync-968cb4dfd2
-              key: monorepo-revision
-        envFrom:
-        - secretRef:
-            name: base-secrets-bgdcccc7t4
-        - configMapRef:
-            name: base-configs-h9955f52m6
-        image: docker.io/example/email_integration:79816f2b87308aecdea673c0ad9e83a0677a00a2
-        imagePullPolicy: IfNotPresent
-        livenessProbe:
-          failureThreshold: 3
-          httpGet:
-            path: /health_check
-            port: http
-            scheme: HTTP
-          initialDelaySeconds: 30
-          periodSeconds: 5
-          successThreshold: 1
-          timeoutSeconds: 3
-        name: email-integration
-        ports:
-        - containerPort: 4407
-          name: http
-          protocol: TCP
-        readinessProbe:
-          failureThreshold: 3
-          httpGet:
-            path: /health_check
-            port: http
-            scheme: HTTP
-          initialDelaySeconds: 5
-          periodSeconds: 5
-          successThreshold: 1
-          timeoutSeconds: 3
+        - env:
+            - name: OTEL_SERVICE_NAME
+              value: email-integration
+            - name: SOURCE_VERSION
+              valueFrom:
+                configMapKeyRef:
+                  name: example-monorepo-revision-sync-968cb4dfd2
+                  key: monorepo-revision
+          envFrom:
+            - secretRef:
+                name: base-secrets-bgdcccc7t4
+            - configMapRef:
+                name: base-configs-h9955f52m6
+          image: docker.io/example/email_integration:79816f2b87308aecdea673c0ad9e83a0677a00a2
+          imagePullPolicy: IfNotPresent
+          livenessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /health_check
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 30
+            periodSeconds: 5
+            successThreshold: 1
+            timeoutSeconds: 3
+          name: email-integration
+          ports:
+            - containerPort: 4407
+              name: http
+              protocol: TCP
+          readinessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /health_check
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            successThreshold: 1
+            timeoutSeconds: 3
       imagePullSecrets:
-      - name: dockerhub-example-pull
+        - name: dockerhub-example-pull
     metadata:
       labels:
         app.kubernetes.io/name: email-integration
@@ -1144,13 +1125,13 @@ metadata:
     app.kubernetes.io/instance: example-staging-au
 spec:
   ipFamilies:
-  - IPv4
+    - IPv4
   ipFamilyPolicy: SingleStack
   ports:
-  - name: http
-    port: 80
-    protocol: TCP
-    targetPort: http
+    - name: http
+      port: 80
+      protocol: TCP
+      targetPort: http
   type: ClusterIP
   selector:
     app.kubernetes.io/name: email-integration
@@ -1170,53 +1151,53 @@ spec:
   template:
     spec:
       containers:
-      - env:
-        - name: OTEL_SERVICE_NAME
-          value: file-ingestor
-        - name: SOURCE_VERSION
-          valueFrom:
-            configMapKeyRef:
-              name: example-monorepo-revision-sync-968cb4dfd2
-              key: monorepo-revision
-        envFrom:
-        - secretRef:
-            name: base-secrets-bgdcccc7t4
-        - configMapRef:
-            name: base-configs-h9955f52m6
-        image: docker.io/example/file_ingestor:60c1074e758347c59b325d43167327b5801063ce
-        imagePullPolicy: IfNotPresent
-        livenessProbe:
-          failureThreshold: 3
-          httpGet:
-            path: /api/internal/system.readiness.get
-            port: http
-            scheme: HTTP
-          initialDelaySeconds: 60
-          periodSeconds: 5
-          successThreshold: 1
-          timeoutSeconds: 3
-        name: file-ingestor
-        ports:
-        - containerPort: 7050
-          name: http
-          protocol: TCP
-        readinessProbe:
-          failureThreshold: 3
-          httpGet:
-            path: /api/internal/system.readiness.get
-            port: http
-            scheme: HTTP
-          initialDelaySeconds: 5
-          periodSeconds: 5
-          successThreshold: 1
-          timeoutSeconds: 3
-        resources:
-          limits:
-            memory: 2Gi
-          requests:
-            memory: 512Mi
+        - env:
+            - name: OTEL_SERVICE_NAME
+              value: file-ingestor
+            - name: SOURCE_VERSION
+              valueFrom:
+                configMapKeyRef:
+                  name: example-monorepo-revision-sync-968cb4dfd2
+                  key: monorepo-revision
+          envFrom:
+            - secretRef:
+                name: base-secrets-bgdcccc7t4
+            - configMapRef:
+                name: base-configs-h9955f52m6
+          image: docker.io/example/file_ingestor:60c1074e758347c59b325d43167327b5801063ce
+          imagePullPolicy: IfNotPresent
+          livenessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /api/internal/system.readiness.get
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 60
+            periodSeconds: 5
+            successThreshold: 1
+            timeoutSeconds: 3
+          name: file-ingestor
+          ports:
+            - containerPort: 7050
+              name: http
+              protocol: TCP
+          readinessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /api/internal/system.readiness.get
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            successThreshold: 1
+            timeoutSeconds: 3
+          resources:
+            limits:
+              memory: 2Gi
+            requests:
+              memory: 512Mi
       imagePullSecrets:
-      - name: dockerhub-example-pull
+        - name: dockerhub-example-pull
     metadata:
       labels:
         app.kubernetes.io/name: file-ingestor
@@ -1234,13 +1215,13 @@ metadata:
     app.kubernetes.io/instance: example-staging-au
 spec:
   ipFamilies:
-  - IPv4
+    - IPv4
   ipFamilyPolicy: SingleStack
   ports:
-  - name: http
-    port: 80
-    protocol: TCP
-    targetPort: http
+    - name: http
+      port: 80
+      protocol: TCP
+      targetPort: http
   type: ClusterIP
   selector:
     app.kubernetes.io/name: file-ingestor
@@ -1264,16 +1245,16 @@ spec:
         spec:
           restartPolicy: OnFailure
           containers:
-          - env:
-            - name: OTEL_SERVICE_NAME
-              value: garbage-collector
-            envFrom:
-            - secretRef:
-                name: base-secrets-bgdcccc7t4
-            - configMapRef:
-                name: base-configs-h9955f52m6
-            image: docker.io/example/garbage_collector:7b0c812c394664373a2453b315e56d0f8883032a
-            name: garbage-collector
+            - env:
+                - name: OTEL_SERVICE_NAME
+                  value: garbage-collector
+              envFrom:
+                - secretRef:
+                    name: base-secrets-bgdcccc7t4
+                - configMapRef:
+                    name: base-configs-h9955f52m6
+              image: docker.io/example/garbage_collector:7b0c812c394664373a2453b315e56d0f8883032a
+              name: garbage-collector
         metadata:
           labels:
             app.kubernetes.io/name: garbage-collector
@@ -1296,57 +1277,57 @@ spec:
   template:
     spec:
       containers:
-      - env:
-        - name: PORT
-          value: '9394'
-        - name: OTEL_SERVICE_NAME
-          value: hca-notion-sync
-        - name: NODE_OPTIONS
-          value: --max-old-space-size=1500
-        - name: SOURCE_VERSION
-          valueFrom:
-            configMapKeyRef:
-              name: example-monorepo-revision-sync-968cb4dfd2
-              key: monorepo-revision
-        envFrom:
-        - secretRef:
-            name: base-secrets-bgdcccc7t4
-        - configMapRef:
-            name: base-configs-h9955f52m6
-        image: docker.io/example/hca_notion_sync:3699aa48811047f730e0505a6ae855f7a2f9f6fb
-        imagePullPolicy: IfNotPresent
-        livenessProbe:
-          failureThreshold: 3
-          httpGet:
-            path: /internal/system.readiness.get
-            port: http
-            scheme: HTTP
-          initialDelaySeconds: 30
-          periodSeconds: 30
-          successThreshold: 1
-          timeoutSeconds: 360
-        name: hca-notion-sync
-        ports:
-        - containerPort: 9394
-          name: http
-          protocol: TCP
-        readinessProbe:
-          failureThreshold: 5
-          httpGet:
-            path: /internal/system.readiness.get
-            port: http
-            scheme: HTTP
-          initialDelaySeconds: 30
-          periodSeconds: 30
-          successThreshold: 1
-          timeoutSeconds: 360
-        resources:
-          limits:
-            memory: 256Mi
-          requests:
-            memory: 128Mi
+        - env:
+            - name: PORT
+              value: "9394"
+            - name: OTEL_SERVICE_NAME
+              value: hca-notion-sync
+            - name: NODE_OPTIONS
+              value: "--max-old-space-size=1500"
+            - name: SOURCE_VERSION
+              valueFrom:
+                configMapKeyRef:
+                  name: example-monorepo-revision-sync-968cb4dfd2
+                  key: monorepo-revision
+          envFrom:
+            - secretRef:
+                name: base-secrets-bgdcccc7t4
+            - configMapRef:
+                name: base-configs-h9955f52m6
+          image: docker.io/example/hca_notion_sync:3699aa48811047f730e0505a6ae855f7a2f9f6fb
+          imagePullPolicy: IfNotPresent
+          livenessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /internal/system.readiness.get
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 30
+            periodSeconds: 30
+            successThreshold: 1
+            timeoutSeconds: 360
+          name: hca-notion-sync
+          ports:
+            - containerPort: 9394
+              name: http
+              protocol: TCP
+          readinessProbe:
+            failureThreshold: 5
+            httpGet:
+              path: /internal/system.readiness.get
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 30
+            periodSeconds: 30
+            successThreshold: 1
+            timeoutSeconds: 360
+          resources:
+            limits:
+              memory: 256Mi
+            requests:
+              memory: 128Mi
       imagePullSecrets:
-      - name: dockerhub-example-pull
+        - name: dockerhub-example-pull
     metadata:
       labels:
         app.kubernetes.io/name: hca-notion-sync
@@ -1364,13 +1345,13 @@ metadata:
     app.kubernetes.io/instance: example-staging-au
 spec:
   ipFamilies:
-  - IPv4
+    - IPv4
   ipFamilyPolicy: SingleStack
   ports:
-  - name: http
-    port: 80
-    protocol: TCP
-    targetPort: http
+    - name: http
+      port: 80
+      protocol: TCP
+      targetPort: http
   type: ClusterIP
   selector:
     app.kubernetes.io/name: hca-notion-sync
@@ -1390,61 +1371,61 @@ spec:
   template:
     spec:
       containers:
-      - env:
-        - name: OTEL_SERVICE_NAME
-          value: lookup-scanner
-        - name: LOOKUP_SCANNER__SYSTEM__MINIO_OPTIONS__ENABLE_MINIO
-          value: 'false'
-        - name: LOOKUP_SCANNER__SYSTEM__AWS_OPTIONS__S3_REGION
-          value: ap-southeast-2
-        - name: LOOKUP_SCANNER__SYSTEM__AWS_OPTIONS__S3_BUCKET_PUBLIC
-          value: example-staging-cdn
-        - name: LOOKUP_SCANNER__SYSTEM__AWS_OPTIONS__CDN_BASE_URL
-          value: https://cdn.example.com/
-        - name: SOURCE_VERSION
-          valueFrom:
-            configMapKeyRef:
-              name: example-monorepo-revision-sync-968cb4dfd2
-              key: monorepo-revision
-        envFrom:
-        - secretRef:
-            name: base-secrets-bgdcccc7t4
-        - configMapRef:
-            name: base-configs-h9955f52m6
-        image: docker.io/example/lookup_scanner:71748ce3178b8666188daccb18442cf024fa1ce3
-        imagePullPolicy: IfNotPresent
-        livenessProbe:
-          failureThreshold: 3
-          httpGet:
-            path: /api/internal/system.liveness.get
-            port: http
-            scheme: HTTP
-          initialDelaySeconds: 6
-          periodSeconds: 10
-          successThreshold: 1
-          timeoutSeconds: 5
-        name: lookup-scanner
-        ports:
-        - containerPort: 4030
-          name: http
-          protocol: TCP
-        readinessProbe:
-          failureThreshold: 3
-          httpGet:
-            path: /api/internal/system.readiness.get
-            port: http
-            scheme: HTTP
-          initialDelaySeconds: 10
-          periodSeconds: 5
-          successThreshold: 1
-          timeoutSeconds: 3
-        resources:
-          limits:
-            memory: 512Mi
-          requests:
-            memory: 128Mi
+        - env:
+            - name: OTEL_SERVICE_NAME
+              value: lookup-scanner
+            - name: LOOKUP_SCANNER__SYSTEM__MINIO_OPTIONS__ENABLE_MINIO
+              value: "false"
+            - name: LOOKUP_SCANNER__SYSTEM__AWS_OPTIONS__S3_REGION
+              value: ap-southeast-2
+            - name: LOOKUP_SCANNER__SYSTEM__AWS_OPTIONS__S3_BUCKET_PUBLIC
+              value: example-staging-cdn
+            - name: LOOKUP_SCANNER__SYSTEM__AWS_OPTIONS__CDN_BASE_URL
+              value: https://cdn.example.com/
+            - name: SOURCE_VERSION
+              valueFrom:
+                configMapKeyRef:
+                  name: example-monorepo-revision-sync-968cb4dfd2
+                  key: monorepo-revision
+          envFrom:
+            - secretRef:
+                name: base-secrets-bgdcccc7t4
+            - configMapRef:
+                name: base-configs-h9955f52m6
+          image: docker.io/example/lookup_scanner:71748ce3178b8666188daccb18442cf024fa1ce3
+          imagePullPolicy: IfNotPresent
+          livenessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /api/internal/system.liveness.get
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 6
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 5
+          name: lookup-scanner
+          ports:
+            - containerPort: 4030
+              name: http
+              protocol: TCP
+          readinessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /api/internal/system.readiness.get
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            successThreshold: 1
+            timeoutSeconds: 3
+          resources:
+            limits:
+              memory: 512Mi
+            requests:
+              memory: 128Mi
       imagePullSecrets:
-      - name: dockerhub-example-pull
+        - name: dockerhub-example-pull
     metadata:
       labels:
         app.kubernetes.io/name: lookup-scanner
@@ -1462,13 +1443,13 @@ metadata:
     app.kubernetes.io/instance: example-staging-au
 spec:
   ipFamilies:
-  - IPv4
+    - IPv4
   ipFamilyPolicy: SingleStack
   ports:
-  - name: http
-    port: 80
-    protocol: TCP
-    targetPort: http
+    - name: http
+      port: 80
+      protocol: TCP
+      targetPort: http
   type: ClusterIP
   selector:
     app.kubernetes.io/name: lookup-scanner
@@ -1488,66 +1469,66 @@ spec:
   template:
     spec:
       containers:
-      - env:
-        - name: OTEL_SERVICE_NAME
-          value: lookup-server
-        - name: LOOKUP_SERVER__LOGGING__LEVEL
-          value: info
-        - name: SOURCE_VERSION
-          valueFrom:
-            configMapKeyRef:
-              name: example-monorepo-revision-sync-968cb4dfd2
-              key: monorepo-revision
-        envFrom:
-        - secretRef:
-            name: base-secrets-bgdcccc7t4
-        - configMapRef:
-            name: base-configs-h9955f52m6
-        image: docker.io/example/lookup_server:9c41919e99bb4b295ba065a48da1228ebe7267d3
-        imagePullPolicy: IfNotPresent
-        livenessProbe:
-          failureThreshold: 3
-          httpGet:
-            path: /api/status/readiness
-            port: http
-            scheme: HTTP
-          initialDelaySeconds: 120
-          periodSeconds: 3
-          successThreshold: 1
-          timeoutSeconds: 1
-        name: lookup-server
-        ports:
-        - containerPort: 4000
-          name: http
-          protocol: TCP
-        readinessProbe:
-          failureThreshold: 90
-          httpGet:
-            path: /api/status/readiness
-            port: http
-            scheme: HTTP
-          initialDelaySeconds: 1
-          periodSeconds: 3
-          successThreshold: 1
-          timeoutSeconds: 1
-        resources:
-          limits:
-            memory: 2Gi
-          requests:
-            memory: 1Gi
-        startupProbe:
-          failureThreshold: 120
-          httpGet:
-            path: /api/status/readiness
-            port: http
-            scheme: HTTP
-          initialDelaySeconds: 20
-          periodSeconds: 3
-          successThreshold: 1
-          timeoutSeconds: 1
+        - env:
+            - name: OTEL_SERVICE_NAME
+              value: lookup-server
+            - name: LOOKUP_SERVER__LOGGING__LEVEL
+              value: info
+            - name: SOURCE_VERSION
+              valueFrom:
+                configMapKeyRef:
+                  name: example-monorepo-revision-sync-968cb4dfd2
+                  key: monorepo-revision
+          envFrom:
+            - secretRef:
+                name: base-secrets-bgdcccc7t4
+            - configMapRef:
+                name: base-configs-h9955f52m6
+          image: docker.io/example/lookup_server:9c41919e99bb4b295ba065a48da1228ebe7267d3
+          imagePullPolicy: IfNotPresent
+          livenessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /api/status/readiness
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 120
+            periodSeconds: 3
+            successThreshold: 1
+            timeoutSeconds: 1
+          name: lookup-server
+          ports:
+            - containerPort: 4000
+              name: http
+              protocol: TCP
+          readinessProbe:
+            failureThreshold: 90
+            httpGet:
+              path: /api/status/readiness
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 1
+            periodSeconds: 3
+            successThreshold: 1
+            timeoutSeconds: 1
+          resources:
+            limits:
+              memory: 2Gi
+            requests:
+              memory: 1Gi
+          startupProbe:
+            failureThreshold: 120
+            httpGet:
+              path: /api/status/readiness
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 20
+            periodSeconds: 3
+            successThreshold: 1
+            timeoutSeconds: 1
       terminationGracePeriodSeconds: 120
       imagePullSecrets:
-      - name: dockerhub-example-pull
+        - name: dockerhub-example-pull
     metadata:
       labels:
         app.kubernetes.io/name: lookup-server
@@ -1565,13 +1546,13 @@ metadata:
     app.kubernetes.io/instance: example-staging-au
 spec:
   ipFamilies:
-  - IPv4
+    - IPv4
   ipFamilyPolicy: SingleStack
   ports:
-  - name: http
-    port: 80
-    protocol: TCP
-    targetPort: http
+    - name: http
+      port: 80
+      protocol: TCP
+      targetPort: http
   type: ClusterIP
   selector:
     app.kubernetes.io/name: lookup-server
@@ -1591,53 +1572,53 @@ spec:
   template:
     spec:
       containers:
-      - env:
-        - name: OTEL_SERVICE_NAME
-          value: lookup-server-cdc
-        - name: SOURCE_VERSION
-          valueFrom:
-            configMapKeyRef:
-              name: example-monorepo-revision-sync-968cb4dfd2
-              key: monorepo-revision
-        envFrom:
-        - secretRef:
-            name: base-secrets-bgdcccc7t4
-        - configMapRef:
-            name: base-configs-h9955f52m6
-        image: docker.io/example/lookup_server_cdc:295bd0809eaa286649ecaeb8ca6f738c2b2ae7f8
-        imagePullPolicy: IfNotPresent
-        livenessProbe:
-          failureThreshold: 3
-          httpGet:
-            path: /api/internal/system.liveness.get
-            port: http
-            scheme: HTTP
-          initialDelaySeconds: 6
-          periodSeconds: 10
-          successThreshold: 1
-          timeoutSeconds: 5
-        name: lookup-server-cdc
-        ports:
-        - containerPort: 4000
-          name: http
-          protocol: TCP
-        readinessProbe:
-          failureThreshold: 3
-          httpGet:
-            path: /api/internal/system.readiness.get
-            port: http
-            scheme: HTTP
-          initialDelaySeconds: 10
-          periodSeconds: 5
-          successThreshold: 1
-          timeoutSeconds: 3
-        resources:
-          limits:
-            memory: 512Mi
-          requests:
-            memory: 128Mi
+        - env:
+            - name: OTEL_SERVICE_NAME
+              value: lookup-server-cdc
+            - name: SOURCE_VERSION
+              valueFrom:
+                configMapKeyRef:
+                  name: example-monorepo-revision-sync-968cb4dfd2
+                  key: monorepo-revision
+          envFrom:
+            - secretRef:
+                name: base-secrets-bgdcccc7t4
+            - configMapRef:
+                name: base-configs-h9955f52m6
+          image: docker.io/example/lookup_server_cdc:295bd0809eaa286649ecaeb8ca6f738c2b2ae7f8
+          imagePullPolicy: IfNotPresent
+          livenessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /api/internal/system.liveness.get
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 6
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 5
+          name: lookup-server-cdc
+          ports:
+            - containerPort: 4000
+              name: http
+              protocol: TCP
+          readinessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /api/internal/system.readiness.get
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            successThreshold: 1
+            timeoutSeconds: 3
+          resources:
+            limits:
+              memory: 512Mi
+            requests:
+              memory: 128Mi
       imagePullSecrets:
-      - name: dockerhub-example-pull
+        - name: dockerhub-example-pull
     metadata:
       labels:
         app.kubernetes.io/name: lookup-server-cdc
@@ -1655,13 +1636,13 @@ metadata:
     app.kubernetes.io/instance: example-staging-au
 spec:
   ipFamilies:
-  - IPv4
+    - IPv4
   ipFamilyPolicy: SingleStack
   ports:
-  - name: http
-    port: 80
-    protocol: TCP
-    targetPort: http
+    - name: http
+      port: 80
+      protocol: TCP
+      targetPort: http
   type: ClusterIP
   selector:
     app.kubernetes.io/name: lookup-server-cdc
@@ -1676,7 +1657,7 @@ metadata:
     app.kubernetes.io/instance: example-staging-au
   annotations:
     argocd.argoproj.io/hook: Sync
-    argocd.argoproj.io/sync-wave: '-2'
+    argocd.argoproj.io/sync-wave: "-2"
     argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
 spec:
   activeDeadlineSeconds: 10800
@@ -1691,30 +1672,31 @@ spec:
         app.kubernetes.io/name: migrations-scylla
       annotations:
         argocd.argoproj.io/hook: Sync
-        argocd.argoproj.io/sync-wave: '-2'
+        argocd.argoproj.io/sync-wave: "-2"
         argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
     spec:
       containers:
-      - envFrom:
-        - secretRef:
-            name: base-secrets-bgdcccc7t4
-        - configMapRef:
-            name: base-configs-h9955f52m6
-        image: docker.io/example/node_migrations_scylla:96e8f8e4aa8b2602c32ea89cbeb2c84e1c0831fc
-        imagePullPolicy: IfNotPresent
-        name: migrations-scylla
-        resources:
-          limits:
-            cpu: 500m
-            memory: 3Gi
-          requests:
-            cpu: 200m
-            memory: 1Gi
-        terminationMessagePath: /dev/termination-log
-        terminationMessagePolicy: File
+        - envFrom:
+            - secretRef:
+                name: base-secrets-bgdcccc7t4
+            - configMapRef:
+                name: base-configs-h9955f52m6
+          image: >-
+            docker.io/example/node_migrations_scylla:96e8f8e4aa8b2602c32ea89cbeb2c84e1c0831fc
+          imagePullPolicy: IfNotPresent
+          name: migrations-scylla
+          resources:
+            limits:
+              cpu: 500m
+              memory: 3Gi
+            requests:
+              cpu: 200m
+              memory: 1Gi
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
       dnsPolicy: ClusterFirst
       imagePullSecrets:
-      - name: dockerhub-example-pull
+        - name: dockerhub-example-pull
       restartPolicy: Never
       schedulerName: default-scheduler
       securityContext: {}
@@ -1730,7 +1712,7 @@ metadata:
     app.kubernetes.io/instance: example-staging-au
   annotations:
     argocd.argoproj.io/hook: Sync
-    argocd.argoproj.io/sync-wave: '-2'
+    argocd.argoproj.io/sync-wave: "-2"
     argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
 spec:
   activeDeadlineSeconds: 10800
@@ -1740,35 +1722,35 @@ spec:
         app.kubernetes.io/name: migrations-elastic
       annotations:
         argocd.argoproj.io/hook: Sync
-        argocd.argoproj.io/sync-wave: '-2'
+        argocd.argoproj.io/sync-wave: "-2"
         argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
     spec:
       containers:
-      - name: migrations-elastic
-        image: docker.io/example/node_migrations:a6cd269160a111eb1811cf95df836735a43281ad
-        imagePullPolicy: null
-        envFrom:
-        - secretRef:
-            name: base-secrets-bgdcccc7t4
-        - configMapRef:
-            name: base-configs-h9955f52m6
-        env:
-        - name: NODE_OPTIONS
-          value: --max-old-space-size=2048
-        - name: MIGRATE_DB
-          value: ES
-        - name: MIGRATE_ENV
-          value: development
-        resources:
-          limits:
-            cpu: 500m
-            memory: 3072Mi
-          requests:
-            cpu: 200m
-            memory: 1024Mi
+        - name: migrations-elastic
+          image: docker.io/example/node_migrations:a6cd269160a111eb1811cf95df836735a43281ad
+          imagePullPolicy: null
+          envFrom:
+            - secretRef:
+                name: base-secrets-bgdcccc7t4
+            - configMapRef:
+                name: base-configs-h9955f52m6
+          env:
+            - name: NODE_OPTIONS
+              value: "--max-old-space-size=2048"
+            - name: MIGRATE_DB
+              value: ES
+            - name: MIGRATE_ENV
+              value: development
+          resources:
+            limits:
+              cpu: 500m
+              memory: 3072Mi
+            requests:
+              cpu: 200m
+              memory: 1024Mi
       dnsPolicy: ClusterFirst
       imagePullSecrets:
-      - name: dockerhub-example-pull
+        - name: dockerhub-example-pull
       restartPolicy: Never
       schedulerName: default-scheduler
       securityContext: {}
@@ -1784,7 +1766,7 @@ metadata:
     app.kubernetes.io/instance: example-staging-au
   annotations:
     argocd.argoproj.io/hook: Sync
-    argocd.argoproj.io/sync-wave: '-2'
+    argocd.argoproj.io/sync-wave: "-2"
     argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
 spec:
   activeDeadlineSeconds: 10800
@@ -1794,35 +1776,35 @@ spec:
         app.kubernetes.io/name: migrations-postgres
       annotations:
         argocd.argoproj.io/hook: Sync
-        argocd.argoproj.io/sync-wave: '-2'
+        argocd.argoproj.io/sync-wave: "-2"
         argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
     spec:
       containers:
-      - name: migrations-postgres
-        image: docker.io/example/node_migrations:a6cd269160a111eb1811cf95df836735a43281ad
-        imagePullPolicy: null
-        envFrom:
-        - secretRef:
-            name: base-secrets-bgdcccc7t4
-        - configMapRef:
-            name: base-configs-h9955f52m6
-        env:
-        - name: NODE_OPTIONS
-          value: --max-old-space-size=2048
-        - name: MIGRATE_DB
-          value: PG
-        - name: MIGRATE_ENV
-          value: development
-        resources:
-          limits:
-            cpu: 500m
-            memory: 3072Mi
-          requests:
-            cpu: 200m
-            memory: 1024Mi
+        - name: migrations-postgres
+          image: docker.io/example/node_migrations:a6cd269160a111eb1811cf95df836735a43281ad
+          imagePullPolicy: null
+          envFrom:
+            - secretRef:
+                name: base-secrets-bgdcccc7t4
+            - configMapRef:
+                name: base-configs-h9955f52m6
+          env:
+            - name: NODE_OPTIONS
+              value: "--max-old-space-size=2048"
+            - name: MIGRATE_DB
+              value: PG
+            - name: MIGRATE_ENV
+              value: development
+          resources:
+            limits:
+              cpu: 500m
+              memory: 3072Mi
+            requests:
+              cpu: 200m
+              memory: 1024Mi
       dnsPolicy: ClusterFirst
       imagePullSecrets:
-      - name: dockerhub-example-pull
+        - name: dockerhub-example-pull
       restartPolicy: Never
       schedulerName: default-scheduler
       securityContext: {}
@@ -1838,7 +1820,7 @@ metadata:
     app.kubernetes.io/instance: example-staging-au
   annotations:
     argocd.argoproj.io/hook: PostSync
-    argocd.argoproj.io/sync-wave: '1'
+    argocd.argoproj.io/sync-wave: "1"
     argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
 spec:
   activeDeadlineSeconds: 864000
@@ -1848,33 +1830,34 @@ spec:
         app.kubernetes.io/name: migrations-background
       annotations:
         argocd.argoproj.io/hook: PostSync
-        argocd.argoproj.io/sync-wave: '1'
+        argocd.argoproj.io/sync-wave: "1"
         argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
     spec:
       imagePullSecrets:
-      - name: dockerhub-example-pull
+        - name: dockerhub-example-pull
       restartPolicy: Never
       containers:
-      - name: migrations-background
-        image: docker.io/example/node_migrations_background:5fb59252b5ca39dbe9029627725d0d5090182aac
-        imagePullPolicy: Always
-        envFrom:
-        - secretRef:
-            name: base-secrets-bgdcccc7t4
-        - configMapRef:
-            name: base-configs-h9955f52m6
-        env:
-        - name: NODE_OPTIONS
-          value: --max-old-space-size=2048
-        - name: MIGRATIONS_SCOPE
-          value: sql_async
-        resources:
-          limits:
-            cpu: 2000m
-            memory: 3072Mi
-          requests:
-            cpu: 200m
-            memory: 3072Mi
+        - name: migrations-background
+          image: >-
+            docker.io/example/node_migrations_background:5fb59252b5ca39dbe9029627725d0d5090182aac
+          imagePullPolicy: Always
+          envFrom:
+            - secretRef:
+                name: base-secrets-bgdcccc7t4
+            - configMapRef:
+                name: base-configs-h9955f52m6
+          env:
+            - name: NODE_OPTIONS
+              value: "--max-old-space-size=2048"
+            - name: MIGRATIONS_SCOPE
+              value: sql_async
+          resources:
+            limits:
+              cpu: 2000m
+              memory: 3072Mi
+            requests:
+              cpu: 200m
+              memory: 3072Mi
 ---
 apiVersion: v1
 kind: Secret
@@ -1918,12 +1901,12 @@ spec:
       mfe-oms: ea85e9113902abd05bab846e4d86bdf100220b3b
       mfe-auth: 57c8c17ec54d66e31d71c7e03d6ea278fd7addc1
   secretsFrom:
-  - secretRef:
-      name: mfe-router-secrets
+    - secretRef:
+        name: mfe-router-secrets
   d1Databases:
-  - binding: DB
-    databaseName: mfe
-    databaseId: 400c566e-0f1d-4cfb-9fe5-4d57bb6af75c
+    - binding: DB
+      databaseName: mfe
+      databaseId: 400c566e-0f1d-4cfb-9fe5-4d57bb6af75c
 ---
 apiVersion: v1
 kind: ConfigMap
@@ -1933,12 +1916,7 @@ metadata:
   labels:
     app.kubernetes.io/instance: example-staging-au
 data:
-  worker.js: |
-    export default {
-      async fetch(req, env, ctx) {
-        return new Response('Hello from Cloudflare Worker!', { status: 200 });
-      },
-    };
+  worker.js: "export default {\n  async fetch(req, env, ctx) {\n    return new Response('Hello from Cloudflare Worker!', { status: 200 });\n  },\n};\n"
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -1953,148 +1931,148 @@ spec:
   template:
     spec:
       containers:
-      - args:
-        - ml_server.main:app
-        - --port
-        - '5003'
-        - --host
-        - 0.0.0.0
-        command:
-        - uvicorn
-        env:
-        - name: OTEL_SERVICE_NAME
-          value: ml-server
-        - name: ML_SERVER_LOG_LEVEL
-          valueFrom:
-            configMapKeyRef:
-              key: ML_SERVER_LOG_LEVEL
-              name: base-configs-h9955f52m6
-        - name: PYROSCOPE_INGEST_URL
-          valueFrom:
-            configMapKeyRef:
-              name: base-configs-h9955f52m6
-              key: PYROSCOPE_INGEST_URL
-        - name: POD_NAME
-          valueFrom:
-            fieldRef:
-              fieldPath: metadata.name
-        - name: example_ENVIRONMENT
-          valueFrom:
-            configMapKeyRef:
-              key: example_ENVIRONMENT
-              name: base-configs-h9955f52m6
-        - name: GOOGLE_APPLICATION_CREDENTIALS
-          value: /var/gcp-credentials/credentials.json
-        - name: PG_DB_PASSWORD
-          valueFrom:
-            secretKeyRef:
-              key: PG_DB_PASSWORD_MLSERVER
-              name: base-secrets-bgdcccc7t4
-        - name: OPENAI_API_KEY
-          valueFrom:
-            secretKeyRef:
-              key: OPENAI_API_KEY
-              name: base-secrets-bgdcccc7t4
-        - name: PG_DB_HOST
-          valueFrom:
-            configMapKeyRef:
-              key: PG_DB_HOST
-              name: base-configs-h9955f52m6
-        - name: PG_DB_PORT
-          valueFrom:
-            configMapKeyRef:
-              key: PG_DB_PORT
-              name: base-configs-h9955f52m6
-        - name: PG_DB_USERNAME
-          valueFrom:
-            configMapKeyRef:
-              key: PG_DB_USERNAME_MLSERVER
-              name: base-configs-h9955f52m6
-        - name: PG_DB_DATABASE
-          valueFrom:
-            configMapKeyRef:
-              key: PG_DB_DATABASE
-              name: base-configs-h9955f52m6
-        - name: OTEL_EXPORTER_OTLP_ENDPOINT
-          valueFrom:
-            configMapKeyRef:
-              key: OTEL_EXPORTER_OTLP_ENDPOINT
-              name: base-configs-h9955f52m6
-        - name: KAFKA_BROKER_HOST_LIST
-          valueFrom:
-            configMapKeyRef:
-              key: KAFKA_BROKER_HOST_LIST
-              name: base-configs-h9955f52m6
-        - name: S3_BUCKET_PUBLIC
-          valueFrom:
-            configMapKeyRef:
-              key: S3_BUCKET_PUBLIC
-              name: base-configs-h9955f52m6
-        - name: S3_REGION
-          valueFrom:
-            configMapKeyRef:
-              key: S3_REGION
-              name: base-configs-h9955f52m6
-        - name: S3_KEY
-          valueFrom:
-            secretKeyRef:
-              key: S3_KEY
-              name: base-secrets-bgdcccc7t4
-        - name: S3_SECRET
-          valueFrom:
-            secretKeyRef:
-              key: S3_SECRET
-              name: base-secrets-bgdcccc7t4
-        - name: SOURCE_VERSION
-          valueFrom:
-            configMapKeyRef:
-              name: example-monorepo-revision-sync-968cb4dfd2
-              key: monorepo-revision
-        image: docker.io/example/ml_server:74182263033c06a649e05a4a6cfb33561baa88be
-        livenessProbe:
-          failureThreshold: 5
-          httpGet:
-            path: /api/v1/liveness
-            port: http
-            scheme: HTTP
-          initialDelaySeconds: 180
-          periodSeconds: 10
-          successThreshold: 1
-          timeoutSeconds: 10
-        name: ml-server
-        ports:
-        - containerPort: 5003
-          name: http
-          protocol: TCP
-        - containerPort: 9102
-          name: metrics
-          protocol: TCP
-        readinessProbe:
-          failureThreshold: 5
-          httpGet:
-            path: /api/v1/liveness
-            port: http
-            scheme: HTTP
-          initialDelaySeconds: 180
-          periodSeconds: 10
-          successThreshold: 1
-          timeoutSeconds: 3
-        resources:
-          limits:
-            memory: 2Gi
-          requests:
-            memory: 512Mi
-        volumeMounts:
-        - mountPath: /var/gcp-credentials
-          name: google-credentials
-          readOnly: true
+        - args:
+            - ml_server.main:app
+            - "--port"
+            - "5003"
+            - "--host"
+            - 0.0.0.0
+          command:
+            - uvicorn
+          env:
+            - name: OTEL_SERVICE_NAME
+              value: ml-server
+            - name: ML_SERVER_LOG_LEVEL
+              valueFrom:
+                configMapKeyRef:
+                  key: ML_SERVER_LOG_LEVEL
+                  name: base-configs-h9955f52m6
+            - name: PYROSCOPE_INGEST_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: base-configs-h9955f52m6
+                  key: PYROSCOPE_INGEST_URL
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: example_ENVIRONMENT
+              valueFrom:
+                configMapKeyRef:
+                  key: example_ENVIRONMENT
+                  name: base-configs-h9955f52m6
+            - name: GOOGLE_APPLICATION_CREDENTIALS
+              value: /var/gcp-credentials/credentials.json
+            - name: PG_DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  key: PG_DB_PASSWORD_MLSERVER
+                  name: base-secrets-bgdcccc7t4
+            - name: OPENAI_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  key: OPENAI_API_KEY
+                  name: base-secrets-bgdcccc7t4
+            - name: PG_DB_HOST
+              valueFrom:
+                configMapKeyRef:
+                  key: PG_DB_HOST
+                  name: base-configs-h9955f52m6
+            - name: PG_DB_PORT
+              valueFrom:
+                configMapKeyRef:
+                  key: PG_DB_PORT
+                  name: base-configs-h9955f52m6
+            - name: PG_DB_USERNAME
+              valueFrom:
+                configMapKeyRef:
+                  key: PG_DB_USERNAME_MLSERVER
+                  name: base-configs-h9955f52m6
+            - name: PG_DB_DATABASE
+              valueFrom:
+                configMapKeyRef:
+                  key: PG_DB_DATABASE
+                  name: base-configs-h9955f52m6
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              valueFrom:
+                configMapKeyRef:
+                  key: OTEL_EXPORTER_OTLP_ENDPOINT
+                  name: base-configs-h9955f52m6
+            - name: KAFKA_BROKER_HOST_LIST
+              valueFrom:
+                configMapKeyRef:
+                  key: KAFKA_BROKER_HOST_LIST
+                  name: base-configs-h9955f52m6
+            - name: S3_BUCKET_PUBLIC
+              valueFrom:
+                configMapKeyRef:
+                  key: S3_BUCKET_PUBLIC
+                  name: base-configs-h9955f52m6
+            - name: S3_REGION
+              valueFrom:
+                configMapKeyRef:
+                  key: S3_REGION
+                  name: base-configs-h9955f52m6
+            - name: S3_KEY
+              valueFrom:
+                secretKeyRef:
+                  key: S3_KEY
+                  name: base-secrets-bgdcccc7t4
+            - name: S3_SECRET
+              valueFrom:
+                secretKeyRef:
+                  key: S3_SECRET
+                  name: base-secrets-bgdcccc7t4
+            - name: SOURCE_VERSION
+              valueFrom:
+                configMapKeyRef:
+                  name: example-monorepo-revision-sync-968cb4dfd2
+                  key: monorepo-revision
+          image: docker.io/example/ml_server:74182263033c06a649e05a4a6cfb33561baa88be
+          livenessProbe:
+            failureThreshold: 5
+            httpGet:
+              path: /api/v1/liveness
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 180
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 10
+          name: ml-server
+          ports:
+            - containerPort: 5003
+              name: http
+              protocol: TCP
+            - containerPort: 9102
+              name: metrics
+              protocol: TCP
+          readinessProbe:
+            failureThreshold: 5
+            httpGet:
+              path: /api/v1/liveness
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 180
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 3
+          resources:
+            limits:
+              memory: 2Gi
+            requests:
+              memory: 512Mi
+          volumeMounts:
+            - mountPath: /var/gcp-credentials
+              name: google-credentials
+              readOnly: true
       volumes:
-      - name: google-credentials
-        secret:
-          defaultMode: 420
-          secretName: ml-server-secret
+        - name: google-credentials
+          secret:
+            defaultMode: 420
+            secretName: ml-server-secret
       imagePullSecrets:
-      - name: dockerhub-example-pull
+        - name: dockerhub-example-pull
     metadata:
       labels:
         app.kubernetes.io/name: ml-server-api
@@ -2112,17 +2090,17 @@ metadata:
     app.kubernetes.io/instance: example-staging-au
 spec:
   ipFamilies:
-  - IPv4
+    - IPv4
   ipFamilyPolicy: SingleStack
   ports:
-  - name: http
-    port: 80
-    protocol: TCP
-    targetPort: http
-  - name: metrics
-    port: 9090
-    protocol: TCP
-    targetPort: metrics
+    - name: http
+      port: 80
+      protocol: TCP
+      targetPort: http
+    - name: metrics
+      port: 9090
+      protocol: TCP
+      targetPort: metrics
   selector:
     app.kubernetes.io/name: ml-server-api
 ---
@@ -2139,141 +2117,141 @@ spec:
   template:
     spec:
       containers:
-      - args:
-        - ml_server.workers.main:app
-        - --port
-        - '5003'
-        - --host
-        - 0.0.0.0
-        command:
-        - uvicorn
-        env:
-        - name: OTEL_SERVICE_NAME
-          value: ml-server-workers
-        - name: CDN_BASE_URL
-          value: http://cdn.example.com
-        - name: ML_SERVER_LOG_LEVEL
-          valueFrom:
-            configMapKeyRef:
-              key: ML_SERVER_LOG_LEVEL
-              name: base-configs-h9955f52m6
-        - name: example_ENVIRONMENT
-          valueFrom:
-            configMapKeyRef:
-              key: example_ENVIRONMENT
-              name: base-configs-h9955f52m6
-        - name: GOOGLE_APPLICATION_CREDENTIALS
-          value: /var/gcp-credentials/credentials.json
-        - name: PG_DB_PASSWORD
-          valueFrom:
-            secretKeyRef:
-              key: PG_DB_PASSWORD_MLSERVER
-              name: base-secrets-bgdcccc7t4
-        - name: OPENAI_API_KEY
-          valueFrom:
-            secretKeyRef:
-              key: OPENAI_API_KEY
-              name: base-secrets-bgdcccc7t4
-        - name: PG_DB_HOST
-          valueFrom:
-            configMapKeyRef:
-              key: PG_DB_HOST
-              name: base-configs-h9955f52m6
-        - name: PG_DB_PORT
-          valueFrom:
-            configMapKeyRef:
-              key: PG_DB_PORT
-              name: base-configs-h9955f52m6
-        - name: PG_DB_USERNAME
-          valueFrom:
-            configMapKeyRef:
-              key: PG_DB_USERNAME_MLSERVER
-              name: base-configs-h9955f52m6
-        - name: PG_DB_DATABASE
-          valueFrom:
-            configMapKeyRef:
-              key: PG_DB_DATABASE
-              name: base-configs-h9955f52m6
-        - name: OTEL_EXPORTER_OTLP_ENDPOINT
-          valueFrom:
-            configMapKeyRef:
-              key: OTEL_EXPORTER_OTLP_ENDPOINT
-              name: base-configs-h9955f52m6
-        - name: KAFKA_BROKER_HOST_LIST
-          valueFrom:
-            configMapKeyRef:
-              key: KAFKA_BROKER_HOST_LIST
-              name: base-configs-h9955f52m6
-        - name: S3_BUCKET_PUBLIC
-          valueFrom:
-            configMapKeyRef:
-              key: S3_BUCKET_PUBLIC
-              name: base-configs-h9955f52m6
-        - name: S3_REGION
-          valueFrom:
-            configMapKeyRef:
-              key: S3_REGION
-              name: base-configs-h9955f52m6
-        - name: S3_KEY
-          valueFrom:
-            secretKeyRef:
-              key: S3_KEY
-              name: base-secrets-bgdcccc7t4
-        - name: S3_SECRET
-          valueFrom:
-            secretKeyRef:
-              key: S3_SECRET
-              name: base-secrets-bgdcccc7t4
-        - name: SOURCE_VERSION
-          valueFrom:
-            configMapKeyRef:
-              name: example-monorepo-revision-sync-968cb4dfd2
-              key: monorepo-revision
-        image: docker.io/example/ml_server:74182263033c06a649e05a4a6cfb33561baa88be
-        livenessProbe:
-          failureThreshold: 3
-          httpGet:
-            path: /api/v1/liveness
-            port: http
-            scheme: HTTP
-          initialDelaySeconds: 180
-          periodSeconds: 10
-          successThreshold: 1
-          timeoutSeconds: 20
-        name: ml-server-workers
-        ports:
-        - containerPort: 5003
-          name: http
-          protocol: TCP
-        - containerPort: 9102
-          name: metrics
-          protocol: TCP
-        readinessProbe:
-          failureThreshold: 3
-          httpGet:
-            path: /api/v1/liveness
-            port: http
-            scheme: HTTP
-          initialDelaySeconds: 180
-          periodSeconds: 10
-          successThreshold: 1
-          timeoutSeconds: 6
-        resources:
-          limits:
-            memory: 1Gi
-          requests:
-            memory: 256Mi
-        volumeMounts:
-        - mountPath: /var/gcp-credentials
-          name: google-credentials
-          readOnly: true
+        - args:
+            - ml_server.workers.main:app
+            - "--port"
+            - "5003"
+            - "--host"
+            - 0.0.0.0
+          command:
+            - uvicorn
+          env:
+            - name: OTEL_SERVICE_NAME
+              value: ml-server-workers
+            - name: CDN_BASE_URL
+              value: http://cdn.example.com
+            - name: ML_SERVER_LOG_LEVEL
+              valueFrom:
+                configMapKeyRef:
+                  key: ML_SERVER_LOG_LEVEL
+                  name: base-configs-h9955f52m6
+            - name: example_ENVIRONMENT
+              valueFrom:
+                configMapKeyRef:
+                  key: example_ENVIRONMENT
+                  name: base-configs-h9955f52m6
+            - name: GOOGLE_APPLICATION_CREDENTIALS
+              value: /var/gcp-credentials/credentials.json
+            - name: PG_DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  key: PG_DB_PASSWORD_MLSERVER
+                  name: base-secrets-bgdcccc7t4
+            - name: OPENAI_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  key: OPENAI_API_KEY
+                  name: base-secrets-bgdcccc7t4
+            - name: PG_DB_HOST
+              valueFrom:
+                configMapKeyRef:
+                  key: PG_DB_HOST
+                  name: base-configs-h9955f52m6
+            - name: PG_DB_PORT
+              valueFrom:
+                configMapKeyRef:
+                  key: PG_DB_PORT
+                  name: base-configs-h9955f52m6
+            - name: PG_DB_USERNAME
+              valueFrom:
+                configMapKeyRef:
+                  key: PG_DB_USERNAME_MLSERVER
+                  name: base-configs-h9955f52m6
+            - name: PG_DB_DATABASE
+              valueFrom:
+                configMapKeyRef:
+                  key: PG_DB_DATABASE
+                  name: base-configs-h9955f52m6
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              valueFrom:
+                configMapKeyRef:
+                  key: OTEL_EXPORTER_OTLP_ENDPOINT
+                  name: base-configs-h9955f52m6
+            - name: KAFKA_BROKER_HOST_LIST
+              valueFrom:
+                configMapKeyRef:
+                  key: KAFKA_BROKER_HOST_LIST
+                  name: base-configs-h9955f52m6
+            - name: S3_BUCKET_PUBLIC
+              valueFrom:
+                configMapKeyRef:
+                  key: S3_BUCKET_PUBLIC
+                  name: base-configs-h9955f52m6
+            - name: S3_REGION
+              valueFrom:
+                configMapKeyRef:
+                  key: S3_REGION
+                  name: base-configs-h9955f52m6
+            - name: S3_KEY
+              valueFrom:
+                secretKeyRef:
+                  key: S3_KEY
+                  name: base-secrets-bgdcccc7t4
+            - name: S3_SECRET
+              valueFrom:
+                secretKeyRef:
+                  key: S3_SECRET
+                  name: base-secrets-bgdcccc7t4
+            - name: SOURCE_VERSION
+              valueFrom:
+                configMapKeyRef:
+                  name: example-monorepo-revision-sync-968cb4dfd2
+                  key: monorepo-revision
+          image: docker.io/example/ml_server:74182263033c06a649e05a4a6cfb33561baa88be
+          livenessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /api/v1/liveness
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 180
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 20
+          name: ml-server-workers
+          ports:
+            - containerPort: 5003
+              name: http
+              protocol: TCP
+            - containerPort: 9102
+              name: metrics
+              protocol: TCP
+          readinessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /api/v1/liveness
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 180
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 6
+          resources:
+            limits:
+              memory: 1Gi
+            requests:
+              memory: 256Mi
+          volumeMounts:
+            - mountPath: /var/gcp-credentials
+              name: google-credentials
+              readOnly: true
       volumes:
-      - name: google-credentials
-        secret:
-          defaultMode: 420
-          secretName: ml-server-secret
+        - name: google-credentials
+          secret:
+            defaultMode: 420
+            secretName: ml-server-secret
       imagePullSecrets:
-      - name: dockerhub-example-pull
+        - name: dockerhub-example-pull
     metadata:
       labels:
         app.kubernetes.io/name: ml-server-workers
@@ -2295,77 +2273,77 @@ spec:
   jobTemplate:
     metadata:
       annotations:
-        argocd.argoproj.io/ignore-resource-updates: 'true'
+        argocd.argoproj.io/ignore-resource-updates: "true"
       labels:
         app.kubernetes.io/name: ml-server-cron
     spec:
       template:
         metadata:
           annotations:
-            argocd.argoproj.io/ignore-resource-updates: 'true'
+            argocd.argoproj.io/ignore-resource-updates: "true"
           labels:
             app.kubernetes.io/name: ml-server-cron
         spec:
           restartPolicy: OnFailure
           containers:
-          - args:
-            - -m
-            - load_overrides
-            - --update
-            command:
-            - python
-            env:
-            - name: OTEL_SERVICE_NAME
-              value: ml-server-cron
-            - name: OTEL_EXPORTER_OTLP_ENDPOINT
-              valueFrom:
-                configMapKeyRef:
-                  key: OTEL_EXPORTER_OTLP_ENDPOINT
-                  name: base-configs-h9955f52m6
-            - name: example_ENVIRONMENT
-              valueFrom:
-                configMapKeyRef:
-                  key: example_ENVIRONMENT
-                  name: base-configs-h9955f52m6
-            - name: PG_DB_HOST
-              valueFrom:
-                configMapKeyRef:
-                  key: PG_DB_HOST
-                  name: base-configs-h9955f52m6
-            - name: PG_DB_PORT
-              valueFrom:
-                configMapKeyRef:
-                  key: PG_DB_PORT
-                  name: base-configs-h9955f52m6
-            - name: PG_DB_USERNAME
-              valueFrom:
-                configMapKeyRef:
-                  key: PG_DB_USERNAME_MLSERVER
-                  name: base-configs-h9955f52m6
-            - name: PG_DB_DATABASE
-              valueFrom:
-                configMapKeyRef:
-                  key: PG_DB_DATABASE
-                  name: base-configs-h9955f52m6
-            - name: PG_DB_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  key: PG_DB_PASSWORD_MLSERVER
-                  name: base-secrets-bgdcccc7t4
-            - name: GOOGLE_APPLICATION_CREDENTIALS
-              value: /var/gcp-credentials/credentials.json
-            image: docker.io/example/ml_server:74182263033c06a649e05a4a6cfb33561baa88be
-            name: example-ml-server-cron
-            volumeMounts:
-            - mountPath: /var/gcp-credentials
-              name: google-credentials
-              readOnly: true
+            - args:
+                - "-m"
+                - load_overrides
+                - "--update"
+              command:
+                - python
+              env:
+                - name: OTEL_SERVICE_NAME
+                  value: ml-server-cron
+                - name: OTEL_EXPORTER_OTLP_ENDPOINT
+                  valueFrom:
+                    configMapKeyRef:
+                      key: OTEL_EXPORTER_OTLP_ENDPOINT
+                      name: base-configs-h9955f52m6
+                - name: example_ENVIRONMENT
+                  valueFrom:
+                    configMapKeyRef:
+                      key: example_ENVIRONMENT
+                      name: base-configs-h9955f52m6
+                - name: PG_DB_HOST
+                  valueFrom:
+                    configMapKeyRef:
+                      key: PG_DB_HOST
+                      name: base-configs-h9955f52m6
+                - name: PG_DB_PORT
+                  valueFrom:
+                    configMapKeyRef:
+                      key: PG_DB_PORT
+                      name: base-configs-h9955f52m6
+                - name: PG_DB_USERNAME
+                  valueFrom:
+                    configMapKeyRef:
+                      key: PG_DB_USERNAME_MLSERVER
+                      name: base-configs-h9955f52m6
+                - name: PG_DB_DATABASE
+                  valueFrom:
+                    configMapKeyRef:
+                      key: PG_DB_DATABASE
+                      name: base-configs-h9955f52m6
+                - name: PG_DB_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      key: PG_DB_PASSWORD_MLSERVER
+                      name: base-secrets-bgdcccc7t4
+                - name: GOOGLE_APPLICATION_CREDENTIALS
+                  value: /var/gcp-credentials/credentials.json
+              image: docker.io/example/ml_server:74182263033c06a649e05a4a6cfb33561baa88be
+              name: example-ml-server-cron
+              volumeMounts:
+                - mountPath: /var/gcp-credentials
+                  name: google-credentials
+                  readOnly: true
           volumes:
-          - name: google-credentials
-            secret:
-              defaultMode: 420
-              secretName: ml-server-secret
-  schedule: '*/5 * * * *'
+            - name: google-credentials
+              secret:
+                defaultMode: 420
+                secretName: ml-server-secret
+  schedule: "*/5 * * * *"
   successfulJobsHistoryLimit: 3
 ---
 apiVersion: networking.k8s.io/v1
@@ -2380,20 +2358,20 @@ metadata:
 spec:
   ingressClassName: nginx
   rules:
-  - host: mls.staging.example.pro
-    http:
-      paths:
-      - backend:
-          service:
-            name: example-ml-server
-            port:
-              number: 80
-        path: /
-        pathType: ImplementationSpecific
+    - host: mls.staging.example.pro
+      http:
+        paths:
+          - backend:
+              service:
+                name: example-ml-server
+                port:
+                  number: 80
+            path: /
+            pathType: ImplementationSpecific
   tls:
-  - hosts:
-    - mls.staging.example.pro
-    secretName: ml-server-ingress-tls
+    - hosts:
+        - mls.staging.example.pro
+      secretName: ml-server-ingress-tls
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -2410,75 +2388,76 @@ spec:
   template:
     spec:
       containers:
-      - env:
-        - name: OTEL_SERVICE_NAME
-          value: node-api
-        - name: PG_DB_HOST
-          valueFrom:
-            configMapKeyRef:
-              key: PG_DB_BOUNCER_HOST
-              name: base-configs-h9955f52m6
-        - name: PRISMA_DB_URL
-          value: postgresql://$(PG_DB_USERNAME_NODE_API):$(PG_DB_PASSWORD_NODE_API)@$(PG_DB_HOST):$(PG_DB_PORT)/$(PG_DB_DATABASE)?schema=example&application_name=node-api&connection_limit=100&pool_timeout=120&pgbouncer=true
-        - name: NODE_OPTIONS
-          value: --max-old-space-size=3072
-        - name: APOLLO_SERVER_PLATFORM
-          value: kubernetes
-        - name: APOLLO_SERVER_ID
-          valueFrom:
-            fieldRef:
-              apiVersion: v1
-              fieldPath: metadata.name
-        - name: APOLLO_SERVER_USER_VERSION
-          value: latest
-        - name: APOLLO_GRAPH_REF
-          value: example-core@prod
-        - name: SOURCE_VERSION
-          valueFrom:
-            configMapKeyRef:
-              name: example-monorepo-revision-sync-968cb4dfd2
-              key: monorepo-revision
-        envFrom:
-        - secretRef:
-            name: base-secrets-bgdcccc7t4
-        - configMapRef:
-            name: base-configs-h9955f52m6
-        image: docker.io/example/api:174c80d5ccfebab986f4571edc27ab033d41898e
-        imagePullPolicy: IfNotPresent
-        livenessProbe:
-          failureThreshold: 3
-          httpGet:
-            path: /node-api/healthy-check
-            port: http
-            scheme: HTTP
-          initialDelaySeconds: 180
-          periodSeconds: 20
-          successThreshold: 1
-          timeoutSeconds: 7
-        name: node
-        ports:
-        - containerPort: 3000
-          name: http
-          protocol: TCP
-        readinessProbe:
-          failureThreshold: 3
-          httpGet:
-            path: /node-api/healthy-check
-            port: http
-            scheme: HTTP
-          initialDelaySeconds: 30
-          periodSeconds: 5
-          successThreshold: 1
-          timeoutSeconds: 3
-        resources:
-          limits:
-            cpu: 500m
-            memory: 3Gi
-          requests:
-            cpu: 100m
-            memory: 800Mi
+        - env:
+            - name: OTEL_SERVICE_NAME
+              value: node-api
+            - name: PG_DB_HOST
+              valueFrom:
+                configMapKeyRef:
+                  key: PG_DB_BOUNCER_HOST
+                  name: base-configs-h9955f52m6
+            - name: PRISMA_DB_URL
+              value: >-
+                postgresql://$(PG_DB_USERNAME_NODE_API):$(PG_DB_PASSWORD_NODE_API)@$(PG_DB_HOST):$(PG_DB_PORT)/$(PG_DB_DATABASE)?schema=example&application_name=node-api&connection_limit=100&pool_timeout=120&pgbouncer=true
+            - name: NODE_OPTIONS
+              value: "--max-old-space-size=3072"
+            - name: APOLLO_SERVER_PLATFORM
+              value: kubernetes
+            - name: APOLLO_SERVER_ID
+              valueFrom:
+                fieldRef:
+                  apiVersion: v1
+                  fieldPath: metadata.name
+            - name: APOLLO_SERVER_USER_VERSION
+              value: latest
+            - name: APOLLO_GRAPH_REF
+              value: example-core@prod
+            - name: SOURCE_VERSION
+              valueFrom:
+                configMapKeyRef:
+                  name: example-monorepo-revision-sync-968cb4dfd2
+                  key: monorepo-revision
+          envFrom:
+            - secretRef:
+                name: base-secrets-bgdcccc7t4
+            - configMapRef:
+                name: base-configs-h9955f52m6
+          image: docker.io/example/api:174c80d5ccfebab986f4571edc27ab033d41898e
+          imagePullPolicy: IfNotPresent
+          livenessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /node-api/healthy-check
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 180
+            periodSeconds: 20
+            successThreshold: 1
+            timeoutSeconds: 7
+          name: node
+          ports:
+            - containerPort: 3000
+              name: http
+              protocol: TCP
+          readinessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /node-api/healthy-check
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 30
+            periodSeconds: 5
+            successThreshold: 1
+            timeoutSeconds: 3
+          resources:
+            limits:
+              cpu: 500m
+              memory: 3Gi
+            requests:
+              cpu: 100m
+              memory: 800Mi
       imagePullSecrets:
-      - name: dockerhub-example-pull
+        - name: dockerhub-example-pull
     metadata:
       labels:
         app.kubernetes.io/name: node
@@ -2496,13 +2475,13 @@ metadata:
     app.kubernetes.io/instance: example-staging-au
 spec:
   ipFamilies:
-  - IPv4
+    - IPv4
   ipFamilyPolicy: SingleStack
   ports:
-  - name: http
-    port: 80
-    protocol: TCP
-    targetPort: http
+    - name: http
+      port: 80
+      protocol: TCP
+      targetPort: http
   type: ClusterIP
   selector:
     app.kubernetes.io/name: node
@@ -2517,33 +2496,33 @@ metadata:
     app.kubernetes.io/instance: example-staging-au
   annotations:
     cert-manager.io/cluster-issuer: letsencrypt-prod
-    nginx.ingress.kubernetes.io/limit-rpm: '100'
-    nginx.ingress.kubernetes.io/limit-rps: '15'
+    nginx.ingress.kubernetes.io/limit-rpm: "100"
+    nginx.ingress.kubernetes.io/limit-rps: "15"
     nginx.ingress.kubernetes.io/proxy-body-size: 1024m
 spec:
   ingressClassName: nginx
   rules:
-  - host: api.staging.example.pro
-    http:
-      paths:
-      - backend:
-          service:
-            name: example-node
-            port:
-              number: 80
-        path: /node-api
-        pathType: ImplementationSpecific
-      - backend:
-          service:
-            name: example-node
-            port:
-              number: 80
-        path: /socket.io
-        pathType: ImplementationSpecific
+    - host: api.staging.example.pro
+      http:
+        paths:
+          - backend:
+              service:
+                name: example-node
+                port:
+                  number: 80
+            path: /node-api
+            pathType: ImplementationSpecific
+          - backend:
+              service:
+                name: example-node
+                port:
+                  number: 80
+            path: /socket.io
+            pathType: ImplementationSpecific
   tls:
-  - hosts:
-    - api.staging.example.pro
-    secretName: node-ingress-tls
+    - hosts:
+        - api.staging.example.pro
+      secretName: node-ingress-tls
 ---
 apiVersion: networking.k8s.io/v1
 kind: Ingress
@@ -2559,20 +2538,20 @@ metadata:
 spec:
   ingressClassName: nginx
   rules:
-  - host: api.staging.example.pro
-    http:
-      paths:
-      - backend:
-          service:
-            name: example-node-internal
-            port:
-              number: 80
-        path: /node-api/internal
-        pathType: ImplementationSpecific
+    - host: api.staging.example.pro
+      http:
+        paths:
+          - backend:
+              service:
+                name: example-node-internal
+                port:
+                  number: 80
+            path: /node-api/internal
+            pathType: ImplementationSpecific
   tls:
-  - hosts:
-    - api.staging.example.pro
-    secretName: node-internal-ingress-tls
+    - hosts:
+        - api.staging.example.pro
+      secretName: node-internal-ingress-tls
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -2589,85 +2568,85 @@ spec:
   template:
     metadata:
       annotations:
-        cluster-autoscaler.kubernetes.io/safe-to-evict: 'true'
-        cpu.hpa.autoscaling.banzaicloud.io/targetAverageUtilization: '80'
-        hpa.autoscaling.banzaicloud.io/maxReplicas: '5'
-        hpa.autoscaling.banzaicloud.io/minReplicas: '2'
+        cluster-autoscaler.kubernetes.io/safe-to-evict: "true"
+        cpu.hpa.autoscaling.banzaicloud.io/targetAverageUtilization: "80"
+        hpa.autoscaling.banzaicloud.io/maxReplicas: "5"
+        hpa.autoscaling.banzaicloud.io/minReplicas: "2"
       labels:
         app.kubernetes.io/name: pim-web
     spec:
       containers:
-      - image: nginx:1.25.3-alpine3.18
-        imagePullPolicy: IfNotPresent
-        env:
-        - name: SOURCE_VERSION
-          valueFrom:
-            configMapKeyRef:
-              name: example-monorepo-revision-sync-968cb4dfd2
-              key: monorepo-revision
-        livenessProbe:
-          failureThreshold: 3
-          httpGet:
-            path: /assets/images/svgs/example-mark.svg
-            port: http
-            scheme: HTTP
-          initialDelaySeconds: 30
-          periodSeconds: 10
-          successThreshold: 1
-          timeoutSeconds: 1
-        name: pim-web
-        ports:
-        - containerPort: 80
-          name: http
-          protocol: TCP
-        readinessProbe:
-          failureThreshold: 3
-          httpGet:
-            path: /assets/images/svgs/example-mark.svg
-            port: http
-            scheme: HTTP
-          initialDelaySeconds: 10
-          periodSeconds: 10
-          successThreshold: 1
-          timeoutSeconds: 1
-        resources:
-          requests:
-            memory: 128Mi
-        volumeMounts:
-        - mountPath: /tmp/www
-          name: pim-web-www
-        - mountPath: /etc/nginx/conf.d
-          name: pim-web-nginx-conf
+        - image: nginx:1.25.3-alpine3.18
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: SOURCE_VERSION
+              valueFrom:
+                configMapKeyRef:
+                  name: example-monorepo-revision-sync-968cb4dfd2
+                  key: monorepo-revision
+          livenessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /assets/images/svgs/example-mark.svg
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 1
+          name: pim-web
+          ports:
+            - containerPort: 80
+              name: http
+              protocol: TCP
+          readinessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /assets/images/svgs/example-mark.svg
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 1
+          resources:
+            requests:
+              memory: 128Mi
+          volumeMounts:
+            - mountPath: /tmp/www
+              name: pim-web-www
+            - mountPath: /etc/nginx/conf.d
+              name: pim-web-nginx-conf
       initContainers:
-      - env:
-        - name: API_URL
-          value: https://api.staging.example.pro
-        - name: APP_URL
-          value: https://pim.staging.example.pro
-        - name: SOCKET_URL
-          value: https://api.staging.example.pro
-        - name: SOURCE_PATH
-          value: /app/dist/
-        - name: ASSET_URL
-          value: https://cdn.example.parts/assets/pim-web/
-        - name: DEST_PATH
-          value: /tmp/www/pim-web
-        image: docker.io/example/pim_web:d4277c9b83dabfa8145ca3168ed18e2e02171808
-        imagePullPolicy: IfNotPresent
-        name: pim-web-init
-        volumeMounts:
-        - mountPath: /tmp/www
-          name: pim-web-www
-        - mountPath: /etc/nginx/conf.d
-          name: pim-web-nginx-conf
+        - env:
+            - name: API_URL
+              value: https://api.staging.example.pro
+            - name: APP_URL
+              value: https://pim.staging.example.pro
+            - name: SOCKET_URL
+              value: https://api.staging.example.pro
+            - name: SOURCE_PATH
+              value: /app/dist/
+            - name: ASSET_URL
+              value: https://cdn.example.parts/assets/pim-web/
+            - name: DEST_PATH
+              value: /tmp/www/pim-web
+          image: docker.io/example/pim_web:d4277c9b83dabfa8145ca3168ed18e2e02171808
+          imagePullPolicy: IfNotPresent
+          name: pim-web-init
+          volumeMounts:
+            - mountPath: /tmp/www
+              name: pim-web-www
+            - mountPath: /etc/nginx/conf.d
+              name: pim-web-nginx-conf
       volumes:
-      - name: pim-web-www
-      - configMap:
-          defaultMode: 420
+        - name: pim-web-www
+        - configMap:
+            defaultMode: 420
+            name: pim-web-nginx-conf
           name: pim-web-nginx-conf
-        name: pim-web-nginx-conf
       imagePullSecrets:
-      - name: dockerhub-example-pull
+        - name: dockerhub-example-pull
   selector:
     matchLabels:
       app.kubernetes.io/name: pim-web
@@ -2682,13 +2661,13 @@ metadata:
     app.kubernetes.io/instance: example-staging-au
 spec:
   ipFamilies:
-  - IPv4
+    - IPv4
   ipFamilyPolicy: SingleStack
   ports:
-  - name: http
-    port: 80
-    protocol: TCP
-    targetPort: http
+    - name: http
+      port: 80
+      protocol: TCP
+      targetPort: http
   type: ClusterIP
   selector:
     app.kubernetes.io/name: pim-web
@@ -2702,29 +2681,7 @@ metadata:
     app.kubernetes.io/name: pim-web
     app.kubernetes.io/instance: example-staging-au
 data:
-  default.conf: |-
-    server {
-            listen 80 default_server;
-            listen [::]:80 default_server;
-
-            root /tmp/www/pim-web;
-
-            location ~* \.(png|jpeg|jpg|gif|svg|ttf|woff|js|json|ico|css|mp3|mp4)$ {
-                add_header Cache-Control public;
-                expires 14d;
-                etag on;
-                try_files $uri $uri =404;
-            }
-
-            location ~ ^/(index.html) {
-                add_header Cache-Control must-revalidate;
-                etag on;
-            }
-
-            location / {
-                rewrite /?$ /index.html last;
-            }
-    }
+  default.conf: "server {\n        listen 80 default_server;\n        listen [::]:80 default_server;\n\n        root /tmp/www/pim-web;\n\n        location ~* \\.(png|jpeg|jpg|gif|svg|ttf|woff|js|json|ico|css|mp3|mp4)$ {\n            add_header Cache-Control public;\n            expires 14d;\n            etag on;\n            try_files $uri $uri =404;\n        }\n\n        location ~ ^/(index.html) {\n            add_header Cache-Control must-revalidate;\n            etag on;\n        }\n\n        location / {\n            rewrite /?$ /index.html last;\n        }\n}"
 ---
 apiVersion: networking.k8s.io/v1
 kind: Ingress
@@ -2739,20 +2696,20 @@ metadata:
 spec:
   ingressClassName: nginx
   rules:
-  - host: pim.staging.example.pro
-    http:
-      paths:
-      - backend:
-          service:
-            name: example-pim-web
-            port:
-              number: 80
-        path: /
-        pathType: ImplementationSpecific
+    - host: pim.staging.example.pro
+      http:
+        paths:
+          - backend:
+              service:
+                name: example-pim-web
+                port:
+                  number: 80
+            path: /
+            pathType: ImplementationSpecific
   tls:
-  - hosts:
-    - pim.staging.example.pro
-    secretName: pim-web-ingress-tls
+    - hosts:
+        - pim.staging.example.pro
+      secretName: pim-web-ingress-tls
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -2773,68 +2730,68 @@ spec:
       securityContext:
         fsGroup: 1001
       volumes:
-      - name: pgbouncer-certs
-        emptyDir: {}
+        - name: pgbouncer-certs
+          emptyDir: {}
       initContainers:
-      - name: cert-generator
-        image: alpine/openssl:3.5.1
-        command:
-        - sh
-        - -c
-        - |
-          openssl req -x509 -newkey rsa:4096 -keyout /certs/server.key -out /certs/server.crt -days 365 -nodes -subj '/CN=pgbouncer'
-          chmod 640 /certs/server.key
-          chmod 644 /certs/server.crt
-        volumeMounts:
-        - name: pgbouncer-certs
-          mountPath: /certs
+        - name: cert-generator
+          image: alpine/openssl:3.5.1
+          command:
+            - sh
+            - "-c"
+            - |
+              openssl req -x509 -newkey rsa:4096 -keyout /certs/server.key -out /certs/server.crt -days 365 -nodes -subj '/CN=pgbouncer'
+              chmod 640 /certs/server.key
+              chmod 644 /certs/server.crt
+          volumeMounts:
+            - name: pgbouncer-certs
+              mountPath: /certs
       containers:
-      - name: pgbouncer
-        image: bitnami/pgbouncer:1.24.1
-        securityContext:
-          runAsUser: 1001
-          runAsNonRoot: true
-        ports:
-        - containerPort: 6432
-        resources:
-          requests:
-            cpu: 100m
-            memory: 256Mi
-        env:
-        - name: PGBOUNCER_PORT
-          value: '6432'
-        - name: POSTGRESQL_DATABASE
-          value: example
-        - name: PGBOUNCER_DATABASE
-          value: example
-        - name: POSTGRESQL_HOST
-          valueFrom:
-            configMapKeyRef:
-              name: base-configs-h9955f52m6
-              key: PG_DB_HOST
-        - name: POSTGRESQL_USERNAME
-          valueFrom:
-            configMapKeyRef:
-              name: base-configs-h9955f52m6
-              key: PG_DB_USERNAME
-        - name: POSTGRESQL_PASSWORD
-          valueFrom:
-            secretKeyRef:
-              name: base-secrets-bgdcccc7t4
-              key: PG_DB_PASSWORD
-        - name: PGBOUNCER_SERVER_TLS_SSLMODE
-          value: prefer
-        - name: PGBOUNCER_CLIENT_TLS_SSLMODE
-          value: prefer
-        - name: PGBOUNCER_CLIENT_TLS_KEY_FILE
-          value: /certs/server.key
-        - name: PGBOUNCER_CLIENT_TLS_CERT_FILE
-          value: /certs/server.crt
-        volumeMounts:
-        - name: pgbouncer-certs
-          mountPath: /certs
+        - name: pgbouncer
+          image: bitnami/pgbouncer:1.24.1
+          securityContext:
+            runAsUser: 1001
+            runAsNonRoot: true
+          ports:
+            - containerPort: 6432
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+          env:
+            - name: PGBOUNCER_PORT
+              value: "6432"
+            - name: POSTGRESQL_DATABASE
+              value: example
+            - name: PGBOUNCER_DATABASE
+              value: example
+            - name: POSTGRESQL_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: base-configs-h9955f52m6
+                  key: PG_DB_HOST
+            - name: POSTGRESQL_USERNAME
+              valueFrom:
+                configMapKeyRef:
+                  name: base-configs-h9955f52m6
+                  key: PG_DB_USERNAME
+            - name: POSTGRESQL_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: base-secrets-bgdcccc7t4
+                  key: PG_DB_PASSWORD
+            - name: PGBOUNCER_SERVER_TLS_SSLMODE
+              value: prefer
+            - name: PGBOUNCER_CLIENT_TLS_SSLMODE
+              value: prefer
+            - name: PGBOUNCER_CLIENT_TLS_KEY_FILE
+              value: /certs/server.key
+            - name: PGBOUNCER_CLIENT_TLS_CERT_FILE
+              value: /certs/server.crt
+          volumeMounts:
+            - name: pgbouncer-certs
+              mountPath: /certs
       imagePullSecrets:
-      - name: dockerhub-example-pull
+        - name: dockerhub-example-pull
 ---
 apiVersion: v1
 kind: Service
@@ -2846,8 +2803,8 @@ metadata:
     app.kubernetes.io/instance: example-staging-au
 spec:
   ports:
-  - port: 5432
-    targetPort: 6432
+    - port: 5432
+      targetPort: 6432
   selector:
     app.kubernetes.io/name: pgbouncer
   type: ClusterIP
@@ -2860,7 +2817,7 @@ metadata:
   labels:
     app.kubernetes.io/instance: example-staging-au
   annotations:
-    argocd.argoproj.io/sync-wave: '-5'
+    argocd.argoproj.io/sync-wave: "-5"
 type: Opaque
 data:
   REDIS_PASSWORD: Ym9icGF0Y2g=
@@ -2880,46 +2837,47 @@ spec:
   template:
     spec:
       containers:
-      - env:
-        - name: OTEL_SERVICE_NAME
-          value: repair-jobs-feed-integration
-        - name: repair_jobs_feed_integration__LOGGING__LEVEL
-          value: info
-        - name: SOURCE_VERSION
-          valueFrom:
-            configMapKeyRef:
-              name: example-monorepo-revision-sync-968cb4dfd2
-              key: monorepo-revision
-        envFrom:
-        - secretRef:
-            name: base-secrets-bgdcccc7t4
-        - configMapRef:
-            name: base-configs-h9955f52m6
-        image: docker.io/example/repair_jobs_feed_integration:8c3e40d2fa03c59753a17a29a198937a8915d618
-        imagePullPolicy: IfNotPresent
-        name: repair-jobs-feed-integration
-        ports:
-        - containerPort: 4111
-          name: http
-          protocol: TCP
-        readinessProbe:
-          failureThreshold: 3
-          httpGet:
-            path: /api/internal/system.readiness.get
-            port: http
-            scheme: HTTP
-          initialDelaySeconds: 10
-          periodSeconds: 5
-          successThreshold: 1
-          timeoutSeconds: 3
-        resources:
-          limits:
-            memory: 256Mi
-          requests:
-            cpu: 50m
-            memory: 128Mi
+        - env:
+            - name: OTEL_SERVICE_NAME
+              value: repair-jobs-feed-integration
+            - name: repair_jobs_feed_integration__LOGGING__LEVEL
+              value: info
+            - name: SOURCE_VERSION
+              valueFrom:
+                configMapKeyRef:
+                  name: example-monorepo-revision-sync-968cb4dfd2
+                  key: monorepo-revision
+          envFrom:
+            - secretRef:
+                name: base-secrets-bgdcccc7t4
+            - configMapRef:
+                name: base-configs-h9955f52m6
+          image: >-
+            docker.io/example/repair_jobs_feed_integration:8c3e40d2fa03c59753a17a29a198937a8915d618
+          imagePullPolicy: IfNotPresent
+          name: repair-jobs-feed-integration
+          ports:
+            - containerPort: 4111
+              name: http
+              protocol: TCP
+          readinessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /api/internal/system.readiness.get
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            successThreshold: 1
+            timeoutSeconds: 3
+          resources:
+            limits:
+              memory: 256Mi
+            requests:
+              cpu: 50m
+              memory: 128Mi
       imagePullSecrets:
-      - name: dockerhub-example-pull
+        - name: dockerhub-example-pull
     metadata:
       labels:
         app.kubernetes.io/name: repair-jobs-feed-integration
@@ -2937,13 +2895,13 @@ metadata:
     app.kubernetes.io/instance: example-staging-au
 spec:
   ipFamilies:
-  - IPv4
+    - IPv4
   ipFamilyPolicy: SingleStack
   ports:
-  - name: http
-    port: 80
-    protocol: TCP
-    targetPort: http
+    - name: http
+      port: 80
+      protocol: TCP
+      targetPort: http
   type: ClusterIP
   selector:
     app.kubernetes.io/name: repair-jobs-feed-integration
@@ -2961,20 +2919,20 @@ metadata:
 spec:
   ingressClassName: nginx
   rules:
-  - host: repair-jobs-feed-integration.staging.example.pro
-    http:
-      paths:
-      - backend:
-          service:
-            name: example-repair-jobs-feed-integration
-            port:
-              number: 80
-        path: /
-        pathType: ImplementationSpecific
+    - host: repair-jobs-feed-integration.staging.example.pro
+      http:
+        paths:
+          - backend:
+              service:
+                name: example-repair-jobs-feed-integration
+                port:
+                  number: 80
+            path: /
+            pathType: ImplementationSpecific
   tls:
-  - hosts:
-    - repair-jobs-feed-integration.staging.example.pro
-    secretName: repair-jobs-feed-integration-ingress-tls
+    - hosts:
+        - repair-jobs-feed-integration.staging.example.pro
+      secretName: repair-jobs-feed-integration-ingress-tls
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -2994,53 +2952,54 @@ spec:
         app.kubernetes.io/name: repairer-server
     spec:
       containers:
-      - env:
-        - name: OTEL_SERVICE_NAME
-          value: repairer-server
-        envFrom:
-        - configMapRef:
-            name: base-configs-h9955f52m6
-        - secretRef:
-            name: base-secrets-bgdcccc7t4
-        image: docker.io/example/repairer_server:62e956442ceec747e04c59cd7ef01d42dc1b0c6e
-        imagePullPolicy: IfNotPresent
-        livenessProbe:
-          failureThreshold: 3
-          httpGet:
-            path: /healthz
-            port: http
-            scheme: HTTP
-          initialDelaySeconds: 5
-          periodSeconds: 3
-          successThreshold: 1
-          timeoutSeconds: 1
-        name: repairer-server
-        ports:
-        - containerPort: 7172
-          name: http
-          protocol: TCP
-        readinessProbe:
-          failureThreshold: 30
-          httpGet:
-            path: /healthz
-            port: http
-            scheme: HTTP
-          initialDelaySeconds: 5
-          periodSeconds: 3
-          successThreshold: 1
-          timeoutSeconds: 1
-        resources: {}
-        startupProbe:
-          failureThreshold: 30
-          httpGet:
-            path: /healthz
-            port: http
-            scheme: HTTP
-          periodSeconds: 10
-          successThreshold: 1
-          timeoutSeconds: 1
+        - env:
+            - name: OTEL_SERVICE_NAME
+              value: repairer-server
+          envFrom:
+            - configMapRef:
+                name: base-configs-h9955f52m6
+            - secretRef:
+                name: base-secrets-bgdcccc7t4
+          image: docker.io/example/repairer_server:62e956442ceec747e04c59cd7ef01d42dc1b0c6e
+          imagePullPolicy: IfNotPresent
+          livenessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /healthz
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 5
+            periodSeconds: 3
+            successThreshold: 1
+            timeoutSeconds: 1
+          name: repairer-server
+          ports:
+            - containerPort: 7172
+              name: http
+              protocol: TCP
+          readinessProbe:
+            failureThreshold: 30
+            httpGet:
+              path: /healthz
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 5
+            periodSeconds: 3
+            successThreshold: 1
+            timeoutSeconds: 1
+          resources:
+            {}
+          startupProbe:
+            failureThreshold: 30
+            httpGet:
+              path: /healthz
+              port: http
+              scheme: HTTP
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 1
       imagePullSecrets:
-      - name: dockerhub-example-pull
+        - name: dockerhub-example-pull
       terminationGracePeriodSeconds: 30
   selector:
     matchLabels:
@@ -3056,13 +3015,13 @@ metadata:
     app.kubernetes.io/instance: example-staging-au
 spec:
   ipFamilies:
-  - IPv4
+    - IPv4
   ipFamilyPolicy: SingleStack
   ports:
-  - name: http
-    port: 80
-    protocol: TCP
-    targetPort: http
+    - name: http
+      port: 80
+      protocol: TCP
+      targetPort: http
   type: ClusterIP
   selector:
     app.kubernetes.io/name: repairer-server
@@ -3080,20 +3039,20 @@ metadata:
 spec:
   ingressClassName: nginx
   rules:
-  - host: api.repairer.staging.example.pro
-    http:
-      paths:
-      - backend:
-          service:
-            name: storefront-repairer-server
-            port:
-              number: 80
-        path: /api
-        pathType: ImplementationSpecific
+    - host: api.repairer.staging.example.pro
+      http:
+        paths:
+          - backend:
+              service:
+                name: storefront-repairer-server
+                port:
+                  number: 80
+            path: /api
+            pathType: ImplementationSpecific
   tls:
-  - hosts:
-    - api.repairer.staging.example.pro
-    secretName: repairer-server-ingress-tls
+    - hosts:
+        - api.repairer.staging.example.pro
+      secretName: repairer-server-ingress-tls
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -3110,57 +3069,57 @@ spec:
   template:
     spec:
       containers:
-      - env:
-        - name: OTEL_SERVICE_NAME
-          value: sample-integration
-        - name: SAMPLE_INTEGRATION_BASE_URL
-          value: sample-integration.integrations.example.com
-        - name: SAMPLE_INTEGRATION_PROTOCOL
-          value: https
-        - name: SOURCE_VERSION
-          valueFrom:
-            configMapKeyRef:
-              name: example-monorepo-revision-sync-968cb4dfd2
-              key: monorepo-revision
-        envFrom:
-        - secretRef:
-            name: base-secrets-bgdcccc7t4
-        - configMapRef:
-            name: base-configs-h9955f52m6
-        image: docker.io/example/sample_integration:d40737fa84d2063c883588098667a29a748bf878
-        imagePullPolicy: IfNotPresent
-        livenessProbe:
-          failureThreshold: 3
-          httpGet:
-            path: /api/v1/internal/system.liveness.get
-            port: http
-            scheme: HTTP
-          initialDelaySeconds: 6
-          periodSeconds: 10
-          successThreshold: 1
-          timeoutSeconds: 5
-        name: sample-integration
-        ports:
-        - containerPort: 4001
-          name: http
-          protocol: TCP
-        readinessProbe:
-          failureThreshold: 3
-          httpGet:
-            path: /api/v1/internal/system.readiness.get
-            port: http
-            scheme: HTTP
-          initialDelaySeconds: 10
-          periodSeconds: 5
-          successThreshold: 1
-          timeoutSeconds: 3
-        resources:
-          limits:
-            memory: 512Mi
-          requests:
-            memory: 128Mi
+        - env:
+            - name: OTEL_SERVICE_NAME
+              value: sample-integration
+            - name: SAMPLE_INTEGRATION_BASE_URL
+              value: sample-integration.integrations.example.com
+            - name: SAMPLE_INTEGRATION_PROTOCOL
+              value: https
+            - name: SOURCE_VERSION
+              valueFrom:
+                configMapKeyRef:
+                  name: example-monorepo-revision-sync-968cb4dfd2
+                  key: monorepo-revision
+          envFrom:
+            - secretRef:
+                name: base-secrets-bgdcccc7t4
+            - configMapRef:
+                name: base-configs-h9955f52m6
+          image: docker.io/example/sample_integration:d40737fa84d2063c883588098667a29a748bf878
+          imagePullPolicy: IfNotPresent
+          livenessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /api/v1/internal/system.liveness.get
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 6
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 5
+          name: sample-integration
+          ports:
+            - containerPort: 4001
+              name: http
+              protocol: TCP
+          readinessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /api/v1/internal/system.readiness.get
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            successThreshold: 1
+            timeoutSeconds: 3
+          resources:
+            limits:
+              memory: 512Mi
+            requests:
+              memory: 128Mi
       imagePullSecrets:
-      - name: dockerhub-example-pull
+        - name: dockerhub-example-pull
     metadata:
       labels:
         app.kubernetes.io/name: sample-integration
@@ -3178,13 +3137,13 @@ metadata:
     app.kubernetes.io/instance: example-staging-au
 spec:
   ipFamilies:
-  - IPv4
+    - IPv4
   ipFamilyPolicy: SingleStack
   ports:
-  - name: http
-    port: 80
-    protocol: TCP
-    targetPort: http
+    - name: http
+      port: 80
+      protocol: TCP
+      targetPort: http
   type: ClusterIP
   selector:
     app.kubernetes.io/name: sample-integration
@@ -3202,20 +3161,20 @@ metadata:
 spec:
   ingressClassName: nginx
   rules:
-  - host: sample-integration.staging.example.pro
-    http:
-      paths:
-      - backend:
-          service:
-            name: example-sample-integration
-            port:
-              number: 80
-        path: /
-        pathType: ImplementationSpecific
+    - host: sample-integration.staging.example.pro
+      http:
+        paths:
+          - backend:
+              service:
+                name: example-sample-integration
+                port:
+                  number: 80
+            path: /
+            pathType: ImplementationSpecific
   tls:
-  - hosts:
-    - sample-integration.staging.example.pro
-    secretName: sample-integration-ingress-tls
+    - hosts:
+        - sample-integration.staging.example.pro
+      secretName: sample-integration-ingress-tls
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -3232,59 +3191,59 @@ spec:
   template:
     spec:
       containers:
-      - env:
-        - name: OTEL_SERVICE_NAME
-          value: shopify-integration2
-        - name: shopify_integration2__LOGGING__LEVEL
-          value: info
-        - name: SHOPIFY_INTEGRATION2_BASE_URL
-          value: https://shopify-integration.integrations.example.com
-        - name: SHOPIFY_INTEGRATION_SCEHMA_ID
-          value: SHOPIFY_2
-        - name: SHOPIFY_INTEGRATION_ENABLE_WEBHOOKS
-          value: 'true'
-        - name: SHOPIFY_INTEGRATION__KAFKA__SELLABLE_PARTITIONS
-          value: '10'
-        - name: SHOPIFY_INTEGRATION__KAFKA__RETRY_PARTITIONS
-          value: '1'
-        - name: SHOPIFY_INTEGRATION__KAFKA__NOTIFICATION_BATCH_SIZE
-          value: '50'
-        - name: SOURCE_VERSION
-          valueFrom:
-            configMapKeyRef:
-              name: example-monorepo-revision-sync-968cb4dfd2
-              key: monorepo-revision
-        envFrom:
-        - secretRef:
-            name: base-secrets-bgdcccc7t4
-        - configMapRef:
-            name: base-configs-h9955f52m6
-        image: docker.io/example/shopify_integration2:6b90caf2ae1bd85cbbfcf11b1de9617251fb1ceb
-        imagePullPolicy: IfNotPresent
-        name: shopify-integration2
-        ports:
-        - containerPort: 4011
-          name: http
-          protocol: TCP
-        readinessProbe:
-          failureThreshold: 3
-          httpGet:
-            path: /api/internal/system.readiness.get
-            port: http
-            scheme: HTTP
-          initialDelaySeconds: 10
-          periodSeconds: 5
-          successThreshold: 1
-          timeoutSeconds: 3
-        resources:
-          limits:
-            cpu: 1500m
-            memory: 1Gi
-          requests:
-            cpu: 250m
-            memory: 128Mi
+        - env:
+            - name: OTEL_SERVICE_NAME
+              value: shopify-integration2
+            - name: shopify_integration2__LOGGING__LEVEL
+              value: info
+            - name: SHOPIFY_INTEGRATION2_BASE_URL
+              value: https://shopify-integration.integrations.example.com
+            - name: SHOPIFY_INTEGRATION_SCEHMA_ID
+              value: SHOPIFY_2
+            - name: SHOPIFY_INTEGRATION_ENABLE_WEBHOOKS
+              value: "true"
+            - name: SHOPIFY_INTEGRATION__KAFKA__SELLABLE_PARTITIONS
+              value: "10"
+            - name: SHOPIFY_INTEGRATION__KAFKA__RETRY_PARTITIONS
+              value: "1"
+            - name: SHOPIFY_INTEGRATION__KAFKA__NOTIFICATION_BATCH_SIZE
+              value: "50"
+            - name: SOURCE_VERSION
+              valueFrom:
+                configMapKeyRef:
+                  name: example-monorepo-revision-sync-968cb4dfd2
+                  key: monorepo-revision
+          envFrom:
+            - secretRef:
+                name: base-secrets-bgdcccc7t4
+            - configMapRef:
+                name: base-configs-h9955f52m6
+          image: docker.io/example/shopify_integration2:6b90caf2ae1bd85cbbfcf11b1de9617251fb1ceb
+          imagePullPolicy: IfNotPresent
+          name: shopify-integration2
+          ports:
+            - containerPort: 4011
+              name: http
+              protocol: TCP
+          readinessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /api/internal/system.readiness.get
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            successThreshold: 1
+            timeoutSeconds: 3
+          resources:
+            limits:
+              cpu: 1500m
+              memory: 1Gi
+            requests:
+              cpu: 250m
+              memory: 128Mi
       imagePullSecrets:
-      - name: dockerhub-example-pull
+        - name: dockerhub-example-pull
     metadata:
       labels:
         app.kubernetes.io/name: shopify-integration2
@@ -3302,13 +3261,13 @@ metadata:
     app.kubernetes.io/instance: example-staging-au
 spec:
   ipFamilies:
-  - IPv4
+    - IPv4
   ipFamilyPolicy: SingleStack
   ports:
-  - name: http
-    port: 80
-    protocol: TCP
-    targetPort: http
+    - name: http
+      port: 80
+      protocol: TCP
+      targetPort: http
   type: ClusterIP
   selector:
     app.kubernetes.io/name: shopify-integration2
@@ -3326,20 +3285,20 @@ metadata:
 spec:
   ingressClassName: nginx
   rules:
-  - host: shopify-integration2.staging.example.pro
-    http:
-      paths:
-      - backend:
-          service:
-            name: example-shopify-integration2
-            port:
-              number: 80
-        path: /
-        pathType: ImplementationSpecific
+    - host: shopify-integration2.staging.example.pro
+      http:
+        paths:
+          - backend:
+              service:
+                name: example-shopify-integration2
+                port:
+                  number: 80
+            path: /
+            pathType: ImplementationSpecific
   tls:
-  - hosts:
-    - shopify-integration2.staging.example.pro
-    secretName: shopify-integration2-ingress-tls
+    - hosts:
+        - shopify-integration2.staging.example.pro
+      secretName: shopify-integration2-ingress-tls
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -3356,62 +3315,62 @@ spec:
   template:
     spec:
       containers:
-      - env:
-        - name: OTEL_SERVICE_NAME
-          value: subscription-updater
-        - name: NODE_OPTIONS
-          value: --max-old-space-size=1024
-        - name: APOLLO_SERVER_PLATFORM
-          value: kubernetes
-        - name: APOLLO_SERVER_ID
-          valueFrom:
-            fieldRef:
-              apiVersion: v1
-              fieldPath: metadata.name
-        - name: APOLLO_SERVER_USER_VERSION
-          value: latest
-        - name: SOURCE_VERSION
-          valueFrom:
-            configMapKeyRef:
-              name: example-monorepo-revision-sync-968cb4dfd2
-              key: monorepo-revision
-        envFrom:
-        - secretRef:
-            name: base-secrets-bgdcccc7t4
-        - configMapRef:
-            name: base-configs-h9955f52m6
-        image: docker.io/example/subscription_updater:18c9229bc91013682f2de1847ecc4788cfd8ce55
-        imagePullPolicy: IfNotPresent
-        livenessProbe:
-          failureThreshold: 3
-          httpGet:
-            path: /healthy-check
-            port: http
-            scheme: HTTP
-          initialDelaySeconds: 180
-          periodSeconds: 20
-          successThreshold: 1
-          timeoutSeconds: 7
-        name: subscription-updater
-        ports:
-        - containerPort: 4000
-          name: http
-          protocol: TCP
-        readinessProbe:
-          failureThreshold: 3
-          httpGet:
-            path: /healthy-check
-            port: http
-            scheme: HTTP
-          initialDelaySeconds: 30
-          periodSeconds: 5
-          successThreshold: 1
-          timeoutSeconds: 3
-        resources:
-          requests:
-            memory: 128Mi
+        - env:
+            - name: OTEL_SERVICE_NAME
+              value: subscription-updater
+            - name: NODE_OPTIONS
+              value: "--max-old-space-size=1024"
+            - name: APOLLO_SERVER_PLATFORM
+              value: kubernetes
+            - name: APOLLO_SERVER_ID
+              valueFrom:
+                fieldRef:
+                  apiVersion: v1
+                  fieldPath: metadata.name
+            - name: APOLLO_SERVER_USER_VERSION
+              value: latest
+            - name: SOURCE_VERSION
+              valueFrom:
+                configMapKeyRef:
+                  name: example-monorepo-revision-sync-968cb4dfd2
+                  key: monorepo-revision
+          envFrom:
+            - secretRef:
+                name: base-secrets-bgdcccc7t4
+            - configMapRef:
+                name: base-configs-h9955f52m6
+          image: docker.io/example/subscription_updater:18c9229bc91013682f2de1847ecc4788cfd8ce55
+          imagePullPolicy: IfNotPresent
+          livenessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /healthy-check
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 180
+            periodSeconds: 20
+            successThreshold: 1
+            timeoutSeconds: 7
+          name: subscription-updater
+          ports:
+            - containerPort: 4000
+              name: http
+              protocol: TCP
+          readinessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /healthy-check
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 30
+            periodSeconds: 5
+            successThreshold: 1
+            timeoutSeconds: 3
+          resources:
+            requests:
+              memory: 128Mi
       imagePullSecrets:
-      - name: dockerhub-example-pull
+        - name: dockerhub-example-pull
     metadata:
       labels:
         app.kubernetes.io/name: subscription-updater
@@ -3429,13 +3388,13 @@ metadata:
     app.kubernetes.io/instance: example-staging-au
 spec:
   ipFamilies:
-  - IPv4
+    - IPv4
   ipFamilyPolicy: SingleStack
   ports:
-  - name: http
-    port: 80
-    protocol: TCP
-    targetPort: http
+    - name: http
+      port: 80
+      protocol: TCP
+      targetPort: http
   type: ClusterIP
   selector:
     app.kubernetes.io/name: subscription-updater
@@ -3455,55 +3414,55 @@ spec:
   template:
     spec:
       containers:
-      - env:
-        - name: OTEL_SERVICE_NAME
-          value: vrm-search
-        - name: NODE_OPTIONS
-          value: --max-old-space-size=768
-        - name: SOURCE_VERSION
-          valueFrom:
-            configMapKeyRef:
-              name: example-monorepo-revision-sync-968cb4dfd2
-              key: monorepo-revision
-        envFrom:
-        - secretRef:
-            name: base-secrets-bgdcccc7t4
-        - configMapRef:
-            name: base-configs-h9955f52m6
-        image: docker.io/example/vrm_search:34ccde7452c82f3d7cb3fd3a1fe2853b3c31fcf7
-        imagePullPolicy: IfNotPresent
-        livenessProbe:
-          failureThreshold: 3
-          httpGet:
-            path: /healthy-check
-            port: http
-            scheme: HTTP
-          initialDelaySeconds: 30
-          periodSeconds: 10
-          successThreshold: 1
-          timeoutSeconds: 5
-        name: vrm-search
-        ports:
-        - containerPort: 3003
-          name: http
-          protocol: TCP
-        readinessProbe:
-          failureThreshold: 3
-          httpGet:
-            path: /healthy-check
-            port: http
-            scheme: HTTP
-          initialDelaySeconds: 30
-          periodSeconds: 5
-          successThreshold: 1
-          timeoutSeconds: 3
-        resources:
-          limits:
-            memory: 1Gi
-          requests:
-            memory: 256Mi
+        - env:
+            - name: OTEL_SERVICE_NAME
+              value: vrm-search
+            - name: NODE_OPTIONS
+              value: "--max-old-space-size=768"
+            - name: SOURCE_VERSION
+              valueFrom:
+                configMapKeyRef:
+                  name: example-monorepo-revision-sync-968cb4dfd2
+                  key: monorepo-revision
+          envFrom:
+            - secretRef:
+                name: base-secrets-bgdcccc7t4
+            - configMapRef:
+                name: base-configs-h9955f52m6
+          image: docker.io/example/vrm_search:34ccde7452c82f3d7cb3fd3a1fe2853b3c31fcf7
+          imagePullPolicy: IfNotPresent
+          livenessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /healthy-check
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 5
+          name: vrm-search
+          ports:
+            - containerPort: 3003
+              name: http
+              protocol: TCP
+          readinessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /healthy-check
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 30
+            periodSeconds: 5
+            successThreshold: 1
+            timeoutSeconds: 3
+          resources:
+            limits:
+              memory: 1Gi
+            requests:
+              memory: 256Mi
       imagePullSecrets:
-      - name: dockerhub-example-pull
+        - name: dockerhub-example-pull
     metadata:
       labels:
         app.kubernetes.io/name: vrm-search
@@ -3521,13 +3480,13 @@ metadata:
     app.kubernetes.io/instance: example-staging-au
 spec:
   ipFamilies:
-  - IPv4
+    - IPv4
   ipFamilyPolicy: SingleStack
   ports:
-  - name: http
-    port: 80
-    protocol: TCP
-    targetPort: http
+    - name: http
+      port: 80
+      protocol: TCP
+      targetPort: http
   type: ClusterIP
   selector:
     app.kubernetes.io/name: vrm-search
@@ -3547,55 +3506,55 @@ spec:
   template:
     spec:
       containers:
-      - env:
-        - name: OTEL_SERVICE_NAME
-          value: webhooks-notifier
-        - name: WEBHOOKS_NOTIFIER__LOGGING__LEVEL
-          value: info
-        - name: SOURCE_VERSION
-          valueFrom:
-            configMapKeyRef:
-              name: example-monorepo-revision-sync-968cb4dfd2
-              key: monorepo-revision
-        envFrom:
-        - secretRef:
-            name: base-secrets-bgdcccc7t4
-        - configMapRef:
-            name: base-configs-h9955f52m6
-        image: docker.io/example/webhooks_notifier:0ade6c259184bcc263234e6d3dec5119c20222b5
-        imagePullPolicy: IfNotPresent
-        livenessProbe:
-          failureThreshold: 3
-          httpGet:
-            path: /api/status/readiness
-            port: http
-            scheme: HTTP
-          initialDelaySeconds: 6
-          periodSeconds: 10
-          successThreshold: 1
-          timeoutSeconds: 5
-        name: webhooks-notifier
-        ports:
-        - containerPort: 4200
-          name: http
-          protocol: TCP
-        readinessProbe:
-          failureThreshold: 3
-          httpGet:
-            path: /api/status/readiness
-            port: http
-            scheme: HTTP
-          initialDelaySeconds: 10
-          periodSeconds: 5
-          successThreshold: 1
-          timeoutSeconds: 3
-        resources:
-          limits:
-            memory: 1Gi
-          requests:
-            memory: 256Mi
+        - env:
+            - name: OTEL_SERVICE_NAME
+              value: webhooks-notifier
+            - name: WEBHOOKS_NOTIFIER__LOGGING__LEVEL
+              value: info
+            - name: SOURCE_VERSION
+              valueFrom:
+                configMapKeyRef:
+                  name: example-monorepo-revision-sync-968cb4dfd2
+                  key: monorepo-revision
+          envFrom:
+            - secretRef:
+                name: base-secrets-bgdcccc7t4
+            - configMapRef:
+                name: base-configs-h9955f52m6
+          image: docker.io/example/webhooks_notifier:0ade6c259184bcc263234e6d3dec5119c20222b5
+          imagePullPolicy: IfNotPresent
+          livenessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /api/status/readiness
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 6
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 5
+          name: webhooks-notifier
+          ports:
+            - containerPort: 4200
+              name: http
+              protocol: TCP
+          readinessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /api/status/readiness
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            successThreshold: 1
+            timeoutSeconds: 3
+          resources:
+            limits:
+              memory: 1Gi
+            requests:
+              memory: 256Mi
       imagePullSecrets:
-      - name: dockerhub-example-pull
+        - name: dockerhub-example-pull
     metadata:
       labels:
         app.kubernetes.io/name: webhooks-notifier
@@ -3613,13 +3572,13 @@ metadata:
     app.kubernetes.io/instance: example-staging-au
 spec:
   ipFamilies:
-  - IPv4
+    - IPv4
   ipFamilyPolicy: SingleStack
   ports:
-  - name: http
-    port: 80
-    protocol: TCP
-    targetPort: http
+    - name: http
+      port: 80
+      protocol: TCP
+      targetPort: http
   type: ClusterIP
   selector:
     app.kubernetes.io/name: webhooks-notifier
@@ -3642,31 +3601,33 @@ spec:
         app.kubernetes.io/name: example-external-job-integration
     spec:
       containers:
-      - env:
-        - name: SOURCE_VERSION
-          valueFrom:
-            configMapKeyRef:
-              name: example-monorepo-revision-sync-968cb4dfd2
-              key: monorepo-revision
-        envFrom:
-        - configMapRef:
-            name: base-configs-h9955f52m6
-        - configMapRef:
-            name: external-job-integration-9btb7f5kh2
-        - secretRef:
-            name: base-secrets-bgdcccc7t4
-        - secretRef:
-            name: audatex-secrets
-        image: docker.io/example/external_job_integration:57a42f0a99e4214648a0177caaa219ef2d31b6f9
-        imagePullPolicy: IfNotPresent
-        name: external-job-integration
-        ports:
-        - containerPort: 7575
-          name: http
-          protocol: TCP
-        resources: {}
+        - env:
+            - name: SOURCE_VERSION
+              valueFrom:
+                configMapKeyRef:
+                  name: example-monorepo-revision-sync-968cb4dfd2
+                  key: monorepo-revision
+          envFrom:
+            - configMapRef:
+                name: base-configs-h9955f52m6
+            - configMapRef:
+                name: external-job-integration-9btb7f5kh2
+            - secretRef:
+                name: base-secrets-bgdcccc7t4
+            - secretRef:
+                name: audatex-secrets
+          image: >-
+            docker.io/example/external_job_integration:57a42f0a99e4214648a0177caaa219ef2d31b6f9
+          imagePullPolicy: IfNotPresent
+          name: external-job-integration
+          ports:
+            - containerPort: 7575
+              name: http
+              protocol: TCP
+          resources:
+            {}
       imagePullSecrets:
-      - name: dockerhub-example-pull
+        - name: dockerhub-example-pull
       terminationGracePeriodSeconds: 30
   selector:
     matchLabels:
@@ -3682,13 +3643,13 @@ metadata:
     app.kubernetes.io/instance: example-staging-au
 spec:
   ipFamilies:
-  - IPv4
+    - IPv4
   ipFamilyPolicy: SingleStack
   ports:
-  - name: http
-    port: 80
-    protocol: TCP
-    targetPort: http
+    - name: http
+      port: 80
+      protocol: TCP
+      targetPort: http
   type: ClusterIP
   selector:
     app.kubernetes.io/name: example-external-job-integration
@@ -3706,20 +3667,20 @@ metadata:
 spec:
   ingressClassName: nginx
   rules:
-  - host: external-job-integration.staging.example.pro
-    http:
-      paths:
-      - backend:
-          service:
-            name: example-external-job-integration
-            port:
-              number: 80
-        path: /
-        pathType: ImplementationSpecific
+    - host: external-job-integration.staging.example.pro
+      http:
+        paths:
+          - backend:
+              service:
+                name: example-external-job-integration
+                port:
+                  number: 80
+            path: /
+            pathType: ImplementationSpecific
   tls:
-  - hosts:
-    - external-job-integration.staging.example.pro
-    secretName: external-job-integration-ingress-tls
+    - hosts:
+        - external-job-integration.staging.example.pro
+      secretName: external-job-integration-ingress-tls
 ---
 apiVersion: v1
 kind: Secret
@@ -3756,7 +3717,7 @@ metadata:
   labels:
     app.kubernetes.io/instance: example-staging-au
   annotations:
-    argocd.argoproj.io/sync-wave: '-5'
+    argocd.argoproj.io/sync-wave: "-5"
 data:
   monorepo-revision: |
     ee88cbb1
@@ -3797,7 +3758,7 @@ metadata:
   labels:
     app.kubernetes.io/instance: example-staging-au
   annotations:
-    argocd.argoproj.io/sync-wave: '-4'
+    argocd.argoproj.io/sync-wave: "-4"
 spec:
   repository: docker.io/scylladb/scylla
   version: 6.2.3
@@ -3805,22 +3766,22 @@ spec:
   developerMode: false
   automaticOrphanedNodeCleanup: true
   sysctls:
-  - fs.aio-max-nr=30000000
+    - fs.aio-max-nr=30000000
   datacenter:
     name: dc1
     racks:
-    - name: rack1
-      members: 1
-      storage:
-        capacity: 50Gi
-        storageClassName: premium-rwo
-      resources:
-        requests:
-          cpu: 1
-          memory: 4Gi
-        limits:
-          cpu: 1
-          memory: 4Gi
+      - name: rack1
+        members: 1
+        storage:
+          capacity: 50Gi
+          storageClassName: premium-rwo
+        resources:
+          requests:
+            cpu: 1
+            memory: 4Gi
+          limits:
+            cpu: 1
+            memory: 4Gi
 ---
 apiVersion: v1
 kind: ConfigMap
@@ -3830,8 +3791,6 @@ metadata:
   labels:
     app.kubernetes.io/instance: example-staging-au
   annotations:
-    argocd.argoproj.io/sync-wave: '-4'
+    argocd.argoproj.io/sync-wave: "-4"
 data:
-  scylla.yaml: |
-    authenticator: PasswordAuthenticator
-    authorizer: CassandraAuthorizer
+  scylla.yaml: "authenticator: PasswordAuthenticator\nauthorizer: CassandraAuthorizer\n"

@@ -4,13 +4,13 @@ kind: ClusterRole
 metadata:
   name: test-clusterrole
 rules:
-- apiGroups:
-  - ''
-  resources:
-  - pods
-  verbs:
-  - get
-  - list
+  - apiGroups:
+      - ""
+    resources:
+      - pods
+    verbs:
+      - get
+      - list
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
@@ -21,5 +21,5 @@ roleRef:
   kind: ClusterRole
   name: test-clusterrole
 subjects:
-- kind: ServiceAccount
-  name: test-serviceaccount
+  - kind: ServiceAccount
+    name: test-serviceaccount

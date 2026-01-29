@@ -14,36 +14,36 @@ spec:
         app: web-app
     spec:
       containers:
-      - name: web
-        image: nginx:1.20
-        env:
-        - name: DATABASE_URL
-          valueFrom:
-            configMapKeyRef:
-              name: app-config-8h82mm6h4h
-              key: database_url
-        - name: API_KEY
-          valueFrom:
-            secretKeyRef:
-              name: app-secrets-fh282b5md4
-              key: api_key
-        envFrom:
-        - configMapRef:
-            name: app-config-8h82mm6h4h
-        - secretRef:
-            name: app-secrets-fh282b5md4
-        volumeMounts:
-        - name: config-volume
-          mountPath: /etc/config
-        - name: secret-volume
-          mountPath: /etc/secrets
+        - name: web
+          image: nginx:1.20
+          env:
+            - name: DATABASE_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: app-config-8h82mm6h4h
+                  key: database_url
+            - name: API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: app-secrets-fh282b5md4
+                  key: api_key
+          envFrom:
+            - configMapRef:
+                name: app-config-8h82mm6h4h
+            - secretRef:
+                name: app-secrets-fh282b5md4
+          volumeMounts:
+            - name: config-volume
+              mountPath: /etc/config
+            - name: secret-volume
+              mountPath: /etc/secrets
       volumes:
-      - name: config-volume
-        configMap:
-          name: app-config-8h82mm6h4h
-      - name: secret-volume
-        secret:
-          secretName: app-secrets-fh282b5md4
+        - name: config-volume
+          configMap:
+            name: app-config-8h82mm6h4h
+        - name: secret-volume
+          secret:
+            secretName: app-secrets-fh282b5md4
 ---
 apiVersion: apps/v1
 kind: StatefulSet
@@ -61,27 +61,27 @@ spec:
         app: database
     spec:
       containers:
-      - name: postgres
-        image: postgres:13
-        env:
-        - name: POSTGRES_PASSWORD
-          valueFrom:
-            secretKeyRef:
-              name: app-secrets-fh282b5md4
-              key: db_password
-        - name: DEBUG_MODE
-          valueFrom:
-            configMapKeyRef:
-              name: app-config-8h82mm6h4h
-              key: debug
-        volumeMounts:
-        - name: config-props
-          mountPath: /etc/postgresql/postgresql.conf
-          subPath: config.properties
+        - name: postgres
+          image: postgres:13
+          env:
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: app-secrets-fh282b5md4
+                  key: db_password
+            - name: DEBUG_MODE
+              valueFrom:
+                configMapKeyRef:
+                  name: app-config-8h82mm6h4h
+                  key: debug
+          volumeMounts:
+            - name: config-props
+              mountPath: /etc/postgresql/postgresql.conf
+              subPath: config.properties
       volumes:
-      - name: config-props
-        configMap:
-          name: app-config-8h82mm6h4h
+        - name: config-props
+          configMap:
+            name: app-config-8h82mm6h4h
 ---
 apiVersion: v1
 kind: Pod
@@ -89,29 +89,29 @@ metadata:
   name: standalone-pod
 spec:
   containers:
-  - name: app
-    image: alpine:latest
-    command:
-    - sleep
-    - '3600'
-    envFrom:
-    - configMapRef:
-        name: app-config-8h82mm6h4h
-    - secretRef:
-        name: app-secrets-fh282b5md4
+    - name: app
+      image: alpine:latest
+      command:
+        - sleep
+        - "3600"
+      envFrom:
+        - configMapRef:
+            name: app-config-8h82mm6h4h
+        - secretRef:
+            name: app-secrets-fh282b5md4
   initContainers:
-  - name: init-config
-    image: busybox
-    command:
-    - sh
-    - -c
-    - echo $DATABASE_URL
-    env:
-    - name: DATABASE_URL
-      valueFrom:
-        configMapKeyRef:
-          name: app-config-8h82mm6h4h
-          key: database_url
+    - name: init-config
+      image: busybox
+      command:
+        - sh
+        - "-c"
+        - echo $DATABASE_URL
+      env:
+        - name: DATABASE_URL
+          valueFrom:
+            configMapKeyRef:
+              name: app-config-8h82mm6h4h
+              key: database_url
 ---
 apiVersion: batch/v1
 kind: Job
@@ -121,19 +121,19 @@ spec:
   template:
     spec:
       containers:
-      - name: migrator
-        image: migrate/migrate
-        env:
-        - name: DATABASE_URL
-          valueFrom:
-            configMapKeyRef:
-              name: app-config-8h82mm6h4h
-              key: database_url
-        - name: DB_PASSWORD
-          valueFrom:
-            secretKeyRef:
-              name: app-secrets-fh282b5md4
-              key: db_password
+        - name: migrator
+          image: migrate/migrate
+          env:
+            - name: DATABASE_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: app-config-8h82mm6h4h
+                  key: database_url
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: app-secrets-fh282b5md4
+                  key: db_password
       restartPolicy: Never
 ---
 apiVersion: apps/v1
@@ -150,29 +150,29 @@ spec:
         app: log-collector
     spec:
       containers:
-      - name: collector
-        image: fluentd:latest
-        env:
-        - name: DEBUG_LEVEL
-          valueFrom:
-            configMapKeyRef:
-              name: app-config-8h82mm6h4h
-              key: debug
-        - name: API_KEY
-          valueFrom:
-            secretKeyRef:
-              name: app-secrets-fh282b5md4
-              key: api_key
-        volumeMounts:
-        - name: app-config
-          mountPath: /fluentd/etc/config
+        - name: collector
+          image: fluentd:latest
+          env:
+            - name: DEBUG_LEVEL
+              valueFrom:
+                configMapKeyRef:
+                  name: app-config-8h82mm6h4h
+                  key: debug
+            - name: API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: app-secrets-fh282b5md4
+                  key: api_key
+          volumeMounts:
+            - name: app-config
+              mountPath: /fluentd/etc/config
       volumes:
-      - name: app-config
-        configMap:
-          name: app-config-8h82mm6h4h
-          items:
-          - key: config.properties
-            path: app.conf
+        - name: app-config
+          configMap:
+            name: app-config-8h82mm6h4h
+            items:
+              - key: config.properties
+                path: app.conf
 ---
 apiVersion: v1
 kind: ConfigMap
@@ -180,7 +180,7 @@ metadata:
   name: app-config-8h82mm6h4h
 data:
   database_url: postgres://localhost:5432/app
-  debug: 'true'
+  debug: "true"
   config.properties: |-
     app.name=MyApp
     app.version=1.0.0

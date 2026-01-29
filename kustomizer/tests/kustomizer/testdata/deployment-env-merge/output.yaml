@@ -15,16 +15,16 @@ spec:
         app: test-app
     spec:
       containers:
-      - name: test-container
-        image: nginx:latest
-        env:
-        - name: BASE_VAR_1
-          value: base_value_1
-        - name: BASE_VAR_2
-          value: base_value_2
-        - name: SHARED_VAR
-          value: overridden_value
-        - name: PATCH_VAR_1
-          value: patch_value_1
-        - name: PATCH_VAR_2
-          value: patch_value_2
+        - name: test-container
+          image: nginx:latest
+          env:
+            - name: BASE_VAR_1
+              value: base_value_1
+            - name: BASE_VAR_2
+              value: base_value_2
+            - name: SHARED_VAR
+              value: overridden_value
+            - name: PATCH_VAR_1
+              value: patch_value_1
+            - name: PATCH_VAR_2
+              value: patch_value_2

@@ -5,7 +5,7 @@ metadata:
   name: cursed-configmap
 data:
   NOPE: "no"
-  YES: "yes"
+  YESS: "yes"
 ---
 apiVersion: v1
 kind: ConfigMap
@@ -37,5 +37,6 @@ apiVersion: v1
 kind: Secret
 metadata:
   name: empty-secret-46f8b28mk5
-data: {}
+data:
+  {}
 type: Opaque

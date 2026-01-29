@@ -6,5 +6,5 @@ spec:
   template:
     spec:
       containers:
-      - name: web
-        image: nginx:1.20.0
+        - name: web
+          image: nginx:1.20.0

@@ -13,34 +13,34 @@ spec:
     spec:
       serviceAccountName: db-restore
       containers:
-      - name: db-restore
-        env:
-        - name: POD_NAME
-          valueFrom:
-            fieldRef:
-              fieldPath: metadata.name
-        image: google/cloud-sdk:517.0.0-alpine
-        imagePullPolicy: IfNotPresent
-        command:
-        - python
-        - /scripts/db-restore.py
-        - --private-ip
-        - --finalise-script
-        - /scripts-finalise/finalise.sql
-        - --watch-configmap
-        - partly-dataset-revision
-        volumeMounts:
-        - name: scripts-volume
-          mountPath: /scripts
-        - name: finalise-script-volume
-          mountPath: /scripts-finalise
+        - name: db-restore
+          env:
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+          image: google/cloud-sdk:517.0.0-alpine
+          imagePullPolicy: IfNotPresent
+          command:
+            - python
+            - /scripts/db-restore.py
+            - "--private-ip"
+            - "--finalise-script"
+            - /scripts-finalise/finalise.sql
+            - "--watch-configmap"
+            - partly-dataset-revision
+          volumeMounts:
+            - name: scripts-volume
+              mountPath: /scripts
+            - name: finalise-script-volume
+              mountPath: /scripts-finalise
       volumes:
-      - name: scripts-volume
-        configMap:
-          name: db-restore-script
-      - name: finalise-script-volume
-        configMap:
-          name: finalise-script
+        - name: scripts-volume
+          configMap:
+            name: db-restore-script
+        - name: finalise-script-volume
+          configMap:
+            name: finalise-script
     metadata:
       labels:
         app.kubernetes.io/name: db-restore
@@ -67,37 +67,37 @@ spec:
       template:
         spec:
           containers:
-          - name: reset
-            image: alpine:3.22
-            imagePullPolicy: IfNotPresent
-            command:
-            - /bin/sh
-            - -c
-            - apk add --update --no-cache git openssh jq curl bash && /scripts/reset-env.sh
-            env:
-            - name: POD_NAMESPACE
-              valueFrom:
-                fieldRef:
-                  fieldPath: metadata.namespace
-            - name: ARGOCD_REPO_DEPLOY_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: gitlab-argocd-repo-token
-                  key: key
-            - name: NOTION_BEARER_TOKEN
-              valueFrom:
-                secretKeyRef:
-                  name: notion-secret
-                  key: bearer-token
-            volumeMounts:
-            - name: scripts-volume
-              mountPath: /scripts
+            - name: reset
+              image: alpine:3.22
+              imagePullPolicy: IfNotPresent
+              command:
+                - /bin/sh
+                - "-c"
+                - apk add --update --no-cache git openssh jq curl bash && /scripts/reset-env.sh
+              env:
+                - name: POD_NAMESPACE
+                  valueFrom:
+                    fieldRef:
+                      fieldPath: metadata.namespace
+                - name: ARGOCD_REPO_DEPLOY_KEY
+                  valueFrom:
+                    secretKeyRef:
+                      name: gitlab-argocd-repo-token
+                      key: key
+                - name: NOTION_BEARER_TOKEN
+                  valueFrom:
+                    secretKeyRef:
+                      name: notion-secret
+                      key: bearer-token
+              volumeMounts:
+                - name: scripts-volume
+                  mountPath: /scripts
           restartPolicy: OnFailure
           volumes:
-          - name: scripts-volume
-            configMap:
-              name: reset-env-script
-              defaultMode: 493
+            - name: scripts-volume
+              configMap:
+                name: reset-env-script
+                defaultMode: 493
         metadata:
           labels:
             app.kubernetes.io/name: db-restore
@@ -121,9 +121,9 @@ metadata:
   labels:
     app.kubernetes.io/name: db-restore
 subjects:
-- kind: ServiceAccount
-  name: db-restore
-  namespace: partly
+  - kind: ServiceAccount
+    name: db-restore
+    namespace: partly
 roleRef:
   kind: Role
   name: db-restore-reader
@@ -137,13 +137,13 @@ metadata:
   labels:
     app.kubernetes.io/name: db-restore
 rules:
-- apiGroups:
-  - '*'
-  resources:
-  - '*'
-  verbs:
-  - get
-  - list
+  - apiGroups:
+      - "*"
+    resources:
+      - "*"
+    verbs:
+      - get
+      - list
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
@@ -153,9 +153,9 @@ metadata:
   labels:
     app.kubernetes.io/name: db-restore
 subjects:
-- kind: ServiceAccount
-  name: db-restore
-  namespace: partly
+  - kind: ServiceAccount
+    name: db-restore
+    namespace: partly
 roleRef:
   kind: Role
   name: db-restore-cm-creator
@@ -169,15 +169,15 @@ metadata:
   labels:
     app.kubernetes.io/name: db-restore
 rules:
-- apiGroups:
-  - ''
-  resources:
-  - configmaps
-  verbs:
-  - create
-  - update
-  - patch
-  - delete
+  - apiGroups:
+      - ""
+    resources:
+      - configmaps
+    verbs:
+      - create
+      - update
+      - patch
+      - delete
 ---
 apiVersion: v1
 kind: ConfigMap
@@ -187,14 +187,7 @@ metadata:
   labels:
     app.kubernetes.io/name: db-restore
 data:
-  db-restore.py: |
-    #!/usr/bin/env python3
-
-    def main():
-        pass
-
-    if __name__ == "__main__":
-        main()
+  db-restore.py: "#!/usr/bin/env python3\n\ndef main():\n    pass\n\nif __name__ == \"__main__\":\n    main()\n"
 ---
 apiVersion: v1
 kind: ConfigMap
@@ -204,5 +197,4 @@ metadata:
   labels:
     app.kubernetes.io/name: db-restore
 data:
-  reset-env.sh: |
-    #!/usr/bin/env bash
+  reset-env.sh: "#!/usr/bin/env bash\n"

@@ -7,5 +7,5 @@ metadata:
     a: updatedA
     b: originalB
 data:
-  VAR1: '100'
-  VAR2: '200'
+  VAR1: "100"
+  VAR2: "200"

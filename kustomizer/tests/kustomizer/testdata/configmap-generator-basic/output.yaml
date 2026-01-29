@@ -8,8 +8,4 @@ data:
     database.port=5432
     database.name=myapp
     app.debug=true
-  app.conf: |-
-    server {
-        listen 8080;
-        root /app/public;
-    }
+  app.conf: "server {\n    listen 8080;\n    root /app/public;\n}"
