@@ -13,6 +13,7 @@ mod resmap;
 mod resource;
 mod serde_ex;
 mod transform;
+pub mod yaml;
 
 use core::fmt;
 use std::{ffi::OsStr, ops::Deref, path::Path};

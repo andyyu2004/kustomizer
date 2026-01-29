@@ -19,6 +19,7 @@ use crate::{
     PathExt, PathId,
     manifest::{Behavior, FunctionSpec, Str},
     patch::merge_patch,
+    yaml,
 };
 
 pub use self::refs::RefSpecs;
@@ -166,7 +167,7 @@ impl Resource {
             Entry::Occupied(e) => Ok(e.get().clone()),
             Entry::Vacant(e) => {
                 let file = std::fs::File::open(path)?;
-                let resource = serde_yaml::from_reader(file)?;
+                let resource = yaml::from_reader(file)?;
                 Ok(e.insert(resource).value().clone())
             }
         }
@@ -496,11 +497,11 @@ pub struct Metadata {
     #[serde(default, skip_serializing_if = "Annotations::is_empty")]
     pub annotations: Annotations,
     #[serde(flatten)]
-    pub rest: IndexMap<Str, serde_yaml::Value>,
+    pub rest: IndexMap<Str, serde_json::Value>,
 }
 
 impl Deref for Metadata {
-    type Target = IndexMap<Str, serde_yaml::Value>;
+    type Target = IndexMap<Str, serde_json::Value>;
 
     fn deref(&self) -> &Self::Target {
         &self.rest

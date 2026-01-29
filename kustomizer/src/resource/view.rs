@@ -1,7 +1,10 @@
 use serde::Deserialize as _;
 use serde_json::map::Entry;
 
-use crate::manifest::{Behavior, FunctionSpec};
+use crate::{
+    manifest::{Behavior, FunctionSpec},
+    yaml,
+};
 
 use super::{Object, Resource, annotation};
 
@@ -115,7 +118,7 @@ impl<'a> AnnotationsView<'a> {
 
     pub fn behavior(&self) -> anyhow::Result<Behavior> {
         match self.get("kustomize.config.k8s.io/behavior") {
-            Some(value) => serde_yaml::from_str(value)
+            Some(value) => yaml::from_str(value)
                 .map_err(|err| anyhow::anyhow!("failed to parse behavior: {err}")),
             None => Ok(Behavior::default()),
         }
@@ -128,7 +131,7 @@ impl<'a> AnnotationsView<'a> {
     pub fn function_spec(&self) -> anyhow::Result<Option<FunctionSpec>> {
         match self.get(annotation::FUNCTION) {
             Some(yaml) => {
-                let json = serde_yaml::from_str::<serde_json::Value>(yaml)?;
+                let json = yaml::from_str::<serde_json::Value>(yaml)?;
                 FunctionSpec::deserialize(json)
                     .map_err(|err| anyhow::anyhow!("failed to deserialize function spec: {err}"))
                     .map(Some)

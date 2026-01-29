@@ -1,6 +1,6 @@
 use std::sync::OnceLock;
 
-use crate::fieldspec::FieldSpec;
+use crate::{fieldspec::FieldSpec, yaml};
 use serde::Deserialize;
 
 use super::{Gvk, GvkMatcher};
@@ -16,7 +16,7 @@ impl RefSpecs {
     pub fn load_builtin() -> &'static Self {
         static INSTANCE: OnceLock<RefSpecs> = OnceLock::new();
         INSTANCE.get_or_init(|| RefSpecs {
-            specs: serde_yaml::from_str(REFSPECS).expect("valid refspecs.yaml"),
+            specs: yaml::from_str(REFSPECS).expect("valid refspecs.yaml"),
         })
     }
 

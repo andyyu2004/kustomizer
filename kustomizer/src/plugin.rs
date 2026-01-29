@@ -3,7 +3,7 @@ use std::{path::Path, process::Stdio, time::Instant};
 use anyhow::{Context, bail};
 use tokio::io::AsyncWriteExt as _;
 
-use crate::{manifest::FunctionSpec, reslist::ResourceList};
+use crate::{manifest::FunctionSpec, reslist::ResourceList, yaml};
 
 pub struct FunctionPlugin {
     spec: FunctionSpec,
@@ -46,7 +46,7 @@ impl FunctionPlugin {
 
         let now = Instant::now();
 
-        let stdin = serde_yaml::to_string(input)?;
+        let stdin = yaml::to_string(input)?;
         proc.stdin
             .as_mut()
             .unwrap()
@@ -66,7 +66,7 @@ impl FunctionPlugin {
             );
         }
 
-        let resources = serde_yaml::from_slice::<ResourceList>(&output.stdout)?;
+        let resources = yaml::from_slice::<ResourceList>(&output.stdout)?;
 
         tracing::info!(
             duration = ?now.elapsed(),
