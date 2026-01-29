@@ -1,0 +1,12 @@
+ARG ALPINE_VERSION=3.23
+
+FROM alpine:${ALPINE_VERSION}
+
+RUN apk add --no-cache ca-certificates
+
+ARG TARGETARCH
+COPY artifacts/${TARGETARCH}/kustomizer /usr/local/bin/kustomizer
+
+RUN chmod +x /usr/local/bin/kustomizer
+
+ENTRYPOINT ["/usr/local/bin/kustomizer"]

@@ -118,27 +118,60 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Extract metadata
-        id: meta
+      - name: Extract metadata for Alpine variant
+        id: meta-alpine
         uses: docker/metadata-action@v5
         with:
           images: ghcr.io/${{ github.repository }}
           tags: |
-            type=ref,event=branch
-            type=ref,event=pr
+            type=ref,event=branch,suffix=-alpine3.23
+            type=ref,event=pr,suffix=-alpine3.23
+            type=semver,pattern={{version}},suffix=-alpine3.23
+            type=semver,pattern={{major}}.{{minor}},suffix=-alpine3.23
+            type=semver,pattern={{major}},suffix=-alpine3.23
+            type=ref,event=branch,suffix=-alpine
+            type=ref,event=pr,suffix=-alpine
+            type=semver,pattern={{version}},suffix=-alpine
+            type=semver,pattern={{major}}.{{minor}},suffix=-alpine
+            type=semver,pattern={{major}},suffix=-alpine
+            type=raw,value=latest,enable={{is_default_branch}}
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
             type=semver,pattern={{major}}
-            type=raw,value=latest,enable={{is_default_branch}}
 
-      - name: Build and push multi-arch image
+      - name: Extract metadata for Scratch variant
+        id: meta-scratch
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository }}
+          tags: |
+            type=ref,event=branch,suffix=-scratch
+            type=ref,event=pr,suffix=-scratch
+            type=semver,pattern={{version}},suffix=-scratch
+            type=semver,pattern={{major}}.{{minor}},suffix=-scratch
+            type=semver,pattern={{major}},suffix=-scratch
+
+      - name: Build and push Alpine image
         uses: docker/build-push-action@v5
         with:
           context: .
+          file: ./Dockerfile.alpine
           platforms: linux/amd64,linux/arm64
           push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
+          tags: ${{ steps.meta-alpine.outputs.tags }}
+          labels: ${{ steps.meta-alpine.outputs.labels }}
+          build-args: |
+            ALPINE_VERSION=3.23
+
+      - name: Build and push Scratch image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Dockerfile.scratch
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ${{ steps.meta-scratch.outputs.tags }}
+          labels: ${{ steps.meta-scratch.outputs.labels }}
 
   release:
     name: Create Release
