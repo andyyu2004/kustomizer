@@ -1,5 +1,5 @@
 use anyhow::anyhow;
-use serde_json::Value;
+use json::Value;
 
 use crate::{
     manifest::Str,
@@ -116,7 +116,7 @@ impl RenameTransformer<'_> {
     /// Check if a reference object matches the resource being renamed
     fn reference_matches_resource(
         &self,
-        reference_map: &serde_json::Map<String, Value>,
+        reference_map: &json::Map<String, Value>,
         res_id: &ResId,
     ) -> anyhow::Result<bool> {
         let name = reference_map
@@ -137,7 +137,7 @@ impl RenameTransformer<'_> {
     /// Update the name and namespace fields in a reference object
     fn update_reference_fields(
         &self,
-        reference_map: &mut serde_json::Map<String, Value>,
+        reference_map: &mut json::Map<String, Value>,
         rename: &Rename,
     ) {
         // Update the name

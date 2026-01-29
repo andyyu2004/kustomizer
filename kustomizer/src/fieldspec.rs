@@ -10,8 +10,8 @@ use crate::{
     resource::{GvkMatcher, Object, Resource},
 };
 use anyhow::{Context as _, bail};
+use json::Value;
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 // See kustomize/internal/konfig/builtinpluginconsts
 
@@ -360,6 +360,6 @@ impl JsonValue for u64 {
     }
 
     fn into_value(self) -> Value {
-        Value::Number(serde_json::Number::from(self))
+        Value::Number(json::Number::from(self))
     }
 }

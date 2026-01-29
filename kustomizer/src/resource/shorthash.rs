@@ -29,23 +29,23 @@ fn encode_config_map(resource: &Resource) -> anyhow::Result<String> {
     struct ConfigMap {
         #[serde(skip_serializing_if = "Option::is_none")]
         #[serde(rename = "binaryData")]
-        binary_data: Option<serde_json::Value>,
-        data: serde_json::Value,
+        binary_data: Option<json::Value>,
+        data: json::Value,
         kind: &'static str,
         name: Str,
     }
 
     let data = match resource.root().get("data") {
         Some(d) if d.as_object().is_some() => {
-            let map: BTreeMap<String, serde_json::Value> = d
+            let map: BTreeMap<String, json::Value> = d
                 .as_object()
                 .unwrap()
                 .iter()
                 .map(|(k, v)| (k.clone(), v.clone()))
                 .collect();
-            serde_json::to_value(map)?
+            json::to_value(map)?
         }
-        _ => serde_json::Value::String("".to_string()),
+        _ => json::Value::String("".to_string()),
     };
 
     let binary_data = resource
@@ -53,9 +53,9 @@ fn encode_config_map(resource: &Resource) -> anyhow::Result<String> {
         .get("binaryData")
         .and_then(|d| d.as_object())
         .map(|obj| {
-            let map: BTreeMap<String, serde_json::Value> =
+            let map: BTreeMap<String, json::Value> =
                 obj.iter().map(|(k, v)| (k.clone(), v.clone())).collect();
-            serde_json::to_value(map).unwrap()
+            json::to_value(map).unwrap()
         });
 
     let config_map = ConfigMap {
@@ -67,33 +67,33 @@ fn encode_config_map(resource: &Resource) -> anyhow::Result<String> {
         // name: resource.name().clone(),
     };
 
-    Ok(serde_json::to_string(&config_map)?)
+    Ok(json::to_string(&config_map)?)
 }
 
 fn encode_secret(resource: &Resource) -> anyhow::Result<String> {
     #[derive(serde::Serialize)]
     struct Secret {
-        data: serde_json::Value,
+        data: json::Value,
         kind: &'static str,
         name: Str,
         #[serde(skip_serializing_if = "Option::is_none")]
         #[serde(rename = "stringData")]
-        string_data: Option<serde_json::Value>,
+        string_data: Option<json::Value>,
         #[serde(rename = "type")]
-        secret_type: serde_json::Value,
+        secret_type: json::Value,
     }
 
     let data = match resource.root().get("data") {
         Some(d) if d.as_object().is_some() => {
-            let map: BTreeMap<String, serde_json::Value> = d
+            let map: BTreeMap<String, json::Value> = d
                 .as_object()
                 .unwrap()
                 .iter()
                 .map(|(k, v)| (k.clone(), v.clone()))
                 .collect();
-            serde_json::to_value(map)?
+            json::to_value(map)?
         }
-        _ => serde_json::Value::String("".to_string()),
+        _ => json::Value::String("".to_string()),
     };
 
     let string_data = resource
@@ -101,16 +101,16 @@ fn encode_secret(resource: &Resource) -> anyhow::Result<String> {
         .get("stringData")
         .and_then(|d| d.as_object())
         .map(|obj| {
-            let map: BTreeMap<String, serde_json::Value> =
+            let map: BTreeMap<String, json::Value> =
                 obj.iter().map(|(k, v)| (k.clone(), v.clone())).collect();
-            serde_json::to_value(map).unwrap()
+            json::to_value(map).unwrap()
         });
 
     let secret_type = resource
         .root()
         .get("type")
         .cloned()
-        .unwrap_or_else(|| serde_json::Value::String("".to_string()));
+        .unwrap_or_else(|| json::Value::String("".to_string()));
 
     let secret = Secret {
         data,
@@ -120,7 +120,7 @@ fn encode_secret(resource: &Resource) -> anyhow::Result<String> {
         secret_type,
     };
 
-    Ok(serde_json::to_string(&secret)?)
+    Ok(json::to_string(&secret)?)
 }
 
 /// HTMLEscape escapes <, >, &, U+2028 and U+2029 characters in JSON strings

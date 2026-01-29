@@ -1,8 +1,8 @@
 use crate::{resource::Resource, yaml};
 
 fn create_resource_from_yaml(yaml: &str) -> anyhow::Result<Resource> {
-    let value: serde_json::Value = yaml::from_str(yaml)?;
-    let resource: Resource = serde_json::from_value(value)?;
+    let value: json::Value = yaml::from_str(yaml)?;
+    let resource: Resource = json::from_value(value)?;
     Ok(resource)
 }
 

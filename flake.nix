@@ -13,8 +13,15 @@
     };
   };
 
-  outputs = { self, nixpkgs, flake-utils, gotmpl }:
-    flake-utils.lib.eachDefaultSystem (system:
+  outputs =
+    {
+      self,
+      nixpkgs,
+      flake-utils,
+      gotmpl,
+    }:
+    flake-utils.lib.eachDefaultSystem (
+      system:
       let
         pkgs = nixpkgs.legacyPackages.${system};
 
@@ -65,5 +72,6 @@
             export PATH=${pkgs.kustomize-sops}/lib/viaduct.ai/v1/ksops:$PATH
           '';
         };
-      });
+      }
+    );
 }

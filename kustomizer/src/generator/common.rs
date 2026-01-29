@@ -68,7 +68,7 @@ pub async fn process_key_value_sources(
         };
 
         if object
-            .insert(kv.key.to_string(), serde_json::Value::String(value))
+            .insert(kv.key.to_string(), json::Value::String(value))
             .is_some()
         {
             bail!("duplicate key `{}` in {resource_type} sources", kv.key);
@@ -93,7 +93,7 @@ pub async fn process_key_value_sources(
         };
 
         if object
-            .insert(key.to_string(), serde_json::Value::String(encoded_data))
+            .insert(key.to_string(), json::Value::String(encoded_data))
             .is_some()
         {
             bail!("duplicate key `{key}` in {resource_type} sources");
@@ -120,7 +120,7 @@ pub async fn process_key_value_sources(
             };
 
             if object
-                .insert(key.to_string(), serde_json::Value::String(value))
+                .insert(key.to_string(), json::Value::String(value))
                 .is_some()
             {
                 bail!("duplicate key `{key}` in {} sources", resource_type);

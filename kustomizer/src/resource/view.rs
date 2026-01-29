@@ -1,5 +1,5 @@
+use json::map::Entry;
 use serde::Deserialize as _;
-use serde_json::map::Entry;
 
 use crate::{
     manifest::{Behavior, FunctionSpec},
@@ -27,10 +27,7 @@ impl Resource {
     pub fn make_metadata_mut(&mut self) -> MetadataViewMut<'_> {
         let root = self.root.as_object_mut().unwrap();
         if !root.contains_key("metadata") {
-            root.insert(
-                "metadata".to_string(),
-                serde_json::Value::Object(Object::new()),
-            );
+            root.insert("metadata".to_string(), json::Value::Object(Object::new()));
         }
 
         self.metadata_mut().unwrap()
@@ -85,7 +82,7 @@ impl<'a> LabelsView<'a> {
 
     pub fn iter(&self) -> impl Iterator<Item = (&str, &str)> + '_ {
         self.0.iter().filter_map(|(k, v)| {
-            if let (key, serde_json::Value::String(value)) = (k, v) {
+            if let (key, json::Value::String(value)) = (k, v) {
                 Some((key.as_str(), value.as_str()))
             } else {
                 None
@@ -108,7 +105,7 @@ impl<'a> AnnotationsView<'a> {
 
     pub fn iter(&self) -> impl Iterator<Item = (&str, &str)> + '_ {
         self.0.iter().filter_map(|(k, v)| {
-            if let (key, serde_json::Value::String(value)) = (k, v) {
+            if let (key, json::Value::String(value)) = (k, v) {
                 Some((key.as_str(), value.as_str()))
             } else {
                 None
@@ -131,7 +128,7 @@ impl<'a> AnnotationsView<'a> {
     pub fn function_spec(&self) -> anyhow::Result<Option<FunctionSpec>> {
         match self.get(annotation::FUNCTION) {
             Some(yaml) => {
-                let json = yaml::from_str::<serde_json::Value>(yaml)?;
+                let json = yaml::from_str::<json::Value>(yaml)?;
                 FunctionSpec::deserialize(json)
                     .map_err(|err| anyhow::anyhow!("failed to deserialize function spec: {err}"))
                     .map(Some)
@@ -148,7 +145,7 @@ impl MetadataViewMut<'_> {
     // This is private because it is unsafe to be used alone since the id must also be modified alongside.
     pub(super) fn set_name(&mut self, name: impl Into<String>) {
         self.0
-            .insert("name".to_string(), serde_json::Value::String(name.into()));
+            .insert("name".to_string(), json::Value::String(name.into()));
     }
 
     // This is private because it is unsafe to be used alone since the id must also be modified alongside.
@@ -157,7 +154,7 @@ impl MetadataViewMut<'_> {
             None => self.0.remove("namespace"),
             Some(namespace) => self.0.insert(
                 "namespace".to_string(),
-                serde_json::Value::String(namespace.into()),
+                json::Value::String(namespace.into()),
             ),
         };
     }
@@ -166,7 +163,7 @@ impl MetadataViewMut<'_> {
         if !self.0.contains_key("annotations") {
             self.0.insert(
                 "annotations".to_string(),
-                serde_json::Value::Object(Object::new()),
+                json::Value::Object(Object::new()),
             );
         }
         self.annotations_mut().unwrap()
@@ -199,21 +196,14 @@ impl MetadataViewMut<'_> {
 
     pub fn make_labels_mut(&mut self) -> LabelsViewMut<'_> {
         if !self.0.contains_key("labels") {
-            self.0.insert(
-                "labels".to_string(),
-                serde_json::Value::Object(Object::new()),
-            );
+            self.0
+                .insert("labels".to_string(), json::Value::Object(Object::new()));
         }
         self.labels_mut().unwrap()
     }
 
-    pub fn set(
-        &mut self,
-        key: impl Into<String>,
-        value: impl Into<String>,
-    ) -> Option<serde_json::Value> {
-        self.0
-            .insert(key.into(), serde_json::Value::String(value.into()))
+    pub fn set(&mut self, key: impl Into<String>, value: impl Into<String>) -> Option<json::Value> {
+        self.0.insert(key.into(), json::Value::String(value.into()))
     }
 }
 
@@ -225,9 +215,8 @@ impl LabelsViewMut<'_> {
         &mut self,
         key: impl Into<String>,
         value: impl Into<String>,
-    ) -> Option<serde_json::Value> {
-        self.0
-            .insert(key.into(), serde_json::Value::String(value.into()))
+    ) -> Option<json::Value> {
+        self.0.insert(key.into(), json::Value::String(value.into()))
     }
 
     pub fn remove(&mut self, key: &str) {
@@ -241,22 +230,22 @@ pub struct AnnotationsViewMut<'a>(&'a mut Object);
 impl AnnotationsViewMut<'_> {
     pub fn insert(&mut self, key: impl Into<String>, value: &str) {
         self.0
-            .insert(key.into(), serde_json::Value::String(value.to_string()));
+            .insert(key.into(), json::Value::String(value.to_string()));
     }
 
     pub fn insert_or_update(&mut self, key: impl Into<String>, f: impl FnOnce(&mut String)) {
         let key = key.into();
         let v = match self.0.entry(key) {
             Entry::Vacant(entry) => {
-                let v = entry.insert(serde_json::Value::String(String::new()));
-                let serde_json::Value::String(v) = v else {
+                let v = entry.insert(json::Value::String(String::new()));
+                let json::Value::String(v) = v else {
                     unreachable!();
                 };
                 v
             }
             Entry::Occupied(entry) => {
                 let v = entry.into_mut();
-                let serde_json::Value::String(v) = v else {
+                let json::Value::String(v) = v else {
                     panic!("got non-string annotation value")
                 };
                 v
@@ -267,14 +256,14 @@ impl AnnotationsViewMut<'_> {
 
     pub fn remove(&mut self, key: &str) -> Option<String> {
         match self.0.remove(key)? {
-            serde_json::Value::String(v) => Some(v),
+            json::Value::String(v) => Some(v),
             _ => None,
         }
     }
 
     pub fn iter(&self) -> impl Iterator<Item = (&str, &str)> + '_ {
         self.0.iter().filter_map(|(k, v)| {
-            if let (key, serde_json::Value::String(value)) = (k, v) {
+            if let (key, json::Value::String(value)) = (k, v) {
                 Some((key.as_str(), value.as_str()))
             } else {
                 None

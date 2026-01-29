@@ -143,8 +143,8 @@ impl<A: Send + Sync, K: Send + Sync> Transformer for PatchTransformer<'_, A, K> 
 }
 
 fn json_patch(resource: Resource, patch: &JsonPatch) -> anyhow::Result<Resource> {
-    let mut raw = serde_json::to_value(&resource)?;
+    let mut raw = json::to_value(&resource)?;
     json_patch::patch(&mut raw, patch)
         .with_context(|| format!("applying JSON patch to resource `{}`", resource.id()))?;
-    serde_json::from_value(raw).map_err(Into::into)
+    json::from_value(raw).map_err(Into::into)
 }
