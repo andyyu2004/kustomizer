@@ -10,8 +10,8 @@ use serde::{Deserialize, Serialize};
 
 pub type Str = CompactString;
 
-pub type Kustomization = Manifest<apiversion::Beta, kind::Kustomize>;
-pub type Component = Manifest<apiversion::Alpha, kind::Component>;
+pub type Kustomization = Manifest<apiversion::V1Beta1, kind::Kustomize>;
+pub type Component = Manifest<apiversion::V1Alpha1, kind::Component>;
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
@@ -439,8 +439,8 @@ pub mod kind {
 
 pub mod apiversion {
     use super::define_symbol;
-    define_symbol!(Alpha = "kustomize.config.k8s.io/v1alpha1");
-    define_symbol!(Beta = "kustomize.config.k8s.io/v1beta1");
+    define_symbol!(V1Alpha1 = "kustomize.config.k8s.io/v1alpha1");
+    define_symbol!(V1Beta1 = "kustomize.config.k8s.io/v1beta1");
     define_symbol!(Builtin = "builtin");
     define_symbol!(ConfigV1 = "config.kubernetes.io/v1");
 }
@@ -452,6 +452,12 @@ macro_rules! define_symbol {
         pub struct $name;
 
         impl ::core::fmt::Debug for $name {
+            fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
+                write!(f, "{}", $value)
+            }
+        }
+
+        impl ::core::fmt::Display for $name {
             fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
                 write!(f, "{}", $value)
             }

@@ -1,0 +1,4 @@
+loading component `base`
+
+Caused by:
+    Components referenced in `components` must have `kind: Component` specified

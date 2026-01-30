@@ -425,8 +425,6 @@ impl Resource {
 
     // right-biased merge of data fields `data` and `binaryData` and `stringData`
     pub(crate) fn merge_data_fields(&mut self, other: Self) -> anyhow::Result<()> {
-        // TODO merging metadata and annotations, not sure what is correct behavior for this?
-
         // Merge `data` field
         let left_data = self
             .root_mut()
