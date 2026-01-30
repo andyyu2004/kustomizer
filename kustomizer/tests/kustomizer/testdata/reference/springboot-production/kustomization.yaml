@@ -1,0 +1,7 @@
+resources:
+- ./base
+patches:
+- path: patch.yaml
+- path: healthcheck_patch.yaml
+- path: memorylimit_patch.yaml
+namePrefix: production-
