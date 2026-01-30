@@ -3,7 +3,7 @@ apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: db-restore
-  namespace: partly
+  namespace: example
   labels:
     app.kubernetes.io/name: db-restore
 spec:
@@ -28,7 +28,7 @@ spec:
             - "--finalise-script"
             - /scripts-finalise/finalise.sql
             - "--watch-configmap"
-            - partly-dataset-revision
+            - example-dataset-revision
           volumeMounts:
             - name: scripts-volume
               mountPath: /scripts
@@ -52,7 +52,7 @@ apiVersion: batch/v1
 kind: CronJob
 metadata:
   name: nightly-reset
-  namespace: partly
+  namespace: example
   labels:
     app.kubernetes.io/name: db-restore
 spec:
@@ -109,7 +109,7 @@ apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: db-restore
-  namespace: partly
+  namespace: example
   labels:
     app.kubernetes.io/name: db-restore
 ---
@@ -117,13 +117,13 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
   name: db-restore-reader
-  namespace: partly
+  namespace: example
   labels:
     app.kubernetes.io/name: db-restore
 subjects:
   - kind: ServiceAccount
     name: db-restore
-    namespace: partly
+    namespace: example
 roleRef:
   kind: Role
   name: db-restore-reader
@@ -133,7 +133,7 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
   name: db-restore-reader
-  namespace: partly
+  namespace: example
   labels:
     app.kubernetes.io/name: db-restore
 rules:
@@ -149,13 +149,13 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
   name: db-restore-cm-creator
-  namespace: partly
+  namespace: example
   labels:
     app.kubernetes.io/name: db-restore
 subjects:
   - kind: ServiceAccount
     name: db-restore
-    namespace: partly
+    namespace: example
 roleRef:
   kind: Role
   name: db-restore-cm-creator
@@ -165,7 +165,7 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
   name: db-restore-cm-creator
-  namespace: partly
+  namespace: example
   labels:
     app.kubernetes.io/name: db-restore
 rules:
@@ -183,7 +183,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: db-restore-script
-  namespace: partly
+  namespace: example
   labels:
     app.kubernetes.io/name: db-restore
 data:
@@ -193,7 +193,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: reset-env-script
-  namespace: partly
+  namespace: example
   labels:
     app.kubernetes.io/name: db-restore
 data:

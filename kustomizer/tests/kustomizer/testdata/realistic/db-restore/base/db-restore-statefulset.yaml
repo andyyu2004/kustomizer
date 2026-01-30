@@ -24,7 +24,7 @@ spec:
             - "--finalise-script"
             - "/scripts-finalise/finalise.sql"
             - "--watch-configmap"
-            - partly-dataset-revision
+            - example-dataset-revision
           volumeMounts:
             - name: scripts-volume
               mountPath: /scripts
