@@ -35,6 +35,7 @@ fn encode_config_map(resource: &Resource) -> anyhow::Result<String> {
         name: Str,
     }
 
+    // Sort fields by key order
     let data = match resource.root().get("data") {
         Some(d) if d.as_object().is_some() => {
             let map: BTreeMap<String, json::Value> = d

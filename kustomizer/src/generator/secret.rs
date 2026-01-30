@@ -58,15 +58,19 @@ impl SecretGenerator<'_> {
             immutable,
         } = merge_options(self.options, &generator.options);
 
-        let object = process_key_value_sources(
+        let (data, empty) = process_key_value_sources(
             workdir,
             &generator.sources,
-            DataEncoding::Base64,
+            DataEncoding::Secret,
             "SecretGenerator",
         )
         .await?;
+        assert!(
+            empty.is_empty(),
+            "this is part of the contract to be empty when encoding is Secret"
+        );
 
-        let mut root = Object::from_iter([("data".into(), json::Value::Object(object))]);
+        let mut root = Object::from_iter([("data".into(), json::Value::Object(data))]);
 
         if immutable {
             root.insert("immutable".into(), json::Value::Bool(true));
