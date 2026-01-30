@@ -1,5 +1,4 @@
 use anyhow::{Context, bail};
-use base64::{Engine as _, prelude::BASE64_STANDARD};
 use tokio::io::AsyncBufReadExt as _;
 
 use crate::{
@@ -31,9 +30,9 @@ pub fn merge_options(global: &GeneratorOptions, local: &GeneratorOptions) -> Gen
     }
 }
 
-pub enum DataEncoding {
-    Raw,
-    Base64,
+pub(crate) enum DataEncoding {
+    ConfigMap,
+    Secret,
 }
 
 // Strips surrounding single or double quotes from a string, if present.
@@ -50,24 +49,25 @@ fn strip_quotes(s: &str) -> &str {
     s
 }
 
-pub async fn process_key_value_sources(
+/// Processes key-value pair sources and returns (`data`, `binary_data`) objects.
+/// `data` contains most of the data, `binary_data` contains non-utf8 values only when `encoding == DataEncoding::ConfigMap`.
+pub(crate) async fn process_key_value_sources(
     workdir: &Path,
     sources: &KeyValuePairSources,
     encoding: DataEncoding,
     resource_type: &str,
-) -> anyhow::Result<Object> {
-    let mut object = Object::new();
+) -> anyhow::Result<(Object, Object)> {
+    let mut data = Object::new();
+    let mut binary_data = Object::new();
 
     for kv in &sources.literals {
         let value = strip_quotes(&kv.value);
         let value = match encoding {
-            DataEncoding::Raw => value.to_string(),
-            DataEncoding::Base64 => {
-                base64::Engine::encode(&base64::engine::general_purpose::STANDARD, value.as_bytes())
-            }
+            DataEncoding::ConfigMap => value.to_string(),
+            DataEncoding::Secret => base64_encode(value.as_bytes()),
         };
 
-        if object
+        if data
             .insert(kv.key.to_string(), json::Value::String(value))
             .is_some()
         {
@@ -83,21 +83,41 @@ pub async fn process_key_value_sources(
                 .to_string_lossy()
                 .into()
         });
-        let data = tokio::fs::read_to_string(&path)
-            .await
-            .with_context(|| format!("failed to read file {}", path.pretty()))?;
+        let value = tokio::fs::read(&path).await.with_context(|| {
+            format!("failed to read file as key value source {}", path.pretty())
+        })?;
 
-        let encoded_data = match encoding {
-            DataEncoding::Raw => data,
-            DataEncoding::Base64 => BASE64_STANDARD.encode(data.as_bytes()),
+        match encoding {
+            DataEncoding::ConfigMap => match String::from_utf8(value) {
+                Ok(s) => {
+                    if binary_data.contains_key(key.as_str())
+                        || data
+                            .insert(key.to_string(), json::Value::String(s))
+                            .is_some()
+                    {
+                        bail!("duplicate key `{key}` in {resource_type} sources");
+                    }
+                }
+                Err(err) => {
+                    let value = base64_encode(err.as_bytes());
+                    if data.contains_key(key.as_str())
+                        || binary_data
+                            .insert(key.to_string(), json::Value::String(value))
+                            .is_some()
+                    {
+                        bail!("duplicate key `{key}` in {resource_type} sources");
+                    }
+                }
+            },
+            DataEncoding::Secret => {
+                if data
+                    .insert(key.to_string(), json::Value::String(base64_encode(&value)))
+                    .is_some()
+                {
+                    bail!("duplicate key `{key}` in {resource_type} sources");
+                }
+            }
         };
-
-        if object
-            .insert(key.to_string(), json::Value::String(encoded_data))
-            .is_some()
-        {
-            bail!("duplicate key `{key}` in {resource_type} sources");
-        }
     }
 
     for path in &sources.envs {
@@ -115,20 +135,68 @@ pub async fn process_key_value_sources(
             };
 
             let value = match encoding {
-                DataEncoding::Raw => value.to_string(),
-                DataEncoding::Base64 => BASE64_STANDARD.encode(value.as_bytes()),
+                DataEncoding::ConfigMap => value.to_string(),
+                DataEncoding::Secret => base64_encode(value.as_bytes()),
             };
 
-            if object
+            if data
                 .insert(key.to_string(), json::Value::String(value))
                 .is_some()
             {
-                bail!("duplicate key `{key}` in {} sources", resource_type);
+                bail!("duplicate key `{key}` in {resource_type} sources")
             }
         }
     }
 
-    Ok(object)
+    Ok((data, binary_data))
+}
+
+/// Implement matching base64 encoding to kustomize.
+/// 70 characters per line with padding.
+fn base64_encode(s: &[u8]) -> String {
+    use base64::{Engine, prelude::BASE64_STANDARD};
+    const LINE_LEN: usize = 70;
+
+    let encoded = BASE64_STANDARD.encode(s);
+    let enc_len = encoded.len();
+    let lines = enc_len / LINE_LEN + 1;
+
+    if lines <= 1 {
+        return encoded;
+    }
+
+    let mut result = String::with_capacity(enc_len + lines);
+    for chunk in encoded.as_bytes().chunks(LINE_LEN) {
+        result.push_str(std::str::from_utf8(chunk).unwrap());
+        result.push('\n');
+    }
+
+    result
+}
+
+#[cfg(test)]
+#[test]
+fn test_base64_encode() -> anyhow::Result<()> {
+    use base64::Engine as _;
+    use std::{
+        fs::File,
+        io::{BufReader, Read},
+    };
+
+    let mut reader = BufReader::new(File::open("/dev/urandom")?);
+
+    for i in 0..1000 {
+        let mut buf = vec![0u8; i];
+        reader.read_exact(&mut buf)?;
+
+        let encoded = base64_encode(&buf);
+        let decoded = base64::engine::general_purpose::STANDARD
+            .decode(encoded.replace('\n', ""))
+            .unwrap();
+        assert_eq!(buf, decoded, "mismatch for length {i}");
+    }
+
+    Ok(())
 }
 
 pub fn name_generated_resource(

@@ -104,19 +104,23 @@ impl ConfigMapGenerator<'_> {
             immutable,
         } = merge_options(self.options, &generator.options);
 
-        let object = process_key_value_sources(
+        let (data, binary_data) = process_key_value_sources(
             workdir,
             &generator.sources,
-            DataEncoding::Raw,
+            DataEncoding::ConfigMap,
             "ConfigMapGenerator",
         )
         .await?;
 
-        let mut root = if object.is_empty() {
-            Object::new()
-        } else {
-            Object::from_iter([("data".into(), json::Value::Object(object))])
-        };
+        let mut fields = vec![];
+        if !binary_data.is_empty() {
+            fields.push(("binaryData".to_owned(), json::Value::Object(binary_data)));
+        }
+        if !data.is_empty() {
+            fields.push(("data".to_owned(), json::Value::Object(data)));
+        }
+
+        let mut root = Object::from_iter(fields);
 
         if immutable {
             root.insert("immutable".into(), json::Value::Bool(true));

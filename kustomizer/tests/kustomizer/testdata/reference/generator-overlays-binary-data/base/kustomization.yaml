@@ -1,0 +1,7 @@
+namePrefix: p1-
+configMapGenerator:
+  - name: com1
+    behavior: create
+    files:
+      - data.bin
+
