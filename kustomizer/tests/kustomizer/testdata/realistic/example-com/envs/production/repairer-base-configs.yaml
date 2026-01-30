@@ -17,8 +17,8 @@ data:
   OTEL_EXPORTER_OTLP_METRICS_ENDPOINT: http://alloy.logging.svc:4317/v1/metrics
   OTEL_EXPORTER_OTLP_TRACES_ENDPOINT: http://alloy.logging.svc:4317/v1/traces
   OTEL_RESOURCE_ATTRIBUTES: deployment.environment=production
-  PARTLY_ENVIRONMENT: production
-  PARTLY_SCYLLA_ADDRESSES: haproxy.prod-eu:9042
+  EXAMPLE_ENVIRONMENT: production
+  EXAMPLE_SCYLLA_ADDRESSES: haproxy.prod-eu:9042
   PYROSCOPE_INGEST_URL: http://alloy.logging:4040/ingest
   REPAIRER_INTEGRATION__LOGGING__LEVEL: debug
   REPAIRER_INTEGRATION__SYSTEM__AUTH_KEY: XfFxrRtcj2VRNT42YvLmkxJR

@@ -1,7 +1,7 @@
 apiVersion: "acid.zalan.do/v1"
 kind: postgresql
 metadata:
-  name: partly-postgres
+  name: example-postgres
   annotations:
     argocd.argoproj.io/sync-wave: "-3"
 spec:
@@ -22,7 +22,7 @@ spec:
       - createdb
   databases:
     postgres: postgres
-    partly: example_dev
+    example: example_dev
   postgresql:
     version: "17"
     parameters:

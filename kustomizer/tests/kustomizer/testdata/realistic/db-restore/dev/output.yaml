@@ -3,7 +3,7 @@ apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: db-restore
-  namespace: partly-dev
+  namespace: example-dev
   labels:
     app.kubernetes.io/name: db-restore
 spec:
@@ -19,7 +19,7 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: metadata.name
-            - name: PARTLY_ENV_NAME
+            - name: EXAMPLE_ENV_NAME
               value: overridethis
             - name: GOOGLE_APPLICATION_CREDENTIALS
               value: /secrets/gcp/cranker-db-restore.json
@@ -29,17 +29,17 @@ spec:
             - python
             - /scripts/db-restore.py
             - "--instance"
-            - partly-postgres
+            - example-postgres
             - "--password-k8s-secret"
-            - postgres.partly-postgres.credentials.postgresql.acid.zalan.do
+            - postgres.example-postgres.credentials.postgresql.acid.zalan.do
             - "--finalise-script"
             - /scripts-finalise/finalise.sql
             - "--watch-configmap"
-            - partly-dataset-revision
+            - example-dataset-revision
             - "--gcp-credentials"
             - /secrets/gcp/cranker-db-restore.json
             - "--argocd-env-name"
-            - $(PARTLY_ENV_NAME)
+            - $(EXAMPLE_ENV_NAME)
           volumeMounts:
             - name: scripts-volume
               mountPath: /scripts
@@ -54,7 +54,7 @@ spec:
             name: db-restore-script
         - name: finalise-script-volume
           configMap:
-            name: finalise-script-bck7g289mt
+            name: finalise-script-7g5d72g469
         - name: gcp-sa-credentials
           secret:
             secretName: db-restore-gcp-sa
@@ -69,7 +69,7 @@ apiVersion: batch/v1
 kind: CronJob
 metadata:
   name: nightly-reset
-  namespace: partly-dev
+  namespace: example-dev
   labels:
     app.kubernetes.io/name: db-restore
 spec:
@@ -126,7 +126,7 @@ apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: db-restore
-  namespace: partly-dev
+  namespace: example-dev
   labels:
     app.kubernetes.io/name: db-restore
 ---
@@ -134,13 +134,13 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
   name: db-restore-reader
-  namespace: partly-dev
+  namespace: example-dev
   labels:
     app.kubernetes.io/name: db-restore
 subjects:
   - kind: ServiceAccount
     name: db-restore
-    namespace: partly-dev
+    namespace: example-dev
 roleRef:
   kind: Role
   name: db-restore-reader
@@ -150,7 +150,7 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
   name: db-restore-reader
-  namespace: partly-dev
+  namespace: example-dev
   labels:
     app.kubernetes.io/name: db-restore
 rules:
@@ -166,13 +166,13 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
   name: db-restore-cm-creator
-  namespace: partly-dev
+  namespace: example-dev
   labels:
     app.kubernetes.io/name: db-restore
 subjects:
   - kind: ServiceAccount
     name: db-restore
-    namespace: partly-dev
+    namespace: example-dev
 roleRef:
   kind: Role
   name: db-restore-cm-creator
@@ -182,7 +182,7 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
   name: db-restore-cm-creator
-  namespace: partly-dev
+  namespace: example-dev
   labels:
     app.kubernetes.io/name: db-restore
 rules:
@@ -200,7 +200,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: db-restore-script
-  namespace: partly-dev
+  namespace: example-dev
   labels:
     app.kubernetes.io/name: db-restore
 data:
@@ -210,7 +210,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: reset-env-script
-  namespace: partly-dev
+  namespace: example-dev
   labels:
     app.kubernetes.io/name: db-restore
 data:
@@ -220,7 +220,7 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
   name: db-restore-deleter
-  namespace: partly-dev
+  namespace: example-dev
 rules:
   - apiGroups:
       - "*"
@@ -235,11 +235,11 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
   name: db-restore-deleter
-  namespace: partly-dev
+  namespace: example-dev
 subjects:
   - kind: ServiceAccount
     name: db-restore
-    namespace: partly-dev
+    namespace: example-dev
 roleRef:
   kind: Role
   name: db-restore-deleter
@@ -249,7 +249,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: postgres
-  namespace: partly-dev
+  namespace: example-dev
 spec:
   type: LoadBalancer
   loadBalancerClass: tailscale
@@ -262,16 +262,16 @@ spec:
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: finalise-script-bck7g289mt
-  namespace: partly-dev
+  name: finalise-script-7g5d72g469
+  namespace: example-dev
 data:
-  finalise.sql: "CREATE TABLE IF NOT EXISTS partly.dataset_version (id SERIAL PRIMARY KEY, version TEXT, timestamp TEXT);   \n"
+  finalise.sql: "CREATE TABLE IF NOT EXISTS example.dataset_version (id SERIAL PRIMARY KEY, version TEXT, timestamp TEXT);\n"
 ---
 apiVersion: acid.zalan.do/v1
 kind: postgresql
 metadata:
-  name: partly-postgres
-  namespace: partly-dev
+  name: example-postgres
+  namespace: example-dev
   annotations:
     argocd.argoproj.io/sync-wave: "-3"
 spec:
@@ -292,7 +292,7 @@ spec:
       - createdb
   databases:
     postgres: postgres
-    partly: example_dev
+    example: example_dev
   postgresql:
     version: "17"
     parameters:
@@ -323,7 +323,7 @@ apiVersion: v1
 kind: Secret
 metadata:
   name: postgres.example-postgres.credentials.postgresql.acid.zalan.do
-  namespace: partly-dev
+  namespace: example-dev
   labels:
     application: spilo
     cluster-name: example-postgres
