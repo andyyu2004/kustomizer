@@ -1,5 +1,3 @@
-#![recursion_limit = "256"] // temp
-
 mod build;
 pub mod dbg;
 mod fieldspec;
@@ -18,12 +16,12 @@ pub mod yaml;
 use core::fmt;
 use std::{ffi::OsStr, ops::Deref, path::Path};
 
-use anyhow::Context;
+use anyhow::{Context, bail};
 
 pub use self::intern::PathId;
 pub use self::resmap::ResourceMap;
 
-use self::manifest::{Component, Kustomization, Manifest, Symbol};
+use self::manifest::{Component, Kustomization, Manifest, Symbol, kind};
 
 pub async fn build(path: impl AsRef<Path>) -> anyhow::Result<ResourceMap> {
     let kustomization = load_kustomization(path)?;
@@ -50,7 +48,18 @@ fn load_kustomization(path: impl AsRef<Path>) -> anyhow::Result<Located<Kustomiz
 }
 
 fn load_component(path: impl AsRef<Path>) -> anyhow::Result<Located<Component>> {
-    load_manifest(path)
+    let component = load_manifest(path)?;
+    // kind is required for to be explicitly specified for a `Component` to differentiate them from a `Kustomization`.
+    // apiVersion is still optional.
+
+    if component.type_meta.kind.is_none() {
+        bail!(
+            "Components referenced in `components` must have `kind: {}` specified",
+            kind::Component
+        );
+    }
+
+    Ok(component)
 }
 
 fn load_manifest<A, K>(path: impl AsRef<Path>) -> anyhow::Result<Located<Manifest<A, K>>>
@@ -66,6 +75,7 @@ where
     let mut path = path
         .canonicalize()
         .with_context(|| format!("canonicalizing path {}", path.pretty()))?;
+
     if path.is_dir() {
         path.push("kustomization.yaml");
     }
