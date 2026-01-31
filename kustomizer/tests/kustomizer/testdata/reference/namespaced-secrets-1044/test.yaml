@@ -1,0 +1,2 @@
+# Source: TestNamespacedSecrets from namespaces_test.go:13
+# Validates fix for Issue #1044 - secrets with same name in different namespaces should not conflict
