@@ -20,26 +20,12 @@ pub struct Manifest<A, K> {
     pub type_meta: TypeMeta<A, K>,
     #[serde(default)]
     pub metadata: Metadata,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub namespace: Option<Str>,
     #[serde(default, skip_serializing_if = "<[_]>::is_empty")]
     pub components: Box<[PathBuf]>,
     #[serde(default, skip_serializing_if = "<[_]>::is_empty")]
     pub resources: Box<[PathBuf]>,
-    #[serde(default, skip_serializing_if = "Str::is_empty")]
-    pub name_prefix: Str,
-    #[serde(default, skip_serializing_if = "Str::is_empty")]
-    pub name_suffix: Str,
-    #[serde(default, skip_serializing_if = "<[_]>::is_empty")]
-    pub labels: Box<[Label]>,
-    #[serde(default, skip_serializing_if = "IndexMap::is_empty")]
-    pub common_annotations: IndexMap<Str, Str>,
     #[serde(default, skip_serializing_if = "<[_]>::is_empty")]
     pub patches: Box<[Patch]>,
-    #[serde(default, skip_serializing_if = "<[_]>::is_empty")]
-    pub images: Box<[ImageTag]>,
-    #[serde(default, skip_serializing_if = "<[_]>::is_empty")]
-    pub replicas: Box<[Replica]>,
     #[serde(
         default,
         skip_serializing_if = "<[_]>::is_empty",
@@ -58,6 +44,43 @@ pub struct Manifest<A, K> {
     pub transformers: Box<[PathBuf]>,
     #[serde(default)]
     pub generator_options: GeneratorOptions,
+
+    // Inlined copy of `[TransformerConfig]`.
+    // We don't use `serde(flatten)` as it doesn't work with `deny_unknown_fields`
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub namespace: Option<Str>,
+    #[serde(default, skip_serializing_if = "Str::is_empty")]
+    pub name_prefix: Str,
+    #[serde(default, skip_serializing_if = "Str::is_empty")]
+    pub name_suffix: Str,
+    #[serde(default, skip_serializing_if = "<[_]>::is_empty")]
+    pub labels: Box<[Label]>,
+    #[serde(default, skip_serializing_if = "IndexMap::is_empty")]
+    pub common_annotations: IndexMap<Str, Str>,
+    #[serde(default, skip_serializing_if = "<[_]>::is_empty")]
+    pub images: Box<[ImageTag]>,
+    #[serde(default, skip_serializing_if = "<[_]>::is_empty")]
+    pub replicas: Box<[Replica]>,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+// Note: keep in sync with inlined fields in `Manifest`.
+pub struct TransformerConfig {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub namespace: Option<Str>,
+    #[serde(default, skip_serializing_if = "Str::is_empty")]
+    pub name_prefix: Str,
+    #[serde(default, skip_serializing_if = "Str::is_empty")]
+    pub name_suffix: Str,
+    #[serde(default, skip_serializing_if = "<[_]>::is_empty")]
+    pub labels: Box<[Label]>,
+    #[serde(default, skip_serializing_if = "IndexMap::is_empty")]
+    pub common_annotations: IndexMap<Str, Str>,
+    #[serde(default, skip_serializing_if = "<[_]>::is_empty")]
+    pub images: Box<[ImageTag]>,
+    #[serde(default, skip_serializing_if = "<[_]>::is_empty")]
+    pub replicas: Box<[Replica]>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]

@@ -1,0 +1,28 @@
+---
+apiVersion: config/v1
+kind: MyKind
+metadata:
+  name: testSvc
+spec:
+  runLatest:
+    container:
+      image: crd-image
+  containers:
+    - image: docker
+      name: ecosystem
+    - image: my-mysql
+      name: testing-1
+---
+apiVersion: v1
+kind: Deployment
+metadata:
+  name: deploy1
+group: apps
+spec:
+  template:
+    spec:
+      initContainers:
+        - name: nginx2
+          image: new-app-1:MYNEWTAG-1
+        - name: init-alpine
+          image: alpine:1.8.0
