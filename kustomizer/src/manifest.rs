@@ -66,7 +66,13 @@ pub struct ImageTag {
     pub name: Str,
     #[serde(default, skip_serializing_if = "Str::is_empty")]
     pub new_name: Str,
+    // `new_tag` is the value used to replace the original tag.
+    #[serde(default, skip_serializing_if = "Str::is_empty")]
     pub new_tag: Str,
+    // `digest` is the value used to replace the original image tag.
+    // If `digest` is present `new_tag` is ignored.
+    #[serde(default, skip_serializing_if = "Str::is_empty")]
+    pub digest: Str,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize)]

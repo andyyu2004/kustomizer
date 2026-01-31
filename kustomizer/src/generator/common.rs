@@ -127,12 +127,14 @@ pub(crate) async fn process_key_value_sources(
             .with_context(|| format!("failed to read env file {}", path.pretty()))?;
         let mut lines = tokio::io::BufReader::new(file).lines();
         while let Some(line) = lines.next_line().await? {
+            let line = line.trim();
             if line.trim().is_empty() || line.starts_with('#') {
                 continue;
             }
-            let Some((key, value)) = line.split_once('=') else {
-                bail!("invalid line in env file {}: {line}", path.pretty());
-            };
+
+            // Split on the first '=' character.
+            // If there is no '=', the value is the empty string.
+            let (key, value) = line.split_once('=').unwrap_or((line, ""));
 
             let value = match encoding {
                 DataEncoding::ConfigMap => value.to_string(),

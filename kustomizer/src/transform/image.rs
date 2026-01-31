@@ -54,7 +54,16 @@ impl Transformer for ImageTagTransformer {
                     } else {
                         self.image_tag.new_name.clone()
                     };
-                    *image_ref = format!("{new_name}:{}", self.image_tag.new_tag);
+
+                    // `digest` takes precedence over `new_tag`
+                    if !self.image_tag.digest.is_empty() {
+                        *image_ref = format!("{new_name}@{}", self.image_tag.digest);
+                        return Ok(());
+                    }
+
+                    if !self.image_tag.new_tag.is_empty() {
+                        *image_ref = format!("{new_name}:{}", self.image_tag.new_tag);
+                    }
                 }
 
                 Ok(())
