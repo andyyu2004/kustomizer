@@ -1,1 +1,3 @@
 kind: success
+# Ported from kustomize/examples/springboot/overlays/production
+# Tests multiple patches with namePrefix transformer

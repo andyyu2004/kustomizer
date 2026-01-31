@@ -1,1 +1,3 @@
 kind: success
+# Ported from kustomize/examples/multibases
+# Tests namePrefix transformer with multiple base resources

@@ -1,1 +1,3 @@
 kind: success
+# Ported from kustomize/examples/patchMultipleObjects.md
+# Tests strategic merge patch targeting multiple deployments with selector
