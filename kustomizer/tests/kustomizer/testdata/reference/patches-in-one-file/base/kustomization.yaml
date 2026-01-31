@@ -1,0 +1,4 @@
+resources:
+- namespace.yaml
+- deployment-controller-manager.yaml
+- deployment-audit-manager.yaml

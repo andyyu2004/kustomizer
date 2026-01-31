@@ -1,0 +1,2 @@
+# Source: TestPatchesInOneFile from multiplepatch_test.go:13
+# Tests that multiple patches can be in a single multi-document YAML file
