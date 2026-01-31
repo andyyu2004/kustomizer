@@ -1,0 +1,3 @@
+kind: success
+# Ported from Go kustomize TestPatchPortHasNoProtocol in multiplepatch_test.go
+# Tests that when patching a service port without protocol field, original protocol is preserved
