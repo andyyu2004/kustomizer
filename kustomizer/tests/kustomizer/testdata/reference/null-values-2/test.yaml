@@ -1,0 +1,3 @@
+kind: success
+# Ported from Go kustomize TestNullValues2 in nullvalues_test.go
+# Tests that null volumes field is preserved

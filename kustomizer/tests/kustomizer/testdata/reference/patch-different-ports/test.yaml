@@ -1,0 +1,3 @@
+kind: success
+# Ported from Go kustomize TestSmpWithDifferentKeysOnDifferentPorts in multiplepatch_test.go
+# Tests that ports with different merge keys (name, protocol, containerPort) are merged correctly

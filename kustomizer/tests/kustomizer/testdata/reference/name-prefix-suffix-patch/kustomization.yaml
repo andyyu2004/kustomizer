@@ -1,0 +1,17 @@
+resources:
+- mysql
+- handlers
+
+configMapGenerator:
+- name: mysql
+  behavior: merge
+  literals:
+  - MYSQL_DATABASE=db
+  - MYSQL_USER=my-user
+  - MYSQL_PASSWORD='correct horse battery staple'
+
+patches:
+- path: patch.yaml
+  target:
+    kind: Deployment
+    name: s.*

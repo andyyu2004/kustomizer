@@ -1,0 +1,8 @@
+patchesStrategicMerge:
+- patch.yaml
+resources:
+- base
+configMapGenerator:
+- name: overlayCm
+  literals:
+  - hello=world

@@ -1,0 +1,17 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ignored
+spec:
+  template:
+    spec:
+      containers:
+      - name: handler
+        envFrom:
+        - configMapRef:
+            name: mysql
+        env:
+        - valueFrom:
+            configMapKeyRef:
+              name: mysql
+              key: MYSQL_DATABASE
