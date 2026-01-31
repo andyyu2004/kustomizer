@@ -66,6 +66,9 @@ pub struct Manifest<A, K> {
     pub name_suffix: Str,
     #[serde(default, skip_serializing_if = "<[_]>::is_empty")]
     pub labels: Box<[Label]>,
+    /// Deprecated, use `labels` field instead.
+    #[serde(default, skip_serializing_if = "IndexMap::is_empty")]
+    pub common_labels: IndexMap<Str, Str>,
     #[serde(default, skip_serializing_if = "IndexMap::is_empty")]
     pub common_annotations: IndexMap<Str, Str>,
     #[serde(default, skip_serializing_if = "<[_]>::is_empty")]

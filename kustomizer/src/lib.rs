@@ -22,7 +22,7 @@ pub use self::intern::PathId;
 pub use self::resmap::ResourceMap;
 
 use self::{
-    manifest::{Component, Kustomization, Manifest, Patch, Symbol, kind},
+    manifest::{Component, Kustomization, Label, Manifest, Patch, Symbol, kind},
     resource::Resource,
 };
 
@@ -118,6 +118,17 @@ where
     }
 
     manifest.patches = patches.into_boxed_slice();
+
+    // Transform legacy `commonLabels` field into `labels`
+    let mut labels = mem::take(&mut manifest.labels).into_vec();
+    if !manifest.common_labels.is_empty() {
+        labels.push(Label {
+            pairs: mem::take(&mut manifest.common_labels),
+            include_selectors: true,
+            include_templates: false,
+        });
+    }
+    manifest.labels = labels.into_boxed_slice();
 
     Ok(Located {
         value: manifest,
