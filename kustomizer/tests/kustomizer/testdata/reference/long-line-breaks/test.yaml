@@ -1,0 +1,2 @@
+# Source: TestLongLineBreaks from stringquoteblank_test.go:17
+# Tests YAML string formatting - quote removal and line breaks
