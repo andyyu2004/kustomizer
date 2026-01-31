@@ -1,0 +1,2 @@
+# Source: TestKeepOriginalGVKN from gvknpatch_test.go:15
+# Tests that patches don't change GVK/name even when patch has different values
