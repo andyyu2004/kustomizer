@@ -1,0 +1,5 @@
+[ {"op": "add",
+   "path": "/spec/replica", "value": "3"},
+  {"op": "replace",
+   "path": "/spec/template/spec/containers/0",
+   "value": { "image": "costello" } } ]

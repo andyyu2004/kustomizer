@@ -1,0 +1,16 @@
+resources:
+- deployment.yaml
+
+images:
+- name: abbott
+  newTag: v2
+- name: costello
+  newTag: v8
+
+patchesJson6902:
+- target:
+    group: apps
+    version: v1
+    kind: Deployment
+    name: ben
+  path: patch.json

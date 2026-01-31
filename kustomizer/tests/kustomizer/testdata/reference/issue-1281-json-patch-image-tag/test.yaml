@@ -1,0 +1,2 @@
+# Source: TestIssue1281_JsonPatchAndImageTag from transformersimage_test.go:96
+# Tests images transformation with JSON patches
