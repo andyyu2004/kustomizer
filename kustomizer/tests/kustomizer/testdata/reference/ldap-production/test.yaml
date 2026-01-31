@@ -1,1 +1,3 @@
 kind: success
+# Ported from kustomize/examples/ldap/overlays/production
+# Tests patches and namePrefix transformer

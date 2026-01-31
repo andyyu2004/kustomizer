@@ -1,0 +1,4 @@
+# Ported from Go kustomize TestIssue3489Simplified in namereference_test.go
+# Tests that name references are correctly scoped per-variant when same base
+# is included by multiple overlays with different name suffixes
+kind: success

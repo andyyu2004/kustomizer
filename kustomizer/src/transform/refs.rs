@@ -98,10 +98,10 @@ impl RenameTransformer<'_> {
                     *name = rename.new_name.to_string();
                 }
             }
-            Value::Object(reference_map) => {
+            Value::Object(ref_obj) => {
                 // Complex reference with name, kind, and possibly namespace
-                if self.reference_matches_resource(reference_map, &rename.res_id)? {
-                    self.update_reference_fields(reference_map, rename);
+                if self.reference_matches_resource(ref_obj, &rename.res_id)? {
+                    self.update_reference_fields(ref_obj, rename);
                 }
             }
             _ => {
@@ -116,21 +116,22 @@ impl RenameTransformer<'_> {
     /// Check if a reference object matches the resource being renamed
     fn reference_matches_resource(
         &self,
-        reference_map: &json::Map<String, Value>,
+        ref_obj: &json::Map<String, Value>,
         res_id: &ResId,
     ) -> anyhow::Result<bool> {
-        let name = reference_map
+        let name = ref_obj
             .get("name")
             .ok_or_else(|| anyhow!("Reference object missing 'name' field"))?
             .as_str()
             .ok_or_else(|| anyhow!("Reference 'name' field is not a string"))?;
 
-        let kind = reference_map.get("kind").and_then(|k| k.as_str());
-        let namespace = reference_map.get("namespace").and_then(|n| n.as_str());
+        let kind = ref_obj.get("kind").and_then(|k| k.as_str());
+        let namespace = ref_obj.get("namespace").and_then(|n| n.as_str());
 
         Ok(name == res_id.name
             && kind.is_none_or(|k| k == res_id.gvk.kind)
-            && (namespace == res_id.namespace.as_deref()
+            && (namespace.is_none()
+                || namespace == res_id.namespace.as_deref()
                 || res_id.namespace.is_none() && namespace == Some("default")))
     }
 
