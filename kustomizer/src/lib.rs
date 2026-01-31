@@ -103,10 +103,11 @@ where
         .drain(..)
     {
         let path = parent_path.join(&path);
-        patches.push(Patch::StrategicMerge {
-            patch: Resource::load_one(&path)?,
+        let resources = Resource::load_many(&path).context("loading strategic merge patches")?;
+        patches.extend(resources.into_iter().map(|patch| Patch::StrategicMerge {
+            patch,
             target: None,
-        });
+        }));
     }
 
     manifest.patches = patches.into_boxed_slice();

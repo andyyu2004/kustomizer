@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: controller-manager
+  namespace: system
+  labels:
+    control-plane: controller-manager
+    gatekeeper.sh/operation: webhook
+spec:
+  selector:
+    matchLabels:
+      control-plane: controller-manager
+      gatekeeper.sh/operation: webhook
+  replicas: 3
+  template:
+    metadata:
+      annotations:
+        container.seccomp.security.alpha.kubernetes.io/manager: runtime/default
+      labels:
+        control-plane: controller-manager
+        gatekeeper.sh/operation: webhook
+    spec:
+      containers:
+        - command:
+            - /manager
+          args:
+            - "--port=8443"
+            - "--logtostderr"
+            - "--exempt-namespace=gatekeeper-system"
+            - "--operation=webhook"
+          image: openpolicyagent/gatekeeper:v3.4.0
+          imagePullPolicy: Always
+          name: manager
+      terminationGracePeriodSeconds: 60
+      nodeSelector:
+        kubernetes.io/os: linux
+      priorityClassName: system-cluster-critical

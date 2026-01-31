@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: audit
+  namespace: system
+  labels:
+    control-plane: audit-controller
+    gatekeeper.sh/operation: audit
+spec:
+  selector:
+    matchLabels:
+      control-plane: audit-controller
+      gatekeeper.sh/operation: audit
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        control-plane: audit-controller
+        gatekeeper.sh/operation: audit
+      annotations:
+        container.seccomp.security.alpha.kubernetes.io/manager: runtime/default
+    spec:
+      automountServiceAccountToken: true
+      containers:
+        - args:
+            - --operation=audit
+            - --operation=status
+            - --logtostderr
+          command:
+            - /manager
+          env:
+            - name: POD_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  apiVersion: v1
+                  fieldPath: metadata.namespace
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  apiVersion: v1
+                  fieldPath: metadata.name
+          image: openpolicyagent/gatekeeper:v3.4.0
+          imagePullPolicy: Always
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 9090
+          name: manager
+      serviceAccountName: gatekeeper-admin
+      terminationGracePeriodSeconds: 60
+      nodeSelector:
+        kubernetes.io/os: linux
+      priorityClassName: system-cluster-critical
