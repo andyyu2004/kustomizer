@@ -26,6 +26,9 @@ pub struct Manifest<A, K> {
     pub resources: Box<[PathBuf]>,
     #[serde(default, skip_serializing_if = "<[_]>::is_empty")]
     pub patches: Box<[Patch]>,
+    /// Legacy field, use `patches` instead.
+    #[serde(default, skip_serializing_if = "<[_]>::is_empty")]
+    pub patches_strategic_merge: Box<[PathBuf]>,
     #[serde(
         default,
         skip_serializing_if = "<[_]>::is_empty",
@@ -58,6 +61,12 @@ pub struct Manifest<A, K> {
     pub images: Box<[ImageTag]>,
     #[serde(default, skip_serializing_if = "<[_]>::is_empty")]
     pub replicas: Box<[Replica]>,
+}
+
+impl<A, K> Manifest<A, K> {
+    pub fn transform_legacy_fields(&mut self) -> anyhow::Result<()> {
+        Ok(())
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]

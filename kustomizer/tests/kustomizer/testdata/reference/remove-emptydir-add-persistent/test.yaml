@@ -1,0 +1,3 @@
+kind: success
+# Ported from Go kustomize TestRemoveEmptyDirAddPersistentDisk in multiplepatch_test.go
+# Tests that emptyDir: null removes emptyDir while adding gcePersistentDisk
