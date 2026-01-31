@@ -1,0 +1,3 @@
+kind: success
+# Ported from Go kustomize TestNamePrefixSuffixPatch in nameprefixsuffixpatch_test.go
+# Coverage for issue #2609 - tests that patches correctly update ConfigMap references with hash suffixes

@@ -14,14 +14,17 @@ mod transform;
 pub mod yaml;
 
 use core::fmt;
-use std::{ffi::OsStr, io::BufReader, ops::Deref, path::Path};
+use std::{ffi::OsStr, io::BufReader, mem, ops::Deref, path::Path};
 
 use anyhow::{Context, bail};
 
 pub use self::intern::PathId;
 pub use self::resmap::ResourceMap;
 
-use self::manifest::{Component, Kustomization, Manifest, Symbol, kind};
+use self::{
+    manifest::{Component, Kustomization, Manifest, Patch, Symbol, kind},
+    resource::Resource,
+};
 
 pub async fn build(path: impl AsRef<Path>) -> anyhow::Result<ResourceMap> {
     let kustomization = load_kustomization(path)?;
@@ -89,11 +92,27 @@ where
 
     let file = std::fs::File::open(&path)
         .with_context(|| format!("loading manifest from path {}", path.pretty()))?;
-    let value = yaml::from_reader::<Manifest<A, K>>(BufReader::new(file))?;
+    let mut manifest = yaml::from_reader::<Manifest<A, K>>(BufReader::new(file))?;
 
     let parent_path = PathId::make(path.parent().unwrap())?;
+
+    // Change legacy patch fields into unified `patches` field
+    let mut patches = mem::take(&mut manifest.patches).into_vec();
+    for path in mem::take(&mut manifest.patches_strategic_merge)
+        .into_vec()
+        .drain(..)
+    {
+        let path = parent_path.join(&path);
+        patches.push(Patch::StrategicMerge {
+            patch: Resource::load_one(&path)?,
+            target: None,
+        });
+    }
+
+    manifest.patches = patches.into_boxed_slice();
+
     Ok(Located {
-        value,
+        value: manifest,
         parent_path,
         path: PathId::make(path)?,
     })

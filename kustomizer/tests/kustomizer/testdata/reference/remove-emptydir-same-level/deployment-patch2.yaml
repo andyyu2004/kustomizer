@@ -1,0 +1,15 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx
+spec:
+  template:
+    spec:
+      containers:
+      - image: nginx
+        name: nginx
+        env:
+        - name: ANOTHERENV
+          value: FOO
+      volumes:
+      - name: nginx-persistent-storage

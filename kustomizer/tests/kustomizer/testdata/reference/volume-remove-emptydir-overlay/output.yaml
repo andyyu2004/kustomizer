@@ -1,0 +1,38 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx
+spec:
+  template:
+    spec:
+      containers:
+        - name: nginx
+          image: nginx
+          volumeMounts:
+            - name: fancyDisk
+              mountPath: /tmp/ps
+      volumes:
+        - name: fancyDisk
+          gcePersistentDisk:
+            pdName: fancyDisk
+        - configMap:
+            name: baseCm-798k5k7g9f
+          name: baseCm
+        - configMap:
+            name: overlayCm-dc6fm46dhm
+          name: overlayCm
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: baseCm-798k5k7g9f
+data:
+  foo: bar
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: overlayCm-dc6fm46dhm
+data:
+  hello: world

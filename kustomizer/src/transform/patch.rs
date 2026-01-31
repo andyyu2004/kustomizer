@@ -23,6 +23,10 @@ pub struct PatchTransformer<'a, A, K> {
 
 impl<'a, A, K> PatchTransformer<'a, A, K> {
     pub fn new(manifest: &'a Located<Manifest<A, K>>) -> Self {
+        assert!(
+            manifest.patches_strategic_merge.is_empty(),
+            "patchesStrategicMerge should be translated to patches"
+        );
         Self {
             patches: &manifest.patches,
             manifest,

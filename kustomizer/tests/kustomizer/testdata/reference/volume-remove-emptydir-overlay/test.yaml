@@ -1,0 +1,3 @@
+kind: success
+# Ported from Go kustomize TestVolumeRemoveEmptyDirInOverlay in multiplepatch_test.go
+# Tests that emptyDir can be removed in overlay with patches and configMapGenerator

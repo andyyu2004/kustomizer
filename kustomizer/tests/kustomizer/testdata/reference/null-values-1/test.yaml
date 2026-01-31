@@ -1,0 +1,3 @@
+kind: success
+# Ported from Go kustomize TestNullValues1 in nullvalues_test.go
+# Tests that null values are preserved in resources
