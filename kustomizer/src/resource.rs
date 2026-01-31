@@ -4,6 +4,7 @@ mod view;
 
 use std::{
     fmt,
+    io::BufReader,
     ops::{Deref, DerefMut},
     sync::LazyLock,
 };
@@ -155,18 +156,33 @@ pub struct Resource {
 
 pub type Object = json::Map<String, json::Value>;
 
-static RES_CACHE: LazyLock<DashMap<PathId, Resource>> = LazyLock::new(Default::default);
-
 impl Resource {
-    pub fn load(path: impl AsRef<Path>) -> anyhow::Result<Self> {
+    pub fn load_many(path: impl AsRef<Path>) -> anyhow::Result<Box<[Self]>> {
+        static CACHE: LazyLock<DashMap<PathId, Box<[Resource]>>> = LazyLock::new(Default::default);
+        let path = path.as_ref();
+        let path = PathId::make(path)
+            .with_context(|| format!("loading resources from path {}", path.pretty()))?;
+
+        match CACHE.entry(path) {
+            Entry::Occupied(e) => Ok(e.get().clone()),
+            Entry::Vacant(e) => {
+                let file = BufReader::new(std::fs::File::open(path)?);
+                let resources = yaml::from_reader_multi(file)?;
+                Ok(e.insert(resources).value().clone())
+            }
+        }
+    }
+
+    pub fn load_one(path: impl AsRef<Path>) -> anyhow::Result<Self> {
+        static CACHE: LazyLock<DashMap<PathId, Resource>> = LazyLock::new(Default::default);
         let path = path.as_ref();
         let path = PathId::make(path)
             .with_context(|| format!("loading resource from path {}", path.pretty()))?;
 
-        match RES_CACHE.entry(path) {
+        match CACHE.entry(path) {
             Entry::Occupied(e) => Ok(e.get().clone()),
             Entry::Vacant(e) => {
-                let file = std::fs::File::open(path)?;
+                let file = BufReader::new(std::fs::File::open(path)?);
                 let resource = yaml::from_reader(file)?;
                 Ok(e.insert(resource).value().clone())
             }

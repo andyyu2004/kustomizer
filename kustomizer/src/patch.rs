@@ -43,6 +43,11 @@ pub fn merge_patch(base: &mut Resource, patch: Resource) -> anyhow::Result<()> {
 
 fn merge_obj(base: &mut Object, patch: Object, schema: Option<&ObjectType>) -> anyhow::Result<()> {
     for (key, value) in patch {
+        if value.is_null() {
+            base.remove(&key);
+            continue;
+        }
+
         match base.entry(key) {
             Entry::Vacant(entry) => drop(entry.insert(value)),
             Entry::Occupied(entry) => {

@@ -1,0 +1,11 @@
+configMapGenerator:
+- name: my-configmap
+  literals:
+  - foo=bar
+  - baz=qux
+generatorOptions:
+  disableNameSuffixHash: true
+  labels:
+    kustomize.generated.resource: somevalue
+  annotations:
+    annotations.only.for.generated: othervalue

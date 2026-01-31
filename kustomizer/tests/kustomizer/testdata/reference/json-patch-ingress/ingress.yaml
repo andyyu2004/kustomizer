@@ -1,0 +1,21 @@
+apiVersion: networking.k8s.io/v1beta1
+kind: Ingress
+metadata:
+  name: my-ingress
+spec:
+  rules:
+  - host: foo.bar.com
+    http:
+      paths:
+      - path: /
+        backend:
+          serviceName: homepage
+          servicePort: 8888
+      - path: /api
+        backend:
+          serviceName: my-api
+          servicePort: 7701
+      - path: /test
+        backend:
+          serviceName: hello
+          servicePort: 7702

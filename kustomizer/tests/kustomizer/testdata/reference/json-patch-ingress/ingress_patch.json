@@ -1,0 +1,13 @@
+[
+  {"op": "replace",
+   "path": "/spec/rules/0/host",
+   "value": "foo.bar.io"},
+
+  {"op": "replace",
+   "path": "/spec/rules/0/http/paths/0/backend/servicePort",
+   "value": 80},
+
+  {"op": "add",
+   "path": "/spec/rules/0/http/paths/1",
+   "value": { "path": "/healthz", "backend": {"servicePort":7700} }}
+]
