@@ -27,6 +27,12 @@ impl<'a, A, K> PatchTransformer<'a, A, K> {
             manifest.patches_strategic_merge.is_empty(),
             "patchesStrategicMerge should be translated to patches"
         );
+
+        assert!(
+            manifest.patches_json.is_empty(),
+            "patchesJson6902 should be translated to patches"
+        );
+
         Self {
             patches: &manifest.patches,
             manifest,
@@ -111,13 +117,13 @@ impl<A: Send + Sync, K: Send + Sync> Transformer for PatchTransformer<'_, A, K> 
                         if let Ok(patches) = patches {
                             for patch in patches {
                                 self.apply_strategic_merge_patch(resource, patch, target)
-                                .with_context(|| {
-                                    format!(
-                                        "applying strategic merge patch from `{}` to resource `{}`",
-                                        path.pretty(),
-                                        resource.id()
-                                    )
-                                })?;
+                                    .with_context(|| {
+                                        format!(
+                                            "applying strategic merge patch from `{}` to resource `{}`",
+                                            path.pretty(),
+                                            resource.id()
+                                        )
+                                    })?;
                             }
                         } else {
                             let patch = self.load_json_patch(path)?;
@@ -132,7 +138,6 @@ impl<A: Send + Sync, K: Send + Sync> Transformer for PatchTransformer<'_, A, K> 
                             if !target.matches(resource) {
                                 continue;
                             }
-
                             json_patch(resource, &patch)?;
                         }
                     }

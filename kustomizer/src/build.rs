@@ -67,6 +67,10 @@ impl Builder {
         renames: &mut Vec<Rename>,
     ) -> anyhow::Result<()> {
         if !kustomization.labels.is_empty() {
+            assert!(
+                kustomization.common_labels.is_empty(),
+                "commonLabels should be translated to labels"
+            );
             LabelTransformer::new(kustomization.labels.as_ref())
                 .transform(resmap)
                 .await?;
