@@ -1,0 +1,5 @@
+namePrefix: iter8-
+namespace: iter8-monitoring
+resources:
+- clusterrolebinding.yaml
+- serviceaccount.yaml
