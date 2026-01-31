@@ -1,0 +1,3 @@
+kind: success
+# Ported from Go kustomize TestPatchAddNewServicePort in multiplepatch_test.go
+# Test for #3620 - tests that adding a new service port via patch works correctly

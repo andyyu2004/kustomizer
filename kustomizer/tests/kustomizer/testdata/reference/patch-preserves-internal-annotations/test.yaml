@@ -1,0 +1,3 @@
+kind: success
+# Ported from Go kustomize TestPatchPreservesInternalAnnotations in multiplepatch_test.go
+# Test for #4111 - verifies that patches preserve internal annotations and name references are updated correctly
