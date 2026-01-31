@@ -110,6 +110,13 @@ where
         }));
     }
 
+    for patch in mem::take(&mut manifest.patches_json).into_vec().drain(..) {
+        patches.push(Patch::OutOfLine {
+            path: patch.path,
+            target: Some(patch.target),
+        })
+    }
+
     manifest.patches = patches.into_boxed_slice();
 
     Ok(Located {

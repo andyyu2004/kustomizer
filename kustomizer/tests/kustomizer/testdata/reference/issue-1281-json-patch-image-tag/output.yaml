@@ -4,12 +4,12 @@ kind: Deployment
 metadata:
   name: ben
 spec:
-  replica: "3"
   template:
     spec:
-      containers:
-      - image: costello:v8
       dnsPolicy: None
+      containers:
+        - image: costello:v8
+  replica: "3"
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -19,5 +19,5 @@ spec:
   template:
     spec:
       containers:
-      - image: abbott:v2
-        name: tomato
+        - name: tomato
+          image: abbott:v2

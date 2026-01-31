@@ -132,6 +132,7 @@ impl<A: Send + Sync, K: Send + Sync> Transformer for PatchTransformer<'_, A, K> 
                             if !target.matches(resource) {
                                 continue;
                             }
+
                             json_patch(resource, &patch)?;
                         }
                     }
