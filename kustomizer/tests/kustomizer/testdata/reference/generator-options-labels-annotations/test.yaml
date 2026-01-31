@@ -1,1 +1,3 @@
 kind: success
+# Ported from kustomize/examples/generatorOptions.md
+# Tests generatorOptions with labels and annotations
