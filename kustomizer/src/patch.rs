@@ -64,29 +64,61 @@ fn merge_array(
     patches: Vec<Value>,
     schema: Option<&ArrayType>,
 ) -> anyhow::Result<()> {
+    // two values match if they have at least one common element and
+    // corresponding elements only differ if one is an empty string
+    fn keys_match<'a>(
+        keys: impl IntoIterator<Item = &'a str>,
+        base: &Value,
+        patch: &Value,
+    ) -> bool {
+        let mut one_match = false;
+        for key in keys {
+            let base_value = base.get(key);
+            let patch_value = patch.get(key);
+            if base_value.is_some() && patch_value.is_some() {
+                if base_value == patch_value {
+                    one_match = true;
+                } else if base_value.and_then(|v| v.as_str()) == Some("")
+                    || patch_value.and_then(|v| v.as_str()) == Some("")
+                {
+                    continue;
+                } else {
+                    return false;
+                }
+            }
+        }
+
+        one_match
+    }
+
     match schema {
         Some(schema) => match schema.list_map_keys.as_deref() {
             Some(keys) => {
                 for patch in patches {
-                    if let Some(pos) = bases.iter().position(|base| {
-                        keys.iter()
-                            .all(|key| base.get(key.as_str()) == patch.get(key.as_str()))
-                    }) {
+                    if let Some(pos) = bases
+                        .iter()
+                        .position(|base| keys_match(keys.iter().map(|s| s.as_str()), base, &patch))
+                    {
                         merge(&mut bases[pos], patch, Some(&schema.items))?;
                     } else {
                         bases.push(patch);
                     }
                 }
             }
-            None => {
-                if schema.patch_strategy == Some(PatchStrategy::Merge)
-                    && schema.list_type.is_none_or(|t| t != ListType::Atomic)
-                {
-                    bases.extend(patches)
-                } else {
-                    *bases = patches
-                }
-            }
+            None => match schema.patch_strategy {
+                Some(strategy) => match strategy {
+                    PatchStrategy::Merge
+                        if schema.list_type.is_none_or(|t| t != ListType::Atomic) =>
+                    {
+                        bases.extend(patches);
+                        return Ok(());
+                    }
+                    PatchStrategy::Merge | PatchStrategy::Replace => *bases = patches,
+                    PatchStrategy::RetainKeys => todo!("retainKeys"),
+                    PatchStrategy::MergeRetainKeys => todo!("merge,retainKeys"),
+                },
+                None => *bases = patches,
+            },
         },
         _ => *bases = patches,
     }
