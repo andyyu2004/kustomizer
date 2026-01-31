@@ -1,0 +1,19 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx
+spec:
+  template:
+    spec:
+      containers:
+      - name: nginx
+        image: nginx
+        volumeMounts:
+        - name: nginx-persistent-storage
+          mountPath: /tmp/ps
+      - name: sidecar
+        image: sidecar:latest
+      volumes:
+      - configMap:
+          name: configmap-in-base
+        name: configmap-in-base

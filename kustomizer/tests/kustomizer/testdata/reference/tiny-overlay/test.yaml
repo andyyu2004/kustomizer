@@ -1,0 +1,2 @@
+# Source: TestTinyOverlay from baseandoverlaysmall_test.go:135
+# Tests namePrefix stacking with strategic merge patch
