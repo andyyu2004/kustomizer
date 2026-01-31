@@ -89,10 +89,12 @@ where
 
     let file = std::fs::File::open(&path)
         .with_context(|| format!("loading manifest from path {}", path.pretty()))?;
-    let value = yaml::from_reader(BufReader::new(file))?;
+    let value = yaml::from_reader::<Manifest<A, K>>(BufReader::new(file))?;
+
+    let parent_path = PathId::make(path.parent().unwrap())?;
     Ok(Located {
         value,
-        parent_path: PathId::make(path.parent().unwrap())?,
+        parent_path,
         path: PathId::make(path)?,
     })
 }
