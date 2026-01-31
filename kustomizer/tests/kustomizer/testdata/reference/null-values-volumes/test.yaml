@@ -1,0 +1,2 @@
+# Source: TestNullValues2 from nullvalues_test.go:66
+# Tests that null values in YAML are preserved (volumes: null)
