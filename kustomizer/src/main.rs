@@ -35,6 +35,7 @@ enum Command {
         #[clap(subcommand)]
         subcommand: Debug,
     },
+    Version {},
 }
 
 #[derive(Parser)]
@@ -87,6 +88,7 @@ async fn main() -> anyhow::Result<()> {
                 kustomizer::dbg::diff_reference_impl(&dir, &format!("{resmap}"))?;
             }
         },
+        Command::Version {} => println!("{}", env!("CARGO_PKG_VERSION")),
     }
 
     Ok(())
