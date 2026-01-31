@@ -105,10 +105,12 @@ impl<A: Send + Sync, K: Send + Sync> Transformer for PatchTransformer<'_, A, K> 
                     }
                     Patch::OutOfLine { path, target } => {
                         let path = PathId::make(self.manifest.parent_path.join(path))?;
-                        let patch = Resource::load_one(path);
+                        let patches =
+                            Resource::load_many(path).context("loading out-of-line patches");
 
-                        if let Ok(patch) = patch {
-                            self.apply_strategic_merge_patch(resource, patch, target)
+                        if let Ok(patches) = patches {
+                            for patch in patches {
+                                self.apply_strategic_merge_patch(resource, patch, target)
                                 .with_context(|| {
                                     format!(
                                         "applying strategic merge patch from `{}` to resource `{}`",
@@ -116,6 +118,7 @@ impl<A: Send + Sync, K: Send + Sync> Transformer for PatchTransformer<'_, A, K> 
                                         resource.id()
                                     )
                                 })?;
+                            }
                         } else {
                             let patch = self.load_json_patch(path)?;
 
