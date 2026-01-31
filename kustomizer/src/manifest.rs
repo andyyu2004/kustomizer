@@ -29,6 +29,14 @@ pub struct Manifest<A, K> {
     pub resources: Box<[PathBuf]>,
     #[serde(default, skip_serializing_if = "<[_]>::is_empty")]
     pub patches: Box<[Patch]>,
+
+    /// Legacy field, use `patches` instead.
+    #[serde(
+        rename = "patchesJson6902",
+        default,
+        skip_serializing_if = "<[_]>::is_empty"
+    )]
+    pub patches_json: Box<[JsonPatch6902]>,
     /// Legacy field, use `patches` instead.
     #[serde(default, skip_serializing_if = "<[_]>::is_empty")]
     pub patches_strategic_merge: Box<[PathBuf]>,
@@ -394,6 +402,12 @@ impl<'de> Deserialize<'de> for Patch {
             "invalid patch format: expected either OutOfLine or inline Json/StrategicMerge patch",
         ))
     }
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct JsonPatch6902 {
+    pub path: PathBuf,
+    pub target: Target,
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize)]

@@ -126,6 +126,8 @@ fn snapshot(path: &Path, actual: &str) -> datatest_stable::Result<()> {
         return Ok(());
     }
 
+    // It is important we use a dumber diff than `dyff` here, because we want to ensure
+    // that we output exactly the same output. Any ordering or whitespace instability is a bug.
     let chunks = dissimilar::diff(&expected, actual);
     let formatted = format_chunks(chunks);
     println!("{formatted}");
