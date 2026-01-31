@@ -1,0 +1,2 @@
+# Source: TestOrderPreserved from baseandoverlaysmall_test.go:15
+# Tests that resource order is preserved from kustomization.yaml
