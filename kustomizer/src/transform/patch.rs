@@ -102,7 +102,7 @@ impl<A: Send + Sync, K: Send + Sync> Transformer for PatchTransformer<'_, A, K> 
                     }
                     Patch::OutOfLine { path, target } => {
                         let path = PathId::make(self.manifest.parent_path.join(path))?;
-                        let patch = Resource::load(path);
+                        let patch = Resource::load_one(path);
 
                         if let Ok(patch) = patch {
                             self.apply_strategic_merge_patch(&mut resource, patch, target)

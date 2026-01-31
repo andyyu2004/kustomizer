@@ -23,6 +23,15 @@ where
     serde_saphyr::from_reader(reader).map_err(Into::into)
 }
 
+pub fn from_reader_multi<T>(mut reader: impl Read) -> anyhow::Result<Box<[T]>>
+where
+    T: DeserializeOwned,
+{
+    serde_saphyr::read(&mut reader)
+        .map(|res| res.map_err(Into::into))
+        .collect()
+}
+
 const OPTS: serde_saphyr::SerializerOptions = serde_saphyr::SerializerOptions {
     prefer_block_scalars: true,
     empty_as_braces: true,

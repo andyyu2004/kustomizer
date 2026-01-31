@@ -17,6 +17,7 @@ use crate::{
 };
 use anyhow::{Context, bail};
 use compact_str::format_compact;
+use either::Either;
 use futures_util::future;
 use indexmap::{IndexMap, map::Entry};
 use tokio::sync::Mutex;
@@ -25,7 +26,7 @@ const KUSTOMIZE_FUNCTION_ANNOTATION: &str = "config.kubernetes.io/function";
 
 #[derive(Debug, Default)]
 pub struct Builder {
-    resources_cache: Mutex<IndexMap<PathId, Resource>>,
+    resources_cache: Mutex<IndexMap<PathId, Box<[Resource]>>>,
     renames: Mutex<Vec<Rename>>,
 }
 
@@ -237,8 +238,8 @@ impl Builder {
 
         for (path, resource) in resources {
             match resource {
-                either::Either::Left(res) => resmap.insert(res),
-                either::Either::Right(rs) => resmap.merge(rs),
+                Either::Left(res) => resmap.extend(res),
+                Either::Right(rs) => resmap.merge(rs),
             }
             .with_context(|| {
                 format!(
@@ -257,7 +258,7 @@ impl Builder {
         &self,
         kustomization: &Located<Manifest<A, K>>,
         path: &Path,
-    ) -> anyhow::Result<either::Either<Resource, ResourceMap>> {
+    ) -> anyhow::Result<Either<Box<[Resource]>, ResourceMap>> {
         let path = PathId::make(kustomization.parent_path.join(path))?;
 
         let metadata = std::fs::metadata(path)
@@ -269,24 +270,24 @@ impl Builder {
             let res = match self.resources_cache.lock().await.entry(path) {
                 Entry::Occupied(entry) => entry.into_mut(),
                 Entry::Vacant(entry) => {
-                    let res = Resource::load(path)
-                        .with_context(|| format!("loading resource {}", path.pretty()))?;
+                    let res = Resource::load_many(path)
+                        .with_context(|| format!("load resource {}", path.pretty()))?;
                     entry.insert(res)
                 }
             }
             .clone();
 
-            Ok(either::Either::Left(res))
+            Ok(Either::Left(res))
         } else {
             let kustomization = load_kustomization(path)
-                .with_context(|| format!("loading kustomization resource {}", path.pretty()))?;
+                .with_context(|| format!("load kustomization resource {}", path.pretty()))?;
 
             let base = self
                 .build(Default::default(), &kustomization)
                 .await
                 .with_context(|| format!("building kustomization resource {}", path.pretty()))?;
 
-            Ok(either::Either::Right(base))
+            Ok(Either::Right(base))
         }
     }
 
@@ -295,7 +296,7 @@ impl Builder {
         path: PathId,
         resmap: &mut ResourceMap,
     ) -> anyhow::Result<()> {
-        let transformer_spec = Resource::load(path)
+        let transformer_spec = Resource::load_one(path)
             .with_context(|| format!("loading transformer spec from {}", path.pretty()))?;
 
         if let Some(annotations) = transformer_spec.annotations()
@@ -353,7 +354,7 @@ impl Builder {
     ) -> anyhow::Result<ResourceList> {
         let path = PathId::make(kustomization.parent_path.join(path))?;
         let workdir = path.parent().unwrap();
-        let generator_spec = Resource::load(path)
+        let generator_spec = Resource::load_one(path)
             .with_context(|| format!("loading generator spec from {}", path.pretty()))?;
 
         if let Some(annotations) = generator_spec.annotations()

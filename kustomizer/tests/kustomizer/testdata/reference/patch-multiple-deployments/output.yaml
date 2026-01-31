@@ -1,0 +1,45 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: deploy1
+  labels:
+    old-label: old-value
+spec:
+  template:
+    metadata:
+      labels:
+        old-label: old-value
+    spec:
+      containers:
+        - name: nginx
+          image: nginx
+          args:
+            - one
+            - two
+        - name: istio-proxy
+          image: docker.io/istio/proxyv2
+          args:
+            - proxy
+            - sidecar
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: deploy2
+  labels:
+    key: value
+spec:
+  template:
+    metadata:
+      labels:
+        key: value
+    spec:
+      containers:
+        - name: busybox
+          image: busybox
+        - name: istio-proxy
+          image: docker.io/istio/proxyv2
+          args:
+            - proxy
+            - sidecar
