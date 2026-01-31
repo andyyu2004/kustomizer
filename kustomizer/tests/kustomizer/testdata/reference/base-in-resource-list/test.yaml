@@ -1,0 +1,2 @@
+# Source: TestBaseInResourceList from baseandoverlaysmall_test.go:102
+# Tests base referenced in resource list with namePrefix stacking
