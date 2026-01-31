@@ -157,6 +157,24 @@ impl Builder {
     ) -> anyhow::Result<ResourceMap> {
         let mut resmap = self.build_kustomization_base(resmap, kustomization).await?;
 
+        self.apply_generators(kustomization, &mut resmap).await?;
+
+        for component in &kustomization.components {
+            let component = load_component(kustomization.parent_path.join(component))
+                .with_context(|| format!("loading component `{}`", component.pretty()))?;
+            resmap = self.build(resmap, &component).await?;
+        }
+
+        self.apply_transforms(kustomization, &mut resmap).await?;
+
+        Ok(resmap)
+    }
+
+    async fn apply_generators<A: Symbol, K: Symbol>(
+        &self,
+        kustomization: &Located<Manifest<A, K>>,
+        resmap: &mut ResourceMap,
+    ) -> anyhow::Result<()> {
         let generated_resources =
             future::try_join_all(kustomization.generators.iter().map(|path| async move {
                 self.build_generator(kustomization, path)
@@ -213,15 +231,7 @@ impl Builder {
             })?;
         }
 
-        for component in &kustomization.components {
-            let component = load_component(kustomization.parent_path.join(component))
-                .with_context(|| format!("loading component `{}`", component.pretty()))?;
-            resmap = self.build(resmap, &component).await?;
-        }
-
-        self.apply_transforms(kustomization, &mut resmap).await?;
-
-        Ok(resmap)
+        Ok(())
     }
 
     async fn build_kustomization_base<A, K>(

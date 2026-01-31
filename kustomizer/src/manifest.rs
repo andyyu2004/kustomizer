@@ -44,6 +44,9 @@ pub struct Manifest<A, K> {
     pub transformers: Box<[PathBuf]>,
     #[serde(default)]
     pub generator_options: GeneratorOptions,
+    /// Paths to additional files containing `TransformerConfig` to be merged with the inlined one.
+    #[serde(default, skip_serializing_if = "<[_]>::is_empty")]
+    pub configurations: Box<[PathBuf]>,
 
     // Inlined copy of `[TransformerConfig]`.
     // We don't use `serde(flatten)` as it doesn't work with `deny_unknown_fields`
