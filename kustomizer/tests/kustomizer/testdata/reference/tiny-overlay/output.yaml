@@ -7,3 +7,4 @@ spec:
     spec:
       containers:
         - image: whatever
+  replicas: 999

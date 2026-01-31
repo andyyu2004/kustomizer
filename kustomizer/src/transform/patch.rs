@@ -74,8 +74,11 @@ impl<'a, A, K> PatchTransformer<'a, A, K> {
                     kind: gvk.kind.clone(),
                 };
 
-                // FIXME match all ids
-                if !matcher.matches(resource.gvk()) || resource.name() != patch.name() {
+                if !resource.all_ids().any(|id| {
+                    let mut gvk = resource.gvk().clone();
+                    gvk.kind = id.kind.into();
+                    matcher.matches(&gvk) && id.name == patch.name()
+                }) {
                     return Ok(());
                 }
             }

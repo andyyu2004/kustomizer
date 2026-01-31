@@ -11,16 +11,27 @@ spec:
     spec:
       containers:
         - name: nginx
-          image: nginx
+          image: nginx:latest
           volumeMounts:
             - name: nginx-persistent-storage
               mountPath: /tmp/ps
+          env:
+            - name: ENVKEY
+              value: ENVVALUE
+            - name: ANOTHERENV
+              value: FOO
         - name: sidecar
           image: sidecar:latest
       volumes:
         - configMap:
             name: a-b-configmap-in-base-798k5k7g9f
           name: configmap-in-base
+        - name: nginx-persistent-storage
+          gcePersistentDisk:
+            pdName: nginx-persistent-storage
+        - configMap:
+            name: a-configmap-in-overlay-dc6fm46dhm
+          name: configmap-in-overlay
     metadata:
       labels:
         team: foo
