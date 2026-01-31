@@ -1,0 +1,5 @@
+namePrefix: b-
+resources:
+- base
+patchesStrategicMerge:
+- depPatch.yaml
