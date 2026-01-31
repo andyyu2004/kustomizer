@@ -3,7 +3,10 @@ use json_patch::Patch as JsonPatch;
 use regex::Regex;
 use std::{path::PathBuf, sync::LazyLock};
 
-use crate::resource::{Metadata, Resource};
+use crate::{
+    resource::{Metadata, Resource},
+    yaml,
+};
 use compact_str::CompactString;
 use indexmap::IndexMap;
 use serde::{Deserialize, Serialize};
@@ -311,7 +314,7 @@ pub struct Replica {
     pub count: u32,
 }
 
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Serialize)]
 #[serde(untagged, rename_all = "camelCase")]
 // Assuming inline patch is a JSON Patch or a file path for strategic merge patch, not sure if this
 // matches kustomize's exact semantics.
@@ -330,6 +333,67 @@ pub enum Patch {
         patch: Resource,
         target: Option<Target>,
     },
+}
+
+// Untagged errors are too terrible to read, so we implement custom deserialization.
+impl<'de> Deserialize<'de> for Patch {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        #[derive(Deserialize)]
+        #[serde(rename_all = "camelCase")]
+        struct OutOfLine {
+            path: PathBuf,
+            target: Option<Target>,
+        }
+
+        let value: json::Value = Deserialize::deserialize(deserializer)?;
+
+        if let Some(obj) = value.as_object() {
+            if obj.contains_key("path") {
+                let helper =
+                    json::from_value::<OutOfLine>(value).map_err(serde::de::Error::custom)?;
+                return Ok(Patch::OutOfLine {
+                    path: helper.path,
+                    target: helper.target,
+                });
+            } else if let Some(patch_value) = obj.get("patch")
+                && let Some(target_value) = obj.get("target")
+            {
+                let target = json::from_value::<Option<Target>>(target_value.clone())
+                    .map_err(serde::de::Error::custom)?;
+
+                let patch = patch_value
+                    .as_str()
+                    .ok_or_else(|| serde::de::Error::custom("patch field must be a string "))?;
+
+                // Try to deserialize as JsonPatch first
+                match yaml::from_str::<JsonPatch>(patch) {
+                    Ok(patch) => {
+                        let target = target.ok_or_else(|| {
+                            serde::de::Error::custom("target field is required for Json patches")
+                        })?;
+
+                        return Ok(Patch::Json { patch, target });
+                    }
+                    Err(json_err) => {
+                        // Otherwise, try to deserialize as StrategicMerge patch
+                        let patch = yaml::from_str::<Resource>(patch).map_err(|err| {
+                            serde::de::Error::custom(format!(
+                                "failed to deserialize patch as either JsonPatch due to `{json_err}`\nor StrategicMerge patch due to `{err}`",
+                            ))
+                        })?;
+                        return Ok(Patch::StrategicMerge { patch, target });
+                    }
+                }
+            }
+        }
+
+        Err(serde::de::Error::custom(
+            "invalid patch format: expected either OutOfLine or inline Json/StrategicMerge patch",
+        ))
+    }
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
