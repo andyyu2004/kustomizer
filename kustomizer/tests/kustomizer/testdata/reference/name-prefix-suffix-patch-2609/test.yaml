@@ -1,0 +1,2 @@
+# Source: TestNamePrefixSuffixPatch from nameprefixsuffixpatch_test.go:13
+# Coverage for issue #2609 - patches should update configMapRef names with hash suffixes

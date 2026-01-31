@@ -1,0 +1,6 @@
+configMapGenerator:
+- name: mysql
+  literals:
+  - MYSQL_USER=default
+  - MYSQL_DATABASE=default
+  - HOST=everest
