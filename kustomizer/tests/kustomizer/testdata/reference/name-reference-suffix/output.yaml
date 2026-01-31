@@ -7,7 +7,7 @@ metadata:
 spec:
   template:
     spec:
-      serviceAccountName: mySvcAcct-private
+      serviceAccountName: mySvcAcct
       containers:
         - name: whatever
           image: registry.k8s.io/governmentCheese

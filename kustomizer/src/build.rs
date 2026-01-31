@@ -27,7 +27,6 @@ const KUSTOMIZE_FUNCTION_ANNOTATION: &str = "config.kubernetes.io/function";
 #[derive(Debug, Default)]
 pub struct Builder {
     resources_cache: Mutex<IndexMap<PathId, Box<[Resource]>>>,
-    renames: Mutex<Vec<Rename>>,
 }
 
 impl Builder {
@@ -35,40 +34,37 @@ impl Builder {
         &self,
         kustomization: &Located<Kustomization>,
     ) -> anyhow::Result<ResourceMap> {
-        let resources = self.build(Default::default(), kustomization).await?;
-        let mut resmap = ResourceMap::with_capacity(resources.len());
+        let resmap = self.build(Default::default(), kustomization).await?;
 
-        for res in resources {
+        let mut out = ResourceMap::with_capacity(resmap.len());
+        let mut renames = vec![];
+        for res in resmap {
             if let Some(annotations) = res.annotations()
                 && annotations.needs_hash()
             {
                 let new_name = format_compact!("{}-{}", res.name(), res.shorthash()?);
-                self.renames
-                    .lock()
-                    .await
-                    .push(Rename::new_name(res.id().clone(), new_name.clone()));
-                let res = res.with_name(new_name);
-                resmap.insert(res)?;
+                renames.push(Rename::new_name(res.id().clone(), new_name.clone()));
+                out.insert(res.with_name(new_name))?;
             } else {
-                resmap.insert(res)?;
+                out.insert(res)?;
             }
         }
 
         let refspecs = RefSpecs::load_builtin();
-        // Update references to renamed resources
-        RenameTransformer::new(refspecs, &self.renames.lock().await)
-            .transform(&mut resmap)
+        RenameTransformer::new(refspecs, &renames)
+            .transform(&mut out)
             .await?;
 
-        CleanupTransformer::default().transform(&mut resmap).await?;
+        CleanupTransformer::default().transform(&mut out).await?;
 
-        Ok(resmap)
+        Ok(out)
     }
 
     async fn apply_transforms<A: Symbol, K: Symbol>(
         &self,
         kustomization: &Located<Manifest<A, K>>,
         resmap: &mut ResourceMap,
+        renames: &mut Vec<Rename>,
     ) -> anyhow::Result<()> {
         if !kustomization.labels.is_empty() {
             LabelTransformer::new(kustomization.labels.as_ref())
@@ -85,10 +81,7 @@ impl Builder {
         if let Some(namespace) = &kustomization.namespace {
             for res in resmap.iter() {
                 if res.namespace() != Some(namespace) {
-                    self.renames
-                        .lock()
-                        .await
-                        .push(Rename::new_namespace(res.id().clone(), namespace.clone()));
+                    renames.push(Rename::new_namespace(res.id().clone(), namespace.clone()));
                 }
             }
 
@@ -111,7 +104,7 @@ impl Builder {
 
         match (&kustomization.name_prefix, &kustomization.name_suffix) {
             (prefix, suffix) if !prefix.is_empty() || !suffix.is_empty() => {
-                self.renames.lock().await.extend(resmap.iter().map(|res| {
+                renames.extend(resmap.iter().map(|res| {
                     Rename::new_name(
                         res.id().clone(),
                         format_compact!("{prefix}{}{suffix}", res.name()),
@@ -156,6 +149,7 @@ impl Builder {
         kustomization: &Located<Manifest<A, K>>,
     ) -> anyhow::Result<ResourceMap> {
         let mut resmap = self.build_kustomization_base(resmap, kustomization).await?;
+        let mut renames = vec![];
 
         self.apply_generators(kustomization, &mut resmap).await?;
 
@@ -165,7 +159,12 @@ impl Builder {
             resmap = self.build(resmap, &component).await?;
         }
 
-        self.apply_transforms(kustomization, &mut resmap).await?;
+        self.apply_transforms(kustomization, &mut resmap, &mut renames)
+            .await?;
+
+        RenameTransformer::new(RefSpecs::load_builtin(), &renames)
+            .transform(&mut resmap)
+            .await?;
 
         Ok(resmap)
     }
