@@ -1,0 +1,3 @@
+# Source: TestIssue3489Simplified from namereference_test.go:12
+# Tests reusing the same base with and without nameSuffix
+# Name references (serviceAccountName) should be updated when nameSuffix is applied

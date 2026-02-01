@@ -1,0 +1,11 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: myDep
+spec:
+  template:
+    spec:
+      serviceAccountName: mySvcAcct
+      containers:
+      - name: whatever
+        image: registry.k8s.io/governmentCheese
