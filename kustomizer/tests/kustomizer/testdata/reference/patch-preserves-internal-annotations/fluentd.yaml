@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: DaemonSet
+metadata:
+  name: fluentd
+spec:
+  template:
+    spec:
+      containers:
+        - image: fluentd:latest
+          name: fluentd
+      serviceAccountName: fluentd-sa
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: fluentd-sa

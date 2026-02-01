@@ -1,0 +1,3 @@
+kind: success
+# Ported from Go kustomize TestMultiplePatchesWithOnePatchDeleteDirective in multiplepatch_test.go
+# Tests that $patch: delete directive removes a container from a list

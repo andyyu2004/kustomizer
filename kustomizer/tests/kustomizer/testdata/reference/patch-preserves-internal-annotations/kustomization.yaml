@@ -1,0 +1,9 @@
+nameSuffix: -abc
+resources:
+  - fluentd.yaml
+patches:
+  - path: patch.yaml
+    target:
+      name: fluentd-sa
+      kind: ServiceAccount
+      version: v1

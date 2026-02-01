@@ -1,0 +1,3 @@
+kind: success
+# Ported from Go kustomize list_test.go - remove list -- empty in src
+# Tests that empty list [] in patch replaces with empty list

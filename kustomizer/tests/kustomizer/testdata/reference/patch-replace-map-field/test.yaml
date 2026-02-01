@@ -1,0 +1,3 @@
+kind: success
+# Ported from Go kustomize map_test.go - strategic merge patch replace 1
+# Tests that $patch: replace on a map field replaces the entire field

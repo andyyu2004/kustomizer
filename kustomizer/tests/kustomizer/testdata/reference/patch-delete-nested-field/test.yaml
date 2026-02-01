@@ -1,0 +1,3 @@
+kind: success
+# Ported from Go kustomize map_test.go - strategic merge patch delete 3
+# Tests deleting a nested field from a map using $patch: delete

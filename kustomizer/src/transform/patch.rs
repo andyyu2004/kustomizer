@@ -1,4 +1,4 @@
-use std::{fs::File, io::BufReader, sync::LazyLock};
+use std::{collections::HashSet, fs::File, io::BufReader, sync::LazyLock};
 
 use anyhow::Context as _;
 use dashmap::DashMap;
@@ -58,12 +58,12 @@ impl<'a, A, K> PatchTransformer<'a, A, K> {
         resource: &mut Resource,
         patch: Resource,
         target: &Option<Target>,
-    ) -> anyhow::Result<()> {
+    ) -> anyhow::Result<bool> {
         let gvk = patch.gvk();
         match target {
             Some(target) => {
                 if !target.matches(resource) {
-                    return Ok(());
+                    return Ok(true);
                 }
             }
             None => {
@@ -79,7 +79,7 @@ impl<'a, A, K> PatchTransformer<'a, A, K> {
                     gvk.kind = id.kind.into();
                     matcher.matches(&gvk) && id.name == patch.name()
                 }) {
-                    return Ok(());
+                    return Ok(true);
                 }
             }
         }
@@ -91,6 +91,8 @@ impl<'a, A, K> PatchTransformer<'a, A, K> {
 impl<A: Send + Sync, K: Send + Sync> Transformer for PatchTransformer<'_, A, K> {
     #[tracing::instrument(skip_all, name = "patch_transform")]
     async fn transform(&mut self, resources: &mut ResourceMap) -> anyhow::Result<()> {
+        let mut to_delete = HashSet::new();
+
         for resource in resources.iter_mut() {
             let id = resource.id().clone();
             for patch in self.patches {
@@ -104,13 +106,17 @@ impl<A: Send + Sync, K: Send + Sync> Transformer for PatchTransformer<'_, A, K> 
                             .with_context(|| format!("applying JSON patch to resource `{id}`"))?;
                     }
                     Patch::StrategicMerge { patch, target } => {
-                        self.apply_strategic_merge_patch(resource, patch.clone(), target)
+                        if !self
+                            .apply_strategic_merge_patch(resource, patch.clone(), target)
                             .with_context(|| {
                                 format!(
                                     "applying strategic merge patch to resource `{}`",
                                     resource.id()
                                 )
-                            })?;
+                            })?
+                        {
+                            assert!(to_delete.insert(id.clone()));
+                        }
                     }
                     Patch::OutOfLine { path, target } => {
                         let path = PathId::make(self.manifest.parent_path.join(path))?;
@@ -119,14 +125,16 @@ impl<A: Send + Sync, K: Send + Sync> Transformer for PatchTransformer<'_, A, K> 
 
                         if let Ok(patches) = patches {
                             for patch in patches {
-                                self.apply_strategic_merge_patch(resource, patch, target)
+                                if !self.apply_strategic_merge_patch(resource, patch, target)
                                     .with_context(|| {
                                         format!(
                                             "applying strategic merge patch from `{}` to resource `{}`",
                                             path.pretty(),
                                             resource.id()
                                         )
-                                    })?;
+                                    })? {
+                                        assert!(to_delete.insert(id.clone()));
+                                    }
                             }
                         } else {
                             let patch = self.load_json_patch(path)?;
@@ -141,12 +149,15 @@ impl<A: Send + Sync, K: Send + Sync> Transformer for PatchTransformer<'_, A, K> 
                             if !target.matches(resource) {
                                 continue;
                             }
+
                             json_patch(resource, &patch)?;
                         }
                     }
                 }
             }
         }
+
+        resources.retain(|id, _| !to_delete.contains(id));
 
         Ok(())
     }

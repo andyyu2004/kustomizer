@@ -1,0 +1,4 @@
+- op: add
+  path: /metadata/annotations
+  value:
+    note: this is a test annotation

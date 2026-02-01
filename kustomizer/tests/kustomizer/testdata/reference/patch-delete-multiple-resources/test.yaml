@@ -1,0 +1,3 @@
+kind: success
+# Ported from Go kustomize TestSinglePatchWithMultiplePatchDeleteDirectives in multiplepatch_test.go
+# Tests that multiple $patch: delete directives in a single patch file work

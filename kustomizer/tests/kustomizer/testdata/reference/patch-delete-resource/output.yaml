@@ -1,0 +1,9 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: rule2
+  labels:
+    role: alert-rules
+spec:
+  groups:
+    - name: rabbitmq.rules

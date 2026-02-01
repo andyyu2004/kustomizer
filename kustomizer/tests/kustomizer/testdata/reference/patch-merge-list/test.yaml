@@ -1,0 +1,3 @@
+kind: success
+# Ported from Go kustomize list_test.go - merge k8s deployment containers
+# Tests using $patch: merge directive at list level to merge containers

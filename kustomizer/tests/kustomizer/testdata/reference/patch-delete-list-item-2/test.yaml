@@ -1,0 +1,3 @@
+kind: success
+# Ported from Go kustomize list_test.go - strategic merge patch delete 2
+# Tests deleting last item from a list using $patch: delete

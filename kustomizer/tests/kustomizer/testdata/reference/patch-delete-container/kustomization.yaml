@@ -1,0 +1,14 @@
+resources:
+- deployment.yaml
+patches:
+- patch: |
+    apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      name: nginx
+    spec:
+      template:
+        spec:
+          containers:
+          - $patch: delete
+            name: sidecar

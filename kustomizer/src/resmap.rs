@@ -63,6 +63,13 @@ impl ResourceMap {
         self.resources.get(id)
     }
 
+    pub fn retain<F>(&mut self, mut keep: F)
+    where
+        F: FnMut(&ResId, &Resource) -> bool,
+    {
+        self.resources.retain(|id, res| keep(id, res));
+    }
+
     pub fn keys(&self) -> impl ExactSizeIterator<Item = &ResId> + DoubleEndedIterator + fmt::Debug {
         self.resources.keys()
     }

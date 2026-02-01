@@ -1,0 +1,3 @@
+kind: success
+# Ported from Go kustomize TestSmpDeleteOnResource in multiplepatch_test.go
+# Test for #3616 - tests that $patch: delete directive removes a resource
