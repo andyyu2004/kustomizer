@@ -87,9 +87,12 @@ fn merge_obj(
 
                 match base.entry(key) {
                     Entry::Vacant(entry) => drop(entry.insert(value)),
-                    Entry::Occupied(entry) => {
+                    Entry::Occupied(mut entry) => {
                         let subschema = schema.and_then(|s| s.properties.get(entry.key()));
-                        merge(entry.into_mut(), value, subschema)?;
+                        match merge(entry.get_mut(), value, subschema)? {
+                            PatchResult::Retain => {}
+                            PatchResult::Delete => drop(entry.remove()),
+                        }
                     }
                 }
             }
@@ -160,6 +163,15 @@ fn merge_array(
             .filter(is_non_delete_patch)
             .filter_map(cleaned)
     };
+
+    let delete_all = patches
+        .iter()
+        .any(|p| strategy_of(p) == Some(PatchStrategy::Delete) && cleaned(p.clone()).is_none());
+
+    if delete_all {
+        bases.clear();
+        return Ok(PatchResult::Delete);
+    }
 
     let force_replace = patches
         .iter()

@@ -4,10 +4,4 @@ metadata:
   name: placeholder
 spec:
   template:
-    spec:
-      containers:
-        - name: foo4
-        - name: foo5
-        - name: foo1
-        - name: foo2
-        - name: foo3
+    spec: {}
