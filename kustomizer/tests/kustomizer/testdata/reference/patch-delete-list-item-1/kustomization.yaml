@@ -1,0 +1,14 @@
+resources:
+- deployment.yaml
+patches:
+- patch: |
+    apiVersion: apps/v1
+    kind: Deployment
+    spec:
+      template:
+        spec:
+          containers:
+          - name: foo1
+            $patch: delete
+          - name: foo2
+          - name: foo3

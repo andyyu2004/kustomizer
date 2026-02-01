@@ -1,0 +1,3 @@
+kind: success
+# Ported from Go kustomize patchdelete_test.go - TestPatchDeleteOfNotExistingAttributesShouldNotAddExtraElements
+# Tests that deleting non-existent elements should not introduce extra values

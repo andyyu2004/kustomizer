@@ -1,0 +1,3 @@
+kind: success
+# Ported from Go kustomize list_test.go - remove k8s deployment containers
+# Tests using $patch: delete directive at list level to remove entire containers list

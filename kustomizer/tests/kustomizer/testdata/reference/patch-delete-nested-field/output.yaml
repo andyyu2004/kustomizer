@@ -1,0 +1,4 @@
+kind: Deployment
+spec:
+  metadata:
+    name: wut

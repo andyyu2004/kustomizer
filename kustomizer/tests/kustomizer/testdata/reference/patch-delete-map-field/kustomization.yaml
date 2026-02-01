@@ -1,0 +1,7 @@
+resources:
+- deployment.yaml
+patches:
+- patch: |
+    kind: Deployment
+    spec:
+      $patch: delete

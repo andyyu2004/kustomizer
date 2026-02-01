@@ -1,0 +1,9 @@
+kind: Deployment
+spec:
+  metadata:
+    name: wut
+  template:
+    spec:
+      containers:
+      - name: foo
+      - name: bar
