@@ -131,23 +131,44 @@ fn merge_array(
     patches: Vec<Value>,
     schema: Option<&ArrayType>,
 ) -> anyhow::Result<PatchResult> {
-    let is_delete_patch = |patch: &Value| {
+    let strategy_of = |patch: &Value| {
         patch
             .as_object()
-            .is_some_and(|o| o.get("$patch").and_then(|v| v.as_str()) == Some("delete"))
+            .and_then(|o| o.get("$patch"))
+            .and_then(|v| v.as_str())
+            .and_then(|s| s.parse::<PatchStrategy>().ok())
     };
+
+    let is_delete_patch = |patch: &Value| strategy_of(patch) == Some(PatchStrategy::Delete);
 
     let is_non_delete_patch = |patch: &Value| !is_delete_patch(patch);
 
-    let clean = |mut patch: Value| {
+    let cleaned = |mut patch: Value| {
         if let Some(o) = patch.as_object_mut() {
             o.remove("$patch");
+            if o.is_empty() {
+                return None;
+            }
         }
-        patch
+
+        Some(patch)
     };
 
-    let mk_non_delete_patches =
-        |patches: Vec<Value>| patches.into_iter().filter(is_non_delete_patch).map(clean);
+    let mk_non_delete_patches = |patches: Vec<Value>| {
+        patches
+            .into_iter()
+            .filter(is_non_delete_patch)
+            .filter_map(cleaned)
+    };
+
+    let force_replace = patches
+        .iter()
+        .any(|p| strategy_of(p) == Some(PatchStrategy::Replace));
+
+    if force_replace {
+        *bases = mk_non_delete_patches(patches).collect();
+        return Ok(PatchResult::Retain);
+    }
 
     match schema {
         Some(schema) => match schema.list_map_keys.as_deref() {
@@ -160,8 +181,10 @@ fn merge_array(
                             PatchResult::Retain => {}
                             PatchResult::Delete => drop(bases.remove(pos)),
                         }
-                    } else if is_non_delete_patch(&patch) {
-                        bases.push(clean(patch));
+                    } else if is_non_delete_patch(&patch)
+                        && let Some(patch) = cleaned(patch)
+                    {
+                        bases.push(patch);
                     }
                 }
             }

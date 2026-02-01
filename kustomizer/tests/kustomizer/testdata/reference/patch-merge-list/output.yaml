@@ -11,4 +11,3 @@ spec:
         - name: foo1
         - name: foo2
         - name: foo3
-        - {}
