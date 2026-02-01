@@ -1,0 +1,12 @@
+resources:
+- deployment.yaml
+patches:
+- patch: |
+    apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      name: test
+    spec:
+      template:
+        spec:
+          containers: []
