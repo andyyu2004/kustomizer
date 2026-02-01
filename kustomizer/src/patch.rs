@@ -1,3 +1,5 @@
+use std::str::FromStr;
+
 use json::{Value, map::Entry};
 
 use crate::resource::{Object, Resource};
@@ -9,14 +11,30 @@ use self::openapi::v2::{
 
 pub mod openapi;
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum PatchResult {
+    Retain,
+    Delete,
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, serde::Serialize, serde::Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub enum PatchStrategy {
+    Delete,
     Merge,
     Replace,
     RetainKeys,
     #[serde(rename = "merge,retainKeys", alias = "retainKeys,merge")]
     MergeRetainKeys,
+}
+
+impl FromStr for PatchStrategy {
+    type Err = anyhow::Error;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        json::from_value(Value::String(s.to_string()))
+            .map_err(|err| anyhow::anyhow!("invalid patch strategy '{s}': {err}"))
+    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, serde::Serialize, serde::Deserialize)]
@@ -28,7 +46,7 @@ pub enum ListType {
 }
 
 #[tracing::instrument(skip_all, fields(resource = %base.id()))]
-pub fn merge_patch(base: &mut Resource, patch: Resource) -> anyhow::Result<()> {
+pub fn merge_patch(base: &mut Resource, patch: Resource) -> anyhow::Result<PatchResult> {
     let spec = Spec::load();
     let schema = spec.schema_for(base.gvk());
     let (_patch_id, mut patch_root) = patch.into_parts();
@@ -37,33 +55,55 @@ pub fn merge_patch(base: &mut Resource, patch: Resource) -> anyhow::Result<()> {
     // Don't want to overwrite the name and namespace of the base resource using the patch.
     metadata.remove("name");
     metadata.remove("namespace");
-    merge_obj(base.root_mut(), patch_root, schema)?;
-    Ok(())
+    merge_obj(base.root_mut(), patch_root, schema)
 }
 
-fn merge_obj(base: &mut Object, patch: Object, schema: Option<&ObjectType>) -> anyhow::Result<()> {
-    for (key, value) in patch {
-        if value.is_null() {
-            base.remove(&key);
-            continue;
-        }
+fn merge_obj(
+    base: &mut Object,
+    patch: Object,
+    schema: Option<&ObjectType>,
+) -> anyhow::Result<PatchResult> {
+    let patch_strategy = if let Some(patch) = patch.get("$patch").and_then(|v| v.as_str()) {
+        Some(patch.parse::<PatchStrategy>()?)
+    } else {
+        None
+    };
 
-        match base.entry(key) {
-            Entry::Vacant(entry) => drop(entry.insert(value)),
-            Entry::Occupied(entry) => {
-                let subschema = schema.and_then(|s| s.properties.get(entry.key()));
-                merge(entry.into_mut(), value, subschema)?
+    match patch_strategy {
+        Some(PatchStrategy::Delete) => {
+            base.clear();
+            return Ok(PatchResult::Delete);
+        }
+        Some(PatchStrategy::Replace) => {
+            *base = patch;
+            return Ok(PatchResult::Retain);
+        }
+        _ => {
+            for (key, value) in patch {
+                if value.is_null() {
+                    base.remove(&key);
+                    continue;
+                }
+
+                match base.entry(key) {
+                    Entry::Vacant(entry) => drop(entry.insert(value)),
+                    Entry::Occupied(entry) => {
+                        let subschema = schema.and_then(|s| s.properties.get(entry.key()));
+                        merge(entry.into_mut(), value, subschema)?;
+                    }
+                }
             }
         }
     }
-    Ok(())
+
+    Ok(PatchResult::Retain)
 }
 
 fn merge_array(
     bases: &mut Vec<Value>,
     patches: Vec<Value>,
     schema: Option<&ArrayType>,
-) -> anyhow::Result<()> {
+) -> anyhow::Result<PatchResult> {
     // two values match if they have at least one common element and
     // corresponding elements only differ if one is an empty string
     fn keys_match<'a>(
@@ -111,37 +151,42 @@ fn merge_array(
                         if schema.list_type.is_none_or(|t| t != ListType::Atomic) =>
                     {
                         bases.extend(patches);
-                        return Ok(());
+                        return Ok(PatchResult::Retain);
                     }
                     PatchStrategy::Merge | PatchStrategy::Replace => *bases = patches,
-                    PatchStrategy::RetainKeys => todo!("retainKeys"),
-                    PatchStrategy::MergeRetainKeys => todo!("merge,retainKeys"),
+                    PatchStrategy::RetainKeys => todo!("array patch strategy retainKeys"),
+                    PatchStrategy::MergeRetainKeys => {
+                        todo!("array patch strategy merge,retainKeys")
+                    }
+                    PatchStrategy::Delete => todo!("array patch strategy delete"),
                 },
                 None => *bases = patches,
             },
         },
         _ => *bases = patches,
     }
-    Ok(())
+
+    Ok(PatchResult::Retain)
 }
 
 fn merge(
     base: &mut Value,
     patch: Value,
     schema: Option<&InlineOrRef<Box<Type>>>,
-) -> anyhow::Result<()> {
+) -> anyhow::Result<PatchResult> {
     let schema = schema.map(|s| Spec::load().resolve(s));
     match (base, patch) {
         (Value::Object(base), Value::Object(patch)) => match schema {
-            Some(Type::Object(schema)) => merge_obj(base, patch, Some(schema))?,
-            _ => merge_obj(base, patch, None)?,
+            Some(Type::Object(schema)) => merge_obj(base, patch, Some(schema)),
+            _ => merge_obj(base, patch, None),
         },
         (Value::Array(base), Value::Array(patch)) => match schema {
-            Some(Type::Array(schema)) => merge_array(base, patch, Some(schema))?,
-            _ => merge_array(base, patch, None)?,
+            Some(Type::Array(schema)) => merge_array(base, patch, Some(schema)),
+            _ => merge_array(base, patch, None),
         },
-        (base, patch) => *base = patch,
+        (base, patch) => {
+            *base = patch;
+            Ok(PatchResult::Retain)
+        }
     }
-
-    Ok(())
 }

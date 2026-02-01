@@ -19,7 +19,7 @@ use std::path::Path;
 use crate::{
     PathExt, PathId,
     manifest::{Behavior, FunctionSpec, Str},
-    patch::merge_patch,
+    patch::{PatchResult, merge_patch},
     yaml,
 };
 
@@ -402,7 +402,7 @@ impl Resource {
         &mut self.root
     }
 
-    pub fn patch(&mut self, patch: Self) -> anyhow::Result<()> {
+    pub fn patch(&mut self, patch: Self) -> anyhow::Result<PatchResult> {
         merge_patch(self, patch)
             .with_context(|| format!("applying patch to resource `{}`", self.id))
     }
