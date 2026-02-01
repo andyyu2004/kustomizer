@@ -1,0 +1,3 @@
+kind: success
+# Ported from Go kustomize element_test.go - merge Element -- add field to dest
+# Tests merging container and adding command field

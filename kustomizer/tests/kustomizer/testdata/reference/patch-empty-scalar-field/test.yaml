@@ -1,0 +1,3 @@
+kind: success
+# Ported from Go kustomize scalar_test.go - remove scalar -- empty in src
+# Tests that empty field in patch removes scalar field
