@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Deployment
+metadata:
+  name: test
+spec:
+  river: nile
+  color: red

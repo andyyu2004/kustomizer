@@ -1,0 +1,3 @@
+kind: success
+# Ported from Go kustomize map_test.go - remove Map -- null in src
+# Tests that null in patch removes the entire map field

@@ -56,11 +56,13 @@ pub fn merge_patch(base: &mut Resource, patch: Resource) -> anyhow::Result<Shoul
 
 fn merge_obj(
     base: &mut Object,
-    patch: Object,
+    mut patch: Object,
     schema: Option<&ObjectType>,
 ) -> anyhow::Result<ShouldRetain> {
-    let patch_strategy = if let Some(patch) = patch.get("$patch").and_then(|v| v.as_str()) {
-        Some(patch.parse::<PatchStrategy>()?)
+    let patch_strategy = if let Some(directive) = patch.get("$patch").and_then(|v| v.as_str()) {
+        let strategy = directive.parse::<PatchStrategy>()?;
+        patch.remove("$patch");
+        Some(strategy)
     } else {
         None
     };
