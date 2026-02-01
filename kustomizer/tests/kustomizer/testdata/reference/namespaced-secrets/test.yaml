@@ -1,0 +1,3 @@
+# Source: TestNamespacedSecrets from namespaces_test.go:13
+# Tests multiple resources with same name in different namespaces
+# Validates fix for Issue #1044 - resources can have same name if in different namespaces

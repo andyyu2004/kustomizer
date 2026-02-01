@@ -1,0 +1,4 @@
+resources:
+  - ../../shared
+
+namePrefix: component1-

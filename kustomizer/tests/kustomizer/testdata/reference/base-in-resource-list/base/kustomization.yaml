@@ -1,0 +1,3 @@
+namePrefix: a-
+resources:
+- service.yaml
