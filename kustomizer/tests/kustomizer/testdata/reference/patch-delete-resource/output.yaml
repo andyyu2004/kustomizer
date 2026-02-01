@@ -1,9 +1,21 @@
+---
 apiVersion: monitoring.coreos.com/v1
 kind: PrometheusRule
 metadata:
+  name: rule1
   labels:
     role: alert-rules
-  name: rule2
 spec:
   groups:
-  - name: rabbitmq.rules
+    - name: rabbitmq.rules
+$patch: delete
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: rule2
+  labels:
+    role: alert-rules
+spec:
+  groups:
+    - name: rabbitmq.rules

@@ -369,11 +369,12 @@ impl<'de> Deserialize<'de> for Patch {
                     path: helper.path,
                     target: helper.target,
                 });
-            } else if let Some(patch_value) = obj.get("patch")
-                && let Some(target_value) = obj.get("target")
-            {
-                let target = json::from_value::<Option<Target>>(target_value.clone())
-                    .map_err(serde::de::Error::custom)?;
+            } else if let Some(patch_value) = obj.get("patch") {
+                let target = if let Some(tv) = obj.get("target") {
+                    Some(json::from_value::<Target>(tv.clone()).map_err(serde::de::Error::custom)?)
+                } else {
+                    None
+                };
 
                 let patch = patch_value
                     .as_str()
@@ -401,9 +402,9 @@ impl<'de> Deserialize<'de> for Patch {
             }
         }
 
-        Err(serde::de::Error::custom(
-            "invalid patch format: expected either OutOfLine or inline Json/StrategicMerge patch",
-        ))
+        Err(serde::de::Error::custom(format!(
+            "invalid patch format: expected either `path: <path>` or inline Json/StrategicMerge patch, got `{value:?}`",
+        )))
     }
 }
 

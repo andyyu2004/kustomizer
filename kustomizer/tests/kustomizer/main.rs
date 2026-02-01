@@ -78,7 +78,7 @@ async fn test(path: &Path) -> datatest_stable::Result<()> {
             path.pretty()
         ))?,
         (Err(err), TestKind::Success) => Err(format!(
-            "kustomizer failed for {} but expected success: {err:?}",
+            "kustomizer failed for {} but expected success: {err}",
             path.pretty()
         ))?,
     }

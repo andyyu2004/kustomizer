@@ -1,9 +1,9 @@
 resources:
-- workloads.yaml
+  - workloads.yaml
 patches:
-- patch: |
-    apiVersion: monitoring.coreos.com/v1
-    kind: PrometheusRule
-    metadata:
-      name: rule1
-    $patch: delete
+  - patch: |
+      apiVersion: monitoring.coreos.com/v1
+      kind: PrometheusRule
+      metadata:
+        name: rule1
+      $patch: delete
