@@ -99,51 +99,61 @@ fn merge_obj(
     Ok(PatchResult::Retain)
 }
 
+// two values match if they have at least one common element and
+// corresponding elements only differ if one is an empty string
+fn array_keys_match<'a>(
+    keys: impl IntoIterator<Item = &'a str>,
+    base: &Value,
+    patch: &Value,
+) -> bool {
+    let mut one_match = false;
+    for key in keys {
+        let base_value = base.get(key);
+        let patch_value = patch.get(key);
+        if base_value.is_some() && patch_value.is_some() {
+            if base_value == patch_value {
+                one_match = true;
+            } else if base_value.and_then(|v| v.as_str()) == Some("")
+                || patch_value.and_then(|v| v.as_str()) == Some("")
+            {
+                continue;
+            } else {
+                return false;
+            }
+        }
+    }
+
+    one_match
+}
+
 fn merge_array(
     bases: &mut Vec<Value>,
     patches: Vec<Value>,
     schema: Option<&ArrayType>,
 ) -> anyhow::Result<PatchResult> {
-    // two values match if they have at least one common element and
-    // corresponding elements only differ if one is an empty string
-    fn keys_match<'a>(
-        keys: impl IntoIterator<Item = &'a str>,
-        base: &Value,
-        patch: &Value,
-    ) -> bool {
-        let mut one_match = false;
-        for key in keys {
-            let base_value = base.get(key);
-            let patch_value = patch.get(key);
-            if base_value.is_some() && patch_value.is_some() {
-                if base_value == patch_value {
-                    one_match = true;
-                } else if base_value.and_then(|v| v.as_str()) == Some("")
-                    || patch_value.and_then(|v| v.as_str()) == Some("")
-                {
-                    continue;
-                } else {
-                    return false;
-                }
-            }
-        }
+    let is_delete_patch = |patch: &Value| {
+        patch
+            .as_object()
+            .is_some_and(|o| o.get("$patch").and_then(|v| v.as_str()) == Some("delete"))
+    };
 
-        one_match
-    }
+    let is_non_delete_patch = |patch: &Value| !is_delete_patch(patch);
+
+    let mk_non_delete_patches =
+        |patches: Vec<Value>| patches.into_iter().filter(is_non_delete_patch);
 
     match schema {
         Some(schema) => match schema.list_map_keys.as_deref() {
             Some(keys) => {
                 for patch in patches {
-                    if let Some(pos) = bases
-                        .iter()
-                        .position(|base| keys_match(keys.iter().map(|s| s.as_str()), base, &patch))
-                    {
+                    if let Some(pos) = bases.iter().position(|base| {
+                        array_keys_match(keys.iter().map(|s| s.as_str()), base, &patch)
+                    }) {
                         match merge(&mut bases[pos], patch, Some(&schema.items))? {
                             PatchResult::Retain => {}
                             PatchResult::Delete => drop(bases.remove(pos)),
                         }
-                    } else {
+                    } else if is_non_delete_patch(&patch) {
                         bases.push(patch);
                     }
                 }
@@ -153,20 +163,22 @@ fn merge_array(
                     PatchStrategy::Merge
                         if schema.list_type.is_none_or(|t| t != ListType::Atomic) =>
                     {
-                        bases.extend(patches);
+                        bases.extend(mk_non_delete_patches(patches));
                         return Ok(PatchResult::Retain);
                     }
-                    PatchStrategy::Merge | PatchStrategy::Replace => *bases = patches,
+                    PatchStrategy::Merge | PatchStrategy::Replace => {
+                        *bases = mk_non_delete_patches(patches).collect();
+                    }
                     PatchStrategy::RetainKeys => todo!("array patch strategy retainKeys"),
                     PatchStrategy::MergeRetainKeys => {
                         todo!("array patch strategy merge,retainKeys")
                     }
                     PatchStrategy::Delete => todo!("array patch strategy delete"),
                 },
-                None => *bases = patches,
+                None => *bases = mk_non_delete_patches(patches).collect(),
             },
         },
-        _ => *bases = patches,
+        _ => *bases = mk_non_delete_patches(patches).collect(),
     }
 
     Ok(PatchResult::Retain)
