@@ -139,7 +139,10 @@ fn merge_array(
                         .iter()
                         .position(|base| keys_match(keys.iter().map(|s| s.as_str()), base, &patch))
                     {
-                        merge(&mut bases[pos], patch, Some(&schema.items))?;
+                        match merge(&mut bases[pos], patch, Some(&schema.items))? {
+                            PatchResult::Retain => {}
+                            PatchResult::Delete => drop(bases.remove(pos)),
+                        }
                     } else {
                         bases.push(patch);
                     }

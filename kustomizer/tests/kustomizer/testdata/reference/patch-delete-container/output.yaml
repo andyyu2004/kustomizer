@@ -16,7 +16,6 @@ spec:
           volumeMounts:
             - name: nginx-persistent-storage
               mountPath: /tmp/ps
-        - {}
       volumes:
         - configMap:
             name: configmap-in-base
