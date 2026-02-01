@@ -1,4 +1,4 @@
-use std::str::FromStr;
+use std::{collections::HashSet, str::FromStr};
 
 use json::{Value, map::Entry};
 
@@ -202,6 +202,21 @@ fn merge_array(
                         if schema.list_type.is_none_or(|t| t != ListType::Atomic) =>
                     {
                         bases.extend(mk_non_delete_patches(patches));
+                        match schema.list_type {
+                            Some(ListType::Atomic) => unreachable!(),
+                            Some(ListType::Set) => {
+                                // For set-type lists, deduplicate and sort to match kustomize behavior
+                                let unique = bases.drain(..).collect::<HashSet<_>>();
+                                *bases = unique.into_iter().collect::<Vec<_>>();
+                                bases.sort_by(|a, b| {
+                                    // Compare values by their string representation
+                                    // This handles primitive values (strings, numbers, bools)
+                                    a.to_string().cmp(&b.to_string())
+                                });
+                            }
+                            Some(ListType::Map) | None => {}
+                        }
+
                         return Ok(true);
                     }
                     PatchStrategy::Merge | PatchStrategy::Replace => {
