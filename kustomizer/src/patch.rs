@@ -11,12 +11,6 @@ use self::openapi::v2::{
 
 pub mod openapi;
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub enum PatchResult {
-    Retain,
-    Delete,
-}
-
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, serde::Serialize, serde::Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub enum PatchStrategy {
@@ -45,8 +39,10 @@ pub enum ListType {
     Map,
 }
 
+type ShouldRetain = bool;
+
 #[tracing::instrument(skip_all, fields(resource = %base.id()))]
-pub fn merge_patch(base: &mut Resource, patch: Resource) -> anyhow::Result<PatchResult> {
+pub fn merge_patch(base: &mut Resource, patch: Resource) -> anyhow::Result<ShouldRetain> {
     let spec = Spec::load();
     let schema = spec.schema_for(base.gvk());
     let (_patch_id, mut patch_root) = patch.into_parts();
@@ -62,7 +58,7 @@ fn merge_obj(
     base: &mut Object,
     patch: Object,
     schema: Option<&ObjectType>,
-) -> anyhow::Result<PatchResult> {
+) -> anyhow::Result<ShouldRetain> {
     let patch_strategy = if let Some(patch) = patch.get("$patch").and_then(|v| v.as_str()) {
         Some(patch.parse::<PatchStrategy>()?)
     } else {
@@ -72,11 +68,11 @@ fn merge_obj(
     match patch_strategy {
         Some(PatchStrategy::Delete) => {
             base.clear();
-            return Ok(PatchResult::Delete);
+            return Ok(false);
         }
         Some(PatchStrategy::Replace) => {
             *base = patch;
-            return Ok(PatchResult::Retain);
+            return Ok(true);
         }
         _ => {
             for (key, value) in patch {
@@ -89,9 +85,8 @@ fn merge_obj(
                     Entry::Vacant(entry) => drop(entry.insert(value)),
                     Entry::Occupied(mut entry) => {
                         let subschema = schema.and_then(|s| s.properties.get(entry.key()));
-                        match merge(entry.get_mut(), value, subschema)? {
-                            PatchResult::Retain => {}
-                            PatchResult::Delete => drop(entry.remove()),
+                        if !merge(entry.get_mut(), value, subschema)? {
+                            entry.remove();
                         }
                     }
                 }
@@ -99,7 +94,7 @@ fn merge_obj(
         }
     }
 
-    Ok(PatchResult::Retain)
+    Ok(true)
 }
 
 // two values match if they have at least one common element and
@@ -133,7 +128,7 @@ fn merge_array(
     bases: &mut Vec<Value>,
     patches: Vec<Value>,
     schema: Option<&ArrayType>,
-) -> anyhow::Result<PatchResult> {
+) -> anyhow::Result<bool> {
     let strategy_of = |patch: &Value| {
         patch
             .as_object()
@@ -170,7 +165,7 @@ fn merge_array(
 
     if delete_all {
         bases.clear();
-        return Ok(PatchResult::Delete);
+        return Ok(false);
     }
 
     let force_replace = patches
@@ -179,7 +174,7 @@ fn merge_array(
 
     if force_replace {
         *bases = mk_non_delete_patches(patches).collect();
-        return Ok(PatchResult::Retain);
+        return Ok(true);
     }
 
     match schema {
@@ -189,9 +184,8 @@ fn merge_array(
                     if let Some(pos) = bases.iter().position(|base| {
                         array_keys_match(keys.iter().map(|s| s.as_str()), base, &patch)
                     }) {
-                        match merge(&mut bases[pos], patch, Some(&schema.items))? {
-                            PatchResult::Retain => {}
-                            PatchResult::Delete => drop(bases.remove(pos)),
+                        if !merge(&mut bases[pos], patch, Some(&schema.items))? {
+                            bases.remove(pos);
                         }
                     } else if is_non_delete_patch(&patch)
                         && let Some(patch) = cleaned(patch)
@@ -206,7 +200,7 @@ fn merge_array(
                         if schema.list_type.is_none_or(|t| t != ListType::Atomic) =>
                     {
                         bases.extend(mk_non_delete_patches(patches));
-                        return Ok(PatchResult::Retain);
+                        return Ok(true);
                     }
                     PatchStrategy::Merge | PatchStrategy::Replace => {
                         *bases = mk_non_delete_patches(patches).collect();
@@ -223,14 +217,14 @@ fn merge_array(
         _ => *bases = mk_non_delete_patches(patches).collect(),
     }
 
-    Ok(PatchResult::Retain)
+    Ok(true)
 }
 
 fn merge(
     base: &mut Value,
     patch: Value,
     schema: Option<&InlineOrRef<Box<Type>>>,
-) -> anyhow::Result<PatchResult> {
+) -> anyhow::Result<ShouldRetain> {
     let schema = schema.map(|s| Spec::load().resolve(s));
     match (base, patch) {
         (Value::Object(base), Value::Object(patch)) => match schema {
@@ -243,7 +237,7 @@ fn merge(
         },
         (base, patch) => {
             *base = patch;
-            Ok(PatchResult::Retain)
+            Ok(true)
         }
     }
 }

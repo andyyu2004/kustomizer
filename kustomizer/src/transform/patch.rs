@@ -6,7 +6,6 @@ use dashmap::DashMap;
 use crate::{
     Located, PathExt, PathId,
     manifest::{Manifest, Patch, Target},
-    patch::PatchResult,
     resmap::ResourceMap,
     resource::{GvkMatcher, Resource},
     yaml,
@@ -59,12 +58,12 @@ impl<'a, A, K> PatchTransformer<'a, A, K> {
         resource: &mut Resource,
         patch: Resource,
         target: &Option<Target>,
-    ) -> anyhow::Result<PatchResult> {
+    ) -> anyhow::Result<bool> {
         let gvk = patch.gvk();
         match target {
             Some(target) => {
                 if !target.matches(resource) {
-                    return Ok(PatchResult::Retain);
+                    return Ok(true);
                 }
             }
             None => {
@@ -80,7 +79,7 @@ impl<'a, A, K> PatchTransformer<'a, A, K> {
                     gvk.kind = id.kind.into();
                     matcher.matches(&gvk) && id.name == patch.name()
                 }) {
-                    return Ok(PatchResult::Retain);
+                    return Ok(true);
                 }
             }
         }
@@ -107,18 +106,16 @@ impl<A: Send + Sync, K: Send + Sync> Transformer for PatchTransformer<'_, A, K> 
                             .with_context(|| format!("applying JSON patch to resource `{id}`"))?;
                     }
                     Patch::StrategicMerge { patch, target } => {
-                        let res = self
+                        if !self
                             .apply_strategic_merge_patch(resource, patch.clone(), target)
                             .with_context(|| {
                                 format!(
                                     "applying strategic merge patch to resource `{}`",
                                     resource.id()
                                 )
-                            })?;
-
-                        match res {
-                            PatchResult::Retain => (),
-                            PatchResult::Delete => assert!(to_delete.insert(id.clone())),
+                            })?
+                        {
+                            assert!(to_delete.insert(id.clone()));
                         }
                     }
                     Patch::OutOfLine { path, target } => {
@@ -128,19 +125,16 @@ impl<A: Send + Sync, K: Send + Sync> Transformer for PatchTransformer<'_, A, K> 
 
                         if let Ok(patches) = patches {
                             for patch in patches {
-                                let res = self.apply_strategic_merge_patch(resource, patch, target)
+                                if !self.apply_strategic_merge_patch(resource, patch, target)
                                     .with_context(|| {
                                         format!(
                                             "applying strategic merge patch from `{}` to resource `{}`",
                                             path.pretty(),
                                             resource.id()
                                         )
-                                    })?;
-
-                                match res {
-                                    PatchResult::Retain => (),
-                                    PatchResult::Delete => assert!(to_delete.insert(id.clone())),
-                                }
+                                    })? {
+                                        assert!(to_delete.insert(id.clone()));
+                                    }
                             }
                         } else {
                             let patch = self.load_json_patch(path)?;
