@@ -1,0 +1,47 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: baseprefix-mungebot
+  labels:
+    app: mungebot
+    foo: bar
+  annotations:
+    baseAnno: This is a base annotation
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: mungebot
+        foo: bar
+      annotations:
+        baseAnno: This is a base annotation
+    spec:
+      containers:
+        - name: nginx
+          image: nginx
+          env:
+            - name: foo
+              value: bar
+          ports:
+            - containerPort: 80
+  selector:
+    matchLabels:
+      foo: bar
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: baseprefix-mungebot-service
+  labels:
+    app: mungebot
+    foo: bar
+  annotations:
+    baseAnno: This is a base annotation
+spec:
+  ports:
+    - port: 7002
+  selector:
+    app: mungebot
+    foo: bar

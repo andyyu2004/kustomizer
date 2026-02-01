@@ -1,0 +1,3 @@
+# Source: TestMediumBase from baseandoverlaymedium_test.go:61
+# Tests namePrefix, commonLabels, and commonAnnotations transformers
+# Labels are added to metadata and selectors, annotations to metadata and pod templates
