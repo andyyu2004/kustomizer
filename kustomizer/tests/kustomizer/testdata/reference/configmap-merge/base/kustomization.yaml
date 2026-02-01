@@ -1,0 +1,6 @@
+configMapGenerator:
+- name: bob
+  literals:
+  - fruit=Indian Gooseberry
+  - year=2020
+  - crisis=true

@@ -1,0 +1,3 @@
+# Source: TestGeneratorIntVsStringWithMerge from configmaps_test.go:54
+# Tests configMapGenerator with behavior: merge in overlay
+# Merges literals from base and overlay configMaps
