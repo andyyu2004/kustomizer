@@ -4,14 +4,14 @@ resources:
 - configmap.yaml
 patches:
 - patch: |
-    $patch: delete
     apiVersion: apps/v1
     kind: Deployment
     metadata:
       name: nginx
-    ---
     $patch: delete
+- patch: |
     apiVersion: v1
     kind: Service
     metadata:
       name: nginx
+    $patch: delete

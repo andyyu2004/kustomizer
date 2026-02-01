@@ -2,6 +2,9 @@ resources:
 - deployment.yaml
 patches:
 - patch: |
+    apiVersion: v1
     kind: Deployment
+    metadata:
+      name: placeholder
     spec:
       $patch: delete

@@ -139,8 +139,15 @@ fn merge_array(
 
     let is_non_delete_patch = |patch: &Value| !is_delete_patch(patch);
 
+    let clean = |mut patch: Value| {
+        if let Some(o) = patch.as_object_mut() {
+            o.remove("$patch");
+        }
+        patch
+    };
+
     let mk_non_delete_patches =
-        |patches: Vec<Value>| patches.into_iter().filter(is_non_delete_patch);
+        |patches: Vec<Value>| patches.into_iter().filter(is_non_delete_patch).map(clean);
 
     match schema {
         Some(schema) => match schema.list_map_keys.as_deref() {
@@ -154,7 +161,7 @@ fn merge_array(
                             PatchResult::Delete => drop(bases.remove(pos)),
                         }
                     } else if is_non_delete_patch(&patch) {
-                        bases.push(patch);
+                        bases.push(clean(patch));
                     }
                 }
             }

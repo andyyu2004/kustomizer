@@ -1,4 +1,7 @@
+apiVersion: v1
 kind: Deployment
+metadata:
+  name: placeholder
 spec:
   foo: bar
   color: red

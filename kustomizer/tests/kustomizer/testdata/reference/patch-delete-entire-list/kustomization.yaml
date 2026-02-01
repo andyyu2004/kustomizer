@@ -4,6 +4,8 @@ patches:
 - patch: |
     apiVersion: apps/v1
     kind: Deployment
+    metadata:
+      name: placeholder
     spec:
       template:
         spec:
