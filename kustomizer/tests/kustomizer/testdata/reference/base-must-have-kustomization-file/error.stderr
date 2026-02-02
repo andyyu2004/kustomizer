@@ -1,0 +1,5 @@
+load kustomization resource tests/kustomizer/testdata/reference/base-must-have-kustomization-file/base
+
+Caused by:
+    0: loading manifest from path tests/kustomizer/testdata/reference/base-must-have-kustomization-file/base/kustomization.yaml
+    1: No such file or directory (os error 2)
