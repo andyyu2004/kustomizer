@@ -1,0 +1,4 @@
+loading manifest from path tests/kustomizer/testdata/reference/target-must-have-kustomization-file/kustomization.yaml
+
+Caused by:
+    No such file or directory (os error 2)

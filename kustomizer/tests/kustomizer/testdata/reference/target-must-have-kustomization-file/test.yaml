@@ -1,0 +1,3 @@
+name: target-must-have-kustomization-file
+kind: fail
+# Ported from: kustomize/api/krusty/accumulation_test.go - "TestTargetMustHaveKustomizationFile"
