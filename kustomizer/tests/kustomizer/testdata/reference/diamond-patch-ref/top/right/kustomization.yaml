@@ -1,0 +1,24 @@
+resources:
+- ../../right-service
+- ./bottom
+
+patches:
+- target:
+    kind: Deployment
+    name: right-deploy
+  patch: |-
+    apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      name: ignored-by-kustomize
+    spec:
+      template:
+        spec:
+          containers:
+          - name: service
+            env:
+            - name: MAPPED_CONFIG_ITEM
+              valueFrom:
+                configMapKeyRef:
+                  name: right-bottom
+                  key: KEY

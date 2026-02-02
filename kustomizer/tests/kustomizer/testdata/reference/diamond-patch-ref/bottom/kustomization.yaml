@@ -1,0 +1,4 @@
+configMapGenerator:
+- name: bottom
+  literals:
+  - KEY=value
