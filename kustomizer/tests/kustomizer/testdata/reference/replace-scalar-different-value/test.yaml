@@ -1,0 +1,2 @@
+name: replace-scalar-different-value
+# Ported from: kustomize/kyaml/yaml/merge2/scalar_test.go - "replace scalar -- different value in dest"
