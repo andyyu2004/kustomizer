@@ -1,0 +1,10 @@
+resources:
+  - ../base
+patches:
+- patch: |
+    - op: replace
+      path: /metadata/name
+      value: banana-canary
+  target:
+    kind: Deployment
+- path: deployment-canary-patch.yaml

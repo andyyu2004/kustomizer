@@ -1,0 +1,7 @@
+nameSuffix: -mango
+resources:
+  - ../base
+  - ../canary
+patches:
+- path: deployment-mango-base-patch.yaml
+- path: deployment-mango-canary-patch.yaml

@@ -1,0 +1,21 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: banana-canary
+  labels:
+    type: canary
+spec:
+  selector:
+    matchLabels:
+      component: banana
+      type: canary
+  template:
+    metadata:
+      labels:
+        component: banana
+        type: canary
+    spec:
+      containers:
+      - name: banana
+        image: image-canary

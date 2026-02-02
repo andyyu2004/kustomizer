@@ -1,0 +1,11 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: banana-canary
+spec:
+  template:
+    spec:
+      containers:
+      - name: banana
+        image: image-canary-mango

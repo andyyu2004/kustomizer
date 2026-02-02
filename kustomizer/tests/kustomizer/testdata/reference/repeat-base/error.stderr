@@ -1,0 +1,5 @@
+building kustomization resource tests/kustomizer/testdata/reference/repeat-base/mango
+
+Caused by:
+    0: failure merging resources from `../canary` into `tests/kustomizer/testdata/reference/repeat-base/mango/kustomization.yaml`
+    1: may not add resource with an already registered id `apps.v1.Deployment/banana`, consider specifying `merge` or `replace` behavior
