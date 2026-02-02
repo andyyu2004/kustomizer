@@ -1,0 +1,2 @@
+name: merge-map-missing-from-dest
+# Ported from: kustomize/kyaml/yaml/merge2/map_test.go - "merge Map -- add list, missing from dest"

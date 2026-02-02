@@ -1,0 +1,2 @@
+name: keep-element-empty-list-src
+# Ported from: kustomize/kyaml/yaml/merge2/element_test.go - "keep element -- empty list in src"

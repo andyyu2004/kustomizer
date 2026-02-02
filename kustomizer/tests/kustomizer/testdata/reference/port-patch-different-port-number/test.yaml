@@ -1,0 +1,2 @@
+name: port-patch-different-port-number
+# Ported from: kustomize/kyaml/yaml/merge2/map_test.go - "port patch has no protocol and different port number"

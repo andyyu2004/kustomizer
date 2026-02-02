@@ -1,0 +1,2 @@
+name: merge-map-empty-dest
+# Ported from: kustomize/kyaml/yaml/merge2/map_test.go - "merge Map -- add list, empty in dest"

@@ -1,0 +1,2 @@
+name: remove-list-empty-src
+# Ported from: kustomize/kyaml/yaml/merge2/list_test.go - "remove list -- empty in src"

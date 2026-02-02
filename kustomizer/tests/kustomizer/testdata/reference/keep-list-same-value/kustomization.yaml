@@ -1,0 +1,12 @@
+resources:
+- deployment.yaml
+patches:
+- patch: |
+    apiVersion: v1
+    kind: Deployment
+    metadata:
+      name: test
+    items:
+    - 1
+    - 2
+    - 3

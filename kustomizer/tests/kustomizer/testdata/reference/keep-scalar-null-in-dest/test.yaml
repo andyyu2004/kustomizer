@@ -1,0 +1,2 @@
+name: keep-scalar-null-in-dest
+# Ported from: kustomize/kyaml/yaml/merge2/scalar_test.go - "keep scalar -- missing in src, null in dest"

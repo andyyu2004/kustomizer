@@ -1,0 +1,3 @@
+kind: success
+# Ported from Go kustomize list_test.go - merge k8s deployment volumes - append
+# Tests merging volumes with append behavior

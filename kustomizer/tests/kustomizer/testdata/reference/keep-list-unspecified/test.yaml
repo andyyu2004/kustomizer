@@ -1,0 +1,3 @@
+kind: success
+# Ported from Go kustomize list_test.go - keep List -- unspecified in src
+# Tests that unspecified list in patch keeps original

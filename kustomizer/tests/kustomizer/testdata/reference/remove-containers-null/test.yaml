@@ -1,0 +1,3 @@
+kind: success
+# Ported from Go kustomize element_test.go - remove Element -- null in src
+# Tests that null containers removes entire containers field
