@@ -1,0 +1,23 @@
+kind: StatefulSet
+apiVersion: apps/v1
+metadata:
+  name: test
+  labels:
+    notIn: arrays
+spec:
+  serviceName: test
+  replicas: 1
+  selector:
+    matchLabels:
+      app: test
+  template:
+    metadata:
+      labels:
+        app: test
+    spec:
+      containers:
+      - name: nginx
+        image: registry.k8s.io/nginx-slim:0.8
+        ports:
+        - containerPort: 80
+          name: web

@@ -1,0 +1,80 @@
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: test
+  labels:
+    notIn: arrays
+spec:
+  serviceName: test
+  replicas: 1
+  selector:
+    matchLabels:
+      app: test
+      notIn: arrays
+  template:
+    metadata:
+      labels:
+        app: test
+        notIn: arrays
+    spec:
+      containers:
+        - name: nginx
+          image: registry.k8s.io/nginx-slim:0.8
+          ports:
+            - containerPort: 80
+              name: web
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: persisted-test
+  labels:
+    notIn: arrays
+spec:
+  serviceName: test
+  replicas: 1
+  selector:
+    matchLabels:
+      app: test
+      notIn: arrays
+  template:
+    metadata:
+      labels:
+        app: test
+        notIn: arrays
+    spec:
+      containers:
+        - name: nginx
+          image: registry.k8s.io/nginx-slim:0.8
+          ports:
+            - containerPort: 80
+              name: web
+          volumeMounts:
+            - name: www
+              mountPath: /usr/share/nginx/html
+            - name: data
+              mountPath: /usr/share/nginx/data
+  volumeClaimTemplates:
+    - metadata:
+        name: www
+        labels:
+          notIn: arrays
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        storageClassName: my-storage-class
+        resources:
+          requests:
+            storage: 1Gi
+    - metadata:
+        name: data
+        labels:
+          notIn: arrays
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        storageClassName: my-storage-class
+        resources:
+          requests:
+            storage: 100Gi

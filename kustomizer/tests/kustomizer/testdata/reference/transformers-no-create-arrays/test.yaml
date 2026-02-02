@@ -1,0 +1,2 @@
+name: transformers-no-create-arrays
+# Ported from: kustomize/api/krusty/transformersarrays_test.go - "TestTransformersNoCreateArrays"
