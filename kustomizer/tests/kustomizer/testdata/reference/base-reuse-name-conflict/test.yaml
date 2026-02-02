@@ -1,2 +1,2 @@
-# Source: TestBaseReuseNameConflict from basereusenameprefix_test.go:42
-# Tests namePrefix stacking with shared bases and name references
+name: base-reuse-name-conflict
+# Ported from: kustomize/api/krusty/basereusenameprefix_test.go - "TestBaseReuseNameConflict"
