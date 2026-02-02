@@ -1,0 +1,3 @@
+name: duplicate-keys
+kind: fail
+# Ported from: kustomize/api/krusty/duplicatekeys_test.go - "TestDuplicateKeys"
