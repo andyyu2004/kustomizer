@@ -1,0 +1,2 @@
+name: keep-list-missing-from-src
+# Ported from: kustomize/kyaml/yaml/merge2/element_test.go - "keep list -- list missing from src"

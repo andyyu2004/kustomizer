@@ -1,0 +1,3 @@
+name: infer-merge-keys
+# Ported from: kustomize/kyaml/yaml/merge2/element_test.go - "infer merge keys merge"
+# Note: Tests merge behavior with custom apiVersion where merge keys must be inferred

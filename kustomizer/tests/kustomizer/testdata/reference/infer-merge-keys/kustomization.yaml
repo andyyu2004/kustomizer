@@ -1,0 +1,11 @@
+resources:
+- deployment.yaml
+patches:
+- patch: |
+    apiVersion: custom
+    kind: Deployment
+    metadata:
+      name: test
+    containers:
+    - name: foo
+      command: ['run2.sh']

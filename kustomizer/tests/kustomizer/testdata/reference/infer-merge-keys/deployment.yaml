@@ -1,0 +1,7 @@
+apiVersion: custom
+kind: Deployment
+metadata:
+  name: test
+containers:
+- name: foo
+  image: foo:bar
