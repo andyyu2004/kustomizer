@@ -1,0 +1,8 @@
+namePrefix: baseprefix-
+commonLabels:
+  foo: bar
+commonAnnotations:
+  baseAnno: This is a base annotation
+resources:
+- deployment/deployment.yaml
+- service/service.yaml

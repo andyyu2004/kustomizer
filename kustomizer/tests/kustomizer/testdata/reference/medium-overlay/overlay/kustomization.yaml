@@ -1,0 +1,23 @@
+namePrefix: test-infra-
+commonLabels:
+  app: mungebot
+  org: kubernetes
+  repo: test-infra
+commonAnnotations:
+  note: This is a test annotation
+resources:
+- ../base
+patchesStrategicMerge:
+- deployment/deployment.yaml
+configMapGenerator:
+- name: app-env
+  envs:
+  - configmap/db.env
+  - configmap/units.ini
+  - configmap/food.ini
+- name: app-config
+  files:
+  - nonsense=configmap/dummy.txt
+images:
+- name: nginx
+  newTag: 1.8.0
