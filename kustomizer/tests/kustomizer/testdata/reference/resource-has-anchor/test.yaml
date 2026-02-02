@@ -1,0 +1,2 @@
+name: resource-has-anchor
+# Ported from: kustomize/api/krusty/accumulation_test.go - "TestResourceHasAnchor"
