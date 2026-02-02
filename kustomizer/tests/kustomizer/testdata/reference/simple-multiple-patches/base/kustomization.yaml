@@ -1,10 +1,3 @@
 namePrefix: b-
-commonLabels:
-  team: foo
 resources:
 - deployment.yaml
-- service.yaml
-configMapGenerator:
-- name: configmap-in-base
-  literals:
-  - foo=bar

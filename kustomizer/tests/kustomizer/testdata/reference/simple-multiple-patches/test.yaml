@@ -1,2 +1,2 @@
-# Source: TestSimpleMultiplePatches from multiplepatch_test.go:630
-# Tests multiple patches with stacked namePrefixes and configMapGenerator
+name: simple-multiple-patches
+# Ported from: kustomize/api/krusty/multiplepatch_test.go - "TestSimpleMultiplePatches"
