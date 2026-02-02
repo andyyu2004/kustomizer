@@ -1,4 +1,2 @@
-commonLabels:
-  version: "1"
 resources:
-- deployment.yaml
+- default
