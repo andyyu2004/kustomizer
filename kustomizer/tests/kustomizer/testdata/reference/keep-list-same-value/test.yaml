@@ -1,1 +1,2 @@
 name: keep-list-same-value
+# Ported from: kustomize/kyaml/yaml/merge2/list_test.go - "keep List -- same value in src and dest"

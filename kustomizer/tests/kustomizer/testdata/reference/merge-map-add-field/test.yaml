@@ -1,1 +1,2 @@
 name: merge-map-add-field
+# Ported from: kustomize/kyaml/yaml/merge2/map_test.go - "merge Map -- add field to dest"

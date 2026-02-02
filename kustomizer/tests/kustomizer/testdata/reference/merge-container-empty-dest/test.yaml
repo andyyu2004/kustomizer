@@ -1,1 +1,2 @@
 name: merge-container-empty-dest
+# Ported from: kustomize/kyaml/yaml/merge2/element_test.go - "merge Element -- add list, empty in dest"
