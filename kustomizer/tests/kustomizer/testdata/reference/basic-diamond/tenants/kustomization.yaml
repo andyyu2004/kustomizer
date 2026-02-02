@@ -1,0 +1,8 @@
+namePrefix: t-
+resources:
+- ../kirk
+- ../spock
+- ../bones
+- configMap.yaml
+patchesStrategicMerge:
+- bones-patch.yaml

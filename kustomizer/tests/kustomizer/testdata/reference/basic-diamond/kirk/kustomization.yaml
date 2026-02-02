@@ -1,0 +1,6 @@
+namePrefix: kirk-
+resources:
+- ../base
+- configmap.yaml
+patchesStrategicMerge:
+- dep-patch.yaml
