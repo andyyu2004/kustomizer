@@ -1,0 +1,5 @@
+namespace: merge-namespace
+resources:
+- ../base
+patchesStrategicMerge:
+- validatingwebhookdelete.yaml
