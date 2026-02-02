@@ -1,0 +1,57 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: foo-dply1-bar
+  namespace: ns1
+  labels:
+    app: nginx
+  annotations:
+    note: This is a test annotation
+spec:
+  template:
+    metadata:
+      labels:
+        app: nginx
+      annotations:
+        note: This is a test annotation
+  selector:
+    matchLabels:
+      app: nginx
+  replica: "3"
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: ns1
+  labels:
+    app: nginx
+  annotations:
+    note: This is a test annotation
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: foo-literalConfigMap-bar
+  namespace: ns1
+  labels:
+    app: nginx
+  annotations:
+    note: This is a test annotation
+data:
+  DB_USERNAME: admin
+  DB_PASSWORD: somepw
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: foo-secret-bar
+  namespace: ns1
+  labels:
+    app: nginx
+  annotations:
+    note: This is a test annotation
+data:
+  DB_USERNAME: YWRtaW4=
+  DB_PASSWORD: c29tZXB3
+type: Opaque
