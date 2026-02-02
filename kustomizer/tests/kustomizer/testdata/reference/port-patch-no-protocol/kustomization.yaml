@@ -1,0 +1,12 @@
+resources:
+- service.yaml
+patches:
+- patch: |
+    apiVersion: v1
+    kind: Service
+    metadata:
+      name: web
+    spec:
+      ports:
+      - port: 30900
+        targetPort: 30900

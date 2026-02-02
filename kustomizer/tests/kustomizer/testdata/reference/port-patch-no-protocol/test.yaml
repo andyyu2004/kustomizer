@@ -1,0 +1,2 @@
+name: port-patch-no-protocol
+# Ported from: kustomize/kyaml/yaml/merge2/map_test.go - "port patch has no protocol"

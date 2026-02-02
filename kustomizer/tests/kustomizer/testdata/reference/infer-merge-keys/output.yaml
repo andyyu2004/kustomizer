@@ -3,6 +3,6 @@ kind: Deployment
 metadata:
   name: test
 containers:
-- name: foo
-  command:
-    - run2.sh
+  - name: foo
+    command:
+      - run2.sh

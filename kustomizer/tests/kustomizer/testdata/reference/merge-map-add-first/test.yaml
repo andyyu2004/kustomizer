@@ -1,0 +1,2 @@
+name: merge-map-add-first
+# Ported from: kustomize/kyaml/yaml/merge2/map_test.go - "merge Map -- add Map first"
