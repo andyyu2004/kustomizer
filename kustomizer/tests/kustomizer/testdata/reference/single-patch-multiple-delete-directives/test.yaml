@@ -1,0 +1,2 @@
+name: single-patch-multiple-delete-directives
+# Ported from: kustomize/api/krusty/multiplepatch_test.go - "TestSinglePatchWithMultiplePatchDeleteDirectives"

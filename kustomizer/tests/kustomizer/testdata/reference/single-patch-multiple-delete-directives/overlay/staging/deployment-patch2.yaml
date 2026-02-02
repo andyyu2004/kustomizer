@@ -1,0 +1,6 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: configmap-in-base
+data:
+  foo2: bar2

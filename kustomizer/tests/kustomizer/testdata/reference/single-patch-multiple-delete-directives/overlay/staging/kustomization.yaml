@@ -1,0 +1,12 @@
+namePrefix: staging-
+commonLabels:
+  env: staging
+patches:
+  - path: deployment-patch1.yaml
+  - path: deployment-patch2.yaml
+resources:
+  - ../../base
+configMapGenerator:
+- name: configmap-in-overlay
+  literals:
+  - hello=world
