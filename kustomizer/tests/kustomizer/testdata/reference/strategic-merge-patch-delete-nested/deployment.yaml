@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Deployment
+metadata:
+  name: test
+spec:
+  metadata:
+    name: wut
+  template:
+    spec:
+      containers:
+      - name: foo
+      - name: bar

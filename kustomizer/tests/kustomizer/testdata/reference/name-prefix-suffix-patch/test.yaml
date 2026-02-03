@@ -1,3 +1,3 @@
-kind: success
-# Ported from Go kustomize TestNamePrefixSuffixPatch in nameprefixsuffixpatch_test.go
-# Coverage for issue #2609 - tests that patches correctly update ConfigMap references with hash suffixes
+name: name-prefix-suffix-patch
+# Ported from: kustomize/api/krusty/nameprefixsuffixpatch_test.go - "TestNamePrefixSuffixPatch"
+# Tests issue #2609 - configMap name references in patches

@@ -1,0 +1,2 @@
+name: medium-overlay
+# Ported from: kustomize/api/krusty/baseandoverlaymedium_test.go - "TestMediumOverlay"

@@ -1,0 +1,2 @@
+name: keep-empty-array
+# Ported from: kustomize/api/krusty/keepemptyarray_test.go - "TestKeepEmptyArray"

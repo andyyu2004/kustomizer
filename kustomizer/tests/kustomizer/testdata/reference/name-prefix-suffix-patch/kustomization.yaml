@@ -1,17 +1,34 @@
 resources:
-  - mysql
-  - handlers
+- mysql
+- handlers
 
 configMapGenerator:
-  - name: mysql
-    behavior: merge
-    literals:
-      - MYSQL_DATABASE=db
-      - MYSQL_USER=my-user
-      - MYSQL_PASSWORD='correct horse battery staple'
+- name: mysql
+  behavior: merge
+  literals:
+  - MYSQL_DATABASE=db
+  - MYSQL_USER=my-user
+  - MYSQL_PASSWORD='correct horse battery staple'
 
 patches:
-  - path: patch.yaml
-    target:
-      kind: Deployment
-      name: s.*
+- target:
+    kind: Deployment
+    name: s.*
+  patch: |-
+    apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      name: ignored
+    spec:
+      template:
+        spec:
+          containers:
+          - name: handler
+            envFrom:
+            - configMapRef:
+                name: mysql
+            env:
+            - valueFrom:
+                configMapKeyRef:
+                  name: mysql
+                  key: MYSQL_DATABASE

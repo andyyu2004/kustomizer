@@ -1,0 +1,6 @@
+namePrefix: a-
+commonLabels:
+  app: myApp
+resources:
+- deployment.yaml
+- service.yaml

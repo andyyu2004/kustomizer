@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: federation
+data:
+  zone: neutral
+  guardian: forever

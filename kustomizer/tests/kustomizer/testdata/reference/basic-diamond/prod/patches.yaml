@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: Deployment
+metadata:
+  name: t-kirk-storefront
+spec:
+  numReplicas: 10000
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: federation
+data:
+  guardian: ofTheGalaxy
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: t-federation
+data:
+  zone: twilight

@@ -1,0 +1,2 @@
+name: pod-disruption-budget-merging
+# Ported from: kustomize/api/krusty/poddisruptionbudget_test.go - "TestPodDisruptionBudgetMerging"

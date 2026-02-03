@@ -1,0 +1,23 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: blog
+spec:
+  tls:
+  - hosts:
+    - xyz.me
+    - www.xyz.me
+    secretName: cert-tls
+  rules:
+  - host: xyz.me
+    http: &xxx_rules
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: service
+            port:
+              number: 80
+  - host: www.xyz.me
+    http: *xxx_rules

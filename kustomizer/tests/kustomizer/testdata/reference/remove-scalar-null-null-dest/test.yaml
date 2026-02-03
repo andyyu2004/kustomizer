@@ -1,0 +1,2 @@
+name: remove-scalar-null-null-dest
+# Ported from: kustomize/kyaml/yaml/merge2/scalar_test.go - "remove scalar -- null in src, null in dest"

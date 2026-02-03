@@ -1,0 +1,2 @@
+name: pod-disruption-budget-basics
+# Ported from: kustomize/api/krusty/poddisruptionbudget_test.go - "TestPodDisruptionBudgetBasics"

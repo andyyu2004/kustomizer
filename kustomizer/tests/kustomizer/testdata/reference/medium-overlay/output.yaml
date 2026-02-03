@@ -1,0 +1,111 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: test-infra-baseprefix-mungebot
+  labels:
+    app: mungebot
+    foo: bar
+    org: kubernetes
+    repo: test-infra
+  annotations:
+    baseAnno: This is a base annotation
+    note: This is a test annotation
+spec:
+  replicas: 2
+  template:
+    metadata:
+      labels:
+        app: mungebot
+        foo: bar
+        org: kubernetes
+        repo: test-infra
+      annotations:
+        baseAnno: This is a base annotation
+        note: This is a test annotation
+    spec:
+      containers:
+        - name: nginx
+          image: nginx:1.8.0
+          env:
+            - name: foo
+              value: bar
+            - name: FOO
+              valueFrom:
+                configMapKeyRef:
+                  name: test-infra-app-env-8h5mh7f7ch
+                  key: somekey
+          ports:
+            - containerPort: 80
+        - name: busybox
+          image: busybox
+          envFrom:
+            - configMapRef:
+                name: someConfigMap
+            - configMapRef:
+                name: test-infra-app-env-8h5mh7f7ch
+          volumeMounts:
+            - mountPath: /tmp/env
+              name: app-env
+      volumes:
+        - configMap:
+            name: test-infra-app-env-8h5mh7f7ch
+          name: app-env
+  selector:
+    matchLabels:
+      foo: bar
+      app: mungebot
+      org: kubernetes
+      repo: test-infra
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: test-infra-baseprefix-mungebot-service
+  labels:
+    app: mungebot
+    foo: bar
+    org: kubernetes
+    repo: test-infra
+  annotations:
+    baseAnno: This is a base annotation
+    note: This is a test annotation
+spec:
+  ports:
+    - port: 7002
+  selector:
+    app: mungebot
+    foo: bar
+    org: kubernetes
+    repo: test-infra
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: test-infra-app-env-8h5mh7f7ch
+  labels:
+    app: mungebot
+    org: kubernetes
+    repo: test-infra
+  annotations:
+    note: This is a test annotation
+data:
+  DB_USERNAME: admin
+  DB_PASSWORD: somepw
+  LENGTH: kilometer
+  ENERGY: electronvolt
+  FRUIT: banana
+  LEGUME: chickpea
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: test-infra-app-config-4thktg822m
+  labels:
+    app: mungebot
+    org: kubernetes
+    repo: test-infra
+  annotations:
+    note: This is a test annotation
+data:
+  nonsense: "Lorem ipsum dolor sit amet, consectetur\nadipiscing elit, sed do eiusmod tempor\nincididunt ut labore et dolore magna aliqua.\n"

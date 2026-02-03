@@ -1,0 +1,6 @@
+resources:
+- resource.yaml
+patches:
+- path: patch.yaml
+  target:
+    kind: Deployment

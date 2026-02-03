@@ -1,2 +1,2 @@
-# Source: TestNumericCommonLabels from numericcommonlabels_test.go:13
-# Tests that numeric-looking strings in commonLabels are properly quoted
+name: numeric-common-labels
+# Ported from: kustomize/api/krusty/numericcommonlabels_test.go - "TestNumericCommonLabels"

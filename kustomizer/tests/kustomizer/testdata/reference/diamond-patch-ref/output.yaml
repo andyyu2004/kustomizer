@@ -1,0 +1,64 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: left-deploy
+  labels:
+    app.kubernetes.io/name: left-deploy
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: left-pod
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: left-pod
+    spec:
+      containers:
+        - image: left-image:v1.0
+          name: service
+          env:
+            - name: MAPPED_CONFIG_ITEM
+              valueFrom:
+                configMapKeyRef:
+                  name: left-bottom-9f2t6f5h6d
+                  key: KEY
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: left-bottom-9f2t6f5h6d
+data:
+  KEY: value
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: right-deploy
+  labels:
+    app.kubernetes.io/name: right-deploy
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: right-pod
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: right-pod
+    spec:
+      containers:
+        - image: right-image:v1.0
+          name: service
+          env:
+            - name: MAPPED_CONFIG_ITEM
+              valueFrom:
+                configMapKeyRef:
+                  name: right-bottom-9f2t6f5h6d
+                  key: KEY
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: right-bottom-9f2t6f5h6d
+data:
+  KEY: value

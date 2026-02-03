@@ -1,0 +1,17 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: banana
+spec:
+  selector:
+    matchLabels:
+      component: banana
+  template:
+    metadata:
+      labels:
+        component: banana
+    spec:
+      containers:
+      - name: banana
+        image: image

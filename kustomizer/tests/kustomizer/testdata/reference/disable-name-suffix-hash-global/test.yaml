@@ -1,0 +1,2 @@
+name: disable-name-suffix-hash-global
+# Ported from: kustomize/api/krusty/disablenamesuffix_test.go - "TestDisableNameSuffixHash"

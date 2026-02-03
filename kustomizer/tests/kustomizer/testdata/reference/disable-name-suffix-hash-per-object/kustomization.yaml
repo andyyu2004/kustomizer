@@ -1,0 +1,17 @@
+generatorOptions:
+  disableNameSuffixHash: false
+secretGenerator:
+- name: nohash
+  options:
+    disableNameSuffixHash: true
+  literals:
+    - DB_USERNAME=admin
+    - DB_PASSWORD=somepw
+  type: Opaque
+- name: yeshash
+  options:
+    disableNameSuffixHash: false
+  literals:
+    - DB_USERNAME=admin
+    - DB_PASSWORD=somepw
+  type: Opaque

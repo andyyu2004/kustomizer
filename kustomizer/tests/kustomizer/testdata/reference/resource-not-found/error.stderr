@@ -1,0 +1,4 @@
+resolving resource path `deployment.yaml` in `tests/kustomizer/testdata/reference/resource-not-found/kustomization.yaml`
+
+Caused by:
+    No such file or directory (os error 2)

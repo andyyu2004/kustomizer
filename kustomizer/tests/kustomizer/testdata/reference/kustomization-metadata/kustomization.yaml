@@ -1,0 +1,8 @@
+metadata:
+  annotations:
+    config.kubernetes.io/local-config: "true"
+  labels:
+    foo: bar
+  name: test_kustomization
+resources:
+- resources.yaml

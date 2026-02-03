@@ -1,0 +1,5 @@
+namePrefix: spock-
+resources:
+- ../base
+patchesStrategicMerge:
+- dep-patch.yaml

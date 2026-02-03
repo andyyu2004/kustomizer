@@ -1,0 +1,2 @@
+name: multiple-patches-delete-second
+# Ported from: kustomize/api/krusty/multiplepatch_test.go - "TestMultiplePatchesWithOnePatchDeleteDirective/Patch with delete directive second"

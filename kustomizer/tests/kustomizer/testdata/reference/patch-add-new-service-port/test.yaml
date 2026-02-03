@@ -1,0 +1,2 @@
+name: patch-add-new-service-port
+# Ported from: kustomize/api/krusty/multiplepatch_test.go - "TestPatchAddNewServicePort"

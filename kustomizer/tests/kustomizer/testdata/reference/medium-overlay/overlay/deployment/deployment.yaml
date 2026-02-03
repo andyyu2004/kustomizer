@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mungebot
+spec:
+  replicas: 2
+  template:
+    spec:
+      containers:
+      - name: nginx
+        image: nginx:1.7.9
+        env:
+        - name: FOO
+          valueFrom:
+            configMapKeyRef:
+              name: app-env
+              key: somekey
+      - name: busybox
+        image: busybox
+        envFrom:
+        - configMapRef:
+            name: someConfigMap
+        - configMapRef:
+            name: app-env
+        volumeMounts:
+        - mountPath: /tmp/env
+          name: app-env
+      volumes:
+      - configMap:
+          name: app-env
+        name: app-env

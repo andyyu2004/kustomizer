@@ -1,0 +1,3 @@
+name: no-infer-merge-keys-schema
+# Ported from: kustomize/kyaml/yaml/merge2/element_test.go - "no infer merge keys merge using schema"
+# Note: Tests merge behavior using Kubernetes schema for well-known types

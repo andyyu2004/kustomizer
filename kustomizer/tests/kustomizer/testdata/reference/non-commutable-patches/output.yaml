@@ -1,0 +1,93 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: staging-team-foo-nginx
+  labels:
+    app: mynginx
+    org: example.com
+    team: foo
+    env: staging
+  annotations:
+    note: This is a test annotation
+spec:
+  template:
+    metadata:
+      labels:
+        app: mynginx
+        org: example.com
+        team: foo
+        env: staging
+      annotations:
+        note: This is a test annotation
+    spec:
+      containers:
+        - name: nginx
+          image: nginx
+          volumeMounts:
+            - name: nginx-persistent-storage
+              mountPath: /tmp/ps
+          env:
+            - name: ENABLE_FEATURE_FOO
+              value: false
+        - name: sidecar
+          image: sidecar:latest
+      volumes:
+        - configMap:
+            name: staging-team-foo-configmap-in-base-798k5k7g9f
+          name: configmap-in-base
+        - name: nginx-persistent-storage
+          gcePersistentDisk:
+            pdName: nginx-persistent-storage
+        - configMap:
+            name: staging-configmap-in-overlay-dc6fm46dhm
+          name: configmap-in-overlay
+  selector:
+    matchLabels:
+      app: mynginx
+      org: example.com
+      team: foo
+      env: staging
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: staging-team-foo-nginx
+  labels:
+    app: mynginx
+    org: example.com
+    team: foo
+    env: staging
+  annotations:
+    note: This is a test annotation
+spec:
+  ports:
+    - port: 80
+  selector:
+    app: mynginx
+    org: example.com
+    team: foo
+    env: staging
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: staging-team-foo-configmap-in-base-798k5k7g9f
+  labels:
+    app: mynginx
+    org: example.com
+    team: foo
+    env: staging
+  annotations:
+    note: This is a test annotation
+data:
+  foo: bar
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: staging-configmap-in-overlay-dc6fm46dhm
+  labels:
+    env: staging
+data:
+  hello: world

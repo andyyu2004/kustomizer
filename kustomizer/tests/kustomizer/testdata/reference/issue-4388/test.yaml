@@ -1,0 +1,2 @@
+name: issue-4388
+# Ported from: kustomize/api/krusty/legacy_order_test.go - "TestIssue4388"

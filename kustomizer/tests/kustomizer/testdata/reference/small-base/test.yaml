@@ -1,0 +1,2 @@
+name: small-base
+# Ported from: kustomize/api/krusty/baseandoverlaysmall_test.go - "TestSmallBase"

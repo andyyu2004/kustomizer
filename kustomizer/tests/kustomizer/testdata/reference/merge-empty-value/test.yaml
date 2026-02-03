@@ -1,0 +1,2 @@
+name: merge-empty-value
+# Ported from: kustomize/kyaml/yaml/merge2/scalar_test.go - "merge an empty value"
