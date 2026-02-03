@@ -1,0 +1,7 @@
+patches:
+- path: pdb-patch.yaml
+  target:
+    kind: PodDisruptionBudget
+    labelSelector: faceit-pdb=default
+resources:
+- my_file.yaml
