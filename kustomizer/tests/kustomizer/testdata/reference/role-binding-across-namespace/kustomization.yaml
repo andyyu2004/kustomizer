@@ -1,0 +1,3 @@
+resources:
+- resource.yaml
+nameSuffix: -ns2
