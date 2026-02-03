@@ -272,7 +272,13 @@ impl Builder {
         kustomization: &Located<Manifest<A, K>>,
         path: &Path,
     ) -> anyhow::Result<Either<Box<[Resource]>, ResourceMap>> {
-        let path = PathId::make(kustomization.parent_path.join(path))?;
+        let path = PathId::make(kustomization.parent_path.join(path)).with_context(|| {
+            format!(
+                "resolving resource path `{}` in `{}`",
+                path.pretty(),
+                kustomization.path.pretty()
+            )
+        })?;
 
         let metadata = std::fs::metadata(path)
             .with_context(|| format!("reading metadata for resource {}", path.pretty()))?;
