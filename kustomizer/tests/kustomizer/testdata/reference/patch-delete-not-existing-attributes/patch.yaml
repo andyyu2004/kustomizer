@@ -1,0 +1,14 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: whatever
+spec:
+  template:
+    spec:
+      containers:
+      - name: whatever
+        env:
+        - name: FOR_REMOVAL
+          $patch: delete
+        - name: NOT_EXISTING_FOR_REMOVAL
+          $patch: delete
