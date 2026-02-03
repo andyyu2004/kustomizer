@@ -1,0 +1,2 @@
+name: multibyte-char-in-configmap
+# Ported from: kustomize/api/krusty/multibytecharacter_test.go - "TestMultibyteCharInConfigMap"
