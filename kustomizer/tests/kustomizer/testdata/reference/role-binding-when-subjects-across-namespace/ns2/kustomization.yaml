@@ -1,0 +1,4 @@
+namespace: namespace-2
+resources:
+- role-ns2.yaml
+- rolebinding-ns2.yaml
