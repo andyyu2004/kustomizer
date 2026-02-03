@@ -1,0 +1,11 @@
+resources:
+- deployment.yaml
+
+patches:
+- target:
+    kind: Deployment
+    name: nginx
+  patch: |-
+    - op: replace
+      path: /spec/template/spec/containers/0/image
+      value: image1
