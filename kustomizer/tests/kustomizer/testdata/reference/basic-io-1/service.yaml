@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    port: 8080
+    happy: true
+    color: green
+  name: demo
+spec:
+  clusterIP: None

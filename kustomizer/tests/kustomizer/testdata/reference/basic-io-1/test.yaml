@@ -1,2 +1,2 @@
-# Ported from Go kustomize TestBasicIO_1 in basic_io_test.go
-# Tests basic I/O functionality with simple resource
+name: basic-io-1
+# Ported from: kustomize/api/krusty/basic_io_test.go - "TestBasicIO_1"
