@@ -1,10 +1,10 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: demo
   annotations:
-    port: "8080"
-    happy: "true"
+    port: 8080
+    happy: true
     color: green
+  name: demo
 spec:
   clusterIP: None
