@@ -45,3 +45,28 @@ spec:
       app: mynginx
       org: example.com
       team: foo
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: team-foo-nginx
+  labels:
+    app: mynginx
+    org: example.com
+    team: foo
+  annotations:
+    note: This is a test annotation
+spec:
+  podSelector:
+    matchExpressions:
+      - key: app
+        operator: In
+        values:
+          - test
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app: mynginx
+              org: example.com
+              team: foo

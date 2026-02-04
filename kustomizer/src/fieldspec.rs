@@ -220,10 +220,12 @@ impl FieldSpec {
                 match segment {
                     FieldPathSegment::Field(field) => {
                         let obj = curr.as_object_mut().ok_or_else(|| {
-                            anyhow::anyhow!(
-                                "expected a mapping at `{}` but found a value of different type",
-                                field
-                            )
+                            let path = path
+                                .iter()
+                                .map(|s| s.to_string())
+                                .collect::<Vec<_>>()
+                                .join("/");
+                            anyhow::anyhow!("expected an object value at `{path}/{field}`")
                         })?;
 
                         if !obj.contains_key(field.as_str()) {
