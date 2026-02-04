@@ -29,7 +29,7 @@ impl<'a, A, K> PatchTransformer<'a, A, K> {
         );
 
         assert!(
-            manifest.patches_json.is_empty(),
+            manifest.patches_json6902.is_empty(),
             "patchesJson6902 should be translated to patches"
         );
 

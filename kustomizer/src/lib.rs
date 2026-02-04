@@ -75,61 +75,67 @@ where
         return Err(anyhow::anyhow!("path does not exist: {}", path.pretty()));
     }
 
-    let mut path = path
+    let mut base = path
         .canonicalize()
         .with_context(|| format!("canonicalizing path {}", path.pretty()))?;
 
-    if path.is_dir() {
-        if path.join("kustomization.yaml").exists() && path.join("kustomization.yml").exists() {
+    if base.is_dir() {
+        if base.join("kustomization.yaml").exists() && base.join("kustomization.yml").exists() {
             return Err(anyhow::anyhow!(
                 "both kustomization.yaml and kustomization.yml exist in directory: {}",
-                path.pretty()
+                base.pretty()
             ));
         }
 
-        if path.join("kustomization.yml").exists() {
-            path.push("kustomization.yml");
+        if base.join("kustomization.yml").exists() {
+            base.push("kustomization.yml");
         } else {
-            path.push("kustomization.yaml");
+            base.push("kustomization.yaml");
         }
     }
 
-    if path.file_name() != Some(OsStr::new("kustomization.yaml"))
-        && path.file_name() != Some(OsStr::new("kustomization.yml"))
+    if base.file_name() != Some(OsStr::new("kustomization.yaml"))
+        && base.file_name() != Some(OsStr::new("kustomization.yml"))
     {
         return Err(anyhow::anyhow!(
             "path is not a kustomization.yaml file: {}",
-            path.pretty()
+            base.pretty()
         ));
     }
 
-    let file = std::fs::File::open(&path)
-        .with_context(|| format!("loading manifest from path {}", path.pretty()))?;
+    let file = std::fs::File::open(&base)
+        .with_context(|| format!("loading manifest from path {}", base.pretty()))?;
     let mut manifest = yaml::from_reader::<Manifest<A, K>>(BufReader::new(file))?;
 
-    let parent_path = PathId::make(path.parent().unwrap())?;
+    let parent_path = PathId::make(base.parent().unwrap())?;
 
     // Change legacy patch fields into unified `patches` field
     let mut patches = mem::take(&mut manifest.patches).into_vec();
-    for path in mem::take(&mut manifest.patches_strategic_merge)
+    for path_or_inline in mem::take(&mut manifest.patches_strategic_merge)
         .into_vec()
         .drain(..)
     {
-        let path = parent_path.join(&path);
-        let resources = Resource::load_many(&path).context("loading strategic merge patches")?;
-        patches.extend(resources.into_iter().map(|patch| Patch::StrategicMerge {
-            patch,
-            target: None,
-        }));
+        let path = parent_path.join(&path_or_inline);
+        // This is actually what kustomize does to detect whether it's inline or a path. Unbelievable.
+        if path.exists() {
+            let resources =
+                Resource::load_many(&path).context("loading strategic merge patches")?;
+            patches.extend(resources.into_iter().map(|patch| Patch::StrategicMerge {
+                patch,
+                target: None,
+            }));
+        } else {
+            let patch = yaml::from_str::<Resource>(&path_or_inline).with_context(|| {
+                format!("parsing inline strategic merge patch at {}", base.display())
+            })?;
+            patches.push(Patch::StrategicMerge {
+                patch,
+                target: None,
+            });
+        }
     }
 
-    for patch in mem::take(&mut manifest.patches_json).into_vec().drain(..) {
-        patches.push(Patch::OutOfLine {
-            path: patch.path,
-            target: Some(patch.target),
-        })
-    }
-
+    patches.append(&mut mem::take(&mut manifest.patches_json6902).into_vec());
     manifest.patches = patches.into_boxed_slice();
 
     // Transform legacy `commonLabels` field into `labels`
@@ -146,7 +152,7 @@ where
     Ok(Located {
         value: manifest,
         parent_path,
-        path: PathId::make(path)?,
+        path: PathId::make(base)?,
     })
 }
 
