@@ -1,5 +1,0 @@
-name: target-must-have-only-one-kustomization-file
-kind: fail
-# Ported from: kustomize/api/krusty/accumulation_test.go - "TestTargetMustHaveOnlyOneKustomizationFile"
-# BUG: Kustomizer should fail when multiple kustomization files exist (kustomization.yaml AND kustomization.yml)
-# but currently succeeds instead.
