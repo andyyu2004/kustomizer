@@ -80,10 +80,23 @@ where
         .with_context(|| format!("canonicalizing path {}", path.pretty()))?;
 
     if path.is_dir() {
-        path.push("kustomization.yaml");
+        if path.join("kustomization.yaml").exists() && path.join("kustomization.yml").exists() {
+            return Err(anyhow::anyhow!(
+                "both kustomization.yaml and kustomization.yml exist in directory: {}",
+                path.pretty()
+            ));
+        }
+
+        if path.join("kustomization.yml").exists() {
+            path.push("kustomization.yml");
+        } else {
+            path.push("kustomization.yaml");
+        }
     }
 
-    if path.file_name() != Some(OsStr::new("kustomization.yaml")) {
+    if path.file_name() != Some(OsStr::new("kustomization.yaml"))
+        && path.file_name() != Some(OsStr::new("kustomization.yml"))
+    {
         return Err(anyhow::anyhow!(
             "path is not a kustomization.yaml file: {}",
             path.pretty()
