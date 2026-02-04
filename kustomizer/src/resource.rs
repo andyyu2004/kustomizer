@@ -18,7 +18,7 @@ use std::path::Path;
 
 use crate::{
     PathExt, PathId,
-    manifest::{Behavior, FunctionSpec, Str},
+    manifest::{Annotation, Behavior, FunctionSpec, Str},
     patch::merge_patch,
     yaml,
 };
@@ -543,7 +543,7 @@ pub struct Annotations {
     )]
     pub behavior: Option<Behavior>,
     #[serde(flatten)]
-    pub rest: IndexMap<Str, Str>,
+    pub rest: IndexMap<Str, Annotation>,
 }
 
 impl Annotations {
@@ -553,7 +553,7 @@ impl Annotations {
 }
 
 impl Deref for Annotations {
-    type Target = IndexMap<Str, Str>;
+    type Target = IndexMap<Str, Annotation>;
 
     fn deref(&self) -> &Self::Target {
         &self.rest

@@ -7,7 +7,7 @@ use crate::{
     resource::{Metadata, Resource},
     yaml,
 };
-use compact_str::CompactString;
+use compact_str::{CompactString, ToCompactString as _};
 use indexmap::IndexMap;
 use serde::{Deserialize, Serialize};
 
@@ -70,11 +70,40 @@ pub struct Manifest<A, K> {
     #[serde(default, skip_serializing_if = "IndexMap::is_empty")]
     pub common_labels: IndexMap<Str, Str>,
     #[serde(default, skip_serializing_if = "IndexMap::is_empty")]
-    pub common_annotations: IndexMap<Str, Str>,
+    pub common_annotations: IndexMap<Str, Annotation>,
     #[serde(default, skip_serializing_if = "<[_]>::is_empty")]
     pub images: Box<[ImageTag]>,
     #[serde(default, skip_serializing_if = "<[_]>::is_empty")]
     pub replicas: Box<[Replica]>,
+}
+
+/// An annotation value. Kustomize supports loading from boolean, string, and number.
+/// This type always serializes to a string, but can deserialize from any of those three types.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[serde(transparent)]
+pub struct Annotation(pub Str);
+
+impl<'de> Deserialize<'de> for Annotation {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        #[derive(Deserialize)]
+        #[serde(untagged)]
+        enum Ann {
+            Bool(bool),
+            String(Str),
+            Number(json::Number),
+        }
+
+        let ann = Ann::deserialize(deserializer)?;
+        let s = match ann {
+            Ann::Bool(b) => b.to_compact_string(),
+            Ann::String(s) => s,
+            Ann::Number(n) => n.to_compact_string(),
+        };
+        Ok(Annotation(s))
+    }
 }
 
 impl<A, K> Manifest<A, K> {
@@ -176,7 +205,7 @@ pub struct GeneratorOptions {
     #[serde(default, skip_serializing_if = "IndexMap::is_empty")]
     pub labels: IndexMap<Str, Str>,
     #[serde(default, skip_serializing_if = "IndexMap::is_empty")]
-    pub annotations: IndexMap<Str, Str>,
+    pub annotations: IndexMap<Str, Annotation>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub disable_name_suffix_hash: Option<bool>,
     #[serde(default, skip_serializing_if = "std::ops::Not::not")]
