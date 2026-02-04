@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: bob-c628h867d9
+data:
+  FRUIT: YXBwbGU=
+  VEGETABLE: Y2Fycm90
+  foo.env: TU9VTlRBSU49ZXZlcmVzdApPQ0VBTj1wYWNpZmljCg==
+  passphrase: ZGF0IHBocmFzZQ==
+  MOUNTAIN: ZXZlcmVzdA==
+  OCEAN: cGFjaWZpYw==
+type: Opaque

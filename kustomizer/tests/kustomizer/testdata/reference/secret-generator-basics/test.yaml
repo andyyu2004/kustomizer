@@ -1,0 +1,2 @@
+name: secret-generator-basics
+# Ported from: kustomize/api/krusty/generatoroptions_test.go - "TestSecretGenerator"
