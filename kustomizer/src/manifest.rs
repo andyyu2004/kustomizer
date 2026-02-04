@@ -31,15 +31,16 @@ pub struct Manifest<A, K> {
     pub patches: Box<[Patch]>,
 
     /// Legacy field, use `patches` instead.
+    /// We actually accept strategic merge patches here for ease of implementation.
     #[serde(
         rename = "patchesJson6902",
         default,
         skip_serializing_if = "<[_]>::is_empty"
     )]
-    pub patches_json: Box<[JsonPatch6902]>,
+    pub patches_json6902: Box<[Patch]>,
     /// Legacy field, use `patches` instead.
     #[serde(default, skip_serializing_if = "<[_]>::is_empty")]
-    pub patches_strategic_merge: Box<[PathBuf]>,
+    pub patches_strategic_merge: Box<[String]>,
     #[serde(
         default,
         skip_serializing_if = "<[_]>::is_empty",
