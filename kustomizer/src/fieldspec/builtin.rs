@@ -13,7 +13,6 @@ const TEMPLATE_LABELS: &[u8] = include_bytes!("templateLabels.yaml");
 const OTHER_LABELS: &[u8] = include_bytes!("otherLabels.yaml");
 const REPLICAS: &[u8] = include_bytes!("replicas.yaml");
 const SUBJECTS: &[u8] = include_bytes!("subjects.yaml");
-const NAMESPACE: &[u8] = include_bytes!("namespace.yaml");
 
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize)]
 #[serde(deny_unknown_fields, rename_all = "camelCase")]
@@ -25,7 +24,6 @@ pub struct Builtin {
     pub common_labels: FieldSpecs,
     pub replicas: FieldSpecs,
     pub subjects: FieldSpecs,
-    pub namespace: FieldSpecs,
 }
 
 impl Builtin {
@@ -53,7 +51,6 @@ impl Builtin {
                 replicas: yaml::from_slice::<FieldSpecs>(REPLICAS).expect("replicas"),
                 metadata_labels: yaml::from_slice::<FieldSpecs>(METADATA_LABELS)
                     .expect("metadata labels"),
-                namespace: yaml::from_slice::<FieldSpecs>(NAMESPACE).expect("namespace"),
             }
         })
     }

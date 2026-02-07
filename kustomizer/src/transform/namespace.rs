@@ -26,10 +26,6 @@ impl Transformer for NamespaceTransformer {
             // get their namespace updated. This matches kustomize's default behavior.
             self.apply_default_subject_transformation(builtin, &mut resource, &target_namespace)?;
 
-            // Apply namespace field specs for cluster-scoped resources with service references
-            // (e.g., ValidatingWebhookConfiguration, MutatingWebhookConfiguration)
-            self.apply_namespace_fieldspecs(builtin, &mut resource, &target_namespace)?;
-
             // Transform the resource itself based on its type
             let transformed_resource = self.transform_resource(resource, spec)?;
             transformed_resources.insert(transformed_resource)?;
@@ -65,21 +61,6 @@ impl NamespaceTransformer {
         let name = subject.get("name").and_then(|n| n.as_str());
 
         matches!((kind, name), (Some(k), Some("default")) if kind::ServiceAccount == *k)
-    }
-
-    /// Apply namespace field specs to update service namespace references
-    /// This handles cluster-scoped resources like ValidatingWebhookConfiguration
-    /// that contain namespace references to services
-    fn apply_namespace_fieldspecs(
-        &self,
-        builtin: &fieldspec::Builtin,
-        resource: &mut crate::resource::Resource,
-        target_namespace: &str,
-    ) -> anyhow::Result<()> {
-        builtin.namespace.apply::<String>(resource, |namespace_value| {
-            *namespace_value = target_namespace.to_string();
-            Ok(())
-        })
     }
 
     /// Transform an individual resource based on its type
