@@ -1,0 +1,2 @@
+# Source: TestGeneratorIntVsStringNoMerge from configmaps_test.go:13
+# Numbers and booleans are quoted in ConfigMap data

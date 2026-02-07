@@ -1,0 +1,5 @@
+configMapGenerator:
+  - name: test-configmap
+    behavior: create
+    envs:
+    - properties
