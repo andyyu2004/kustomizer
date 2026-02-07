@@ -1,0 +1,2 @@
+# Source: TestDataIsSingleQuote from configmaps_test.go:575
+# ConfigMap data value can be a single quote character
