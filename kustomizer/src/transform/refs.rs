@@ -10,7 +10,7 @@ use crate::{
 use super::Transformer;
 
 /// Represents a resource rename operation (name and/or namespace change)
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Rename {
     /// The original resource identifier
     res_id: ResId,
@@ -41,6 +41,11 @@ impl Rename {
     pub fn new_namespace(res_id: ResId, new_namespace: Str) -> Self {
         let name = res_id.name.clone();
         Self::new(res_id, Some(new_namespace), name)
+    }
+
+    /// Check if this rename only changes the namespace (not the name)
+    pub fn is_namespace_only(&self) -> bool {
+        self.res_id.name == self.new_name
     }
 }
 
