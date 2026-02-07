@@ -34,7 +34,7 @@ impl Builder {
         &self,
         kustomization: &Located<Kustomization>,
     ) -> anyhow::Result<ResourceMap> {
-        let resmap = self.build(Default::default(), kustomization).await?;
+        let (resmap, _nested_renames) = self.build(Default::default(), kustomization).await?;
 
         let mut out = ResourceMap::with_capacity(resmap.len());
         let mut renames = vec![];
@@ -151,7 +151,7 @@ impl Builder {
         &self,
         resmap: ResourceMap,
         kustomization: &Located<Manifest<A, K>>,
-    ) -> anyhow::Result<ResourceMap> {
+    ) -> anyhow::Result<(ResourceMap, Vec<Rename>)> {
         let mut resmap = self.build_kustomization_base(resmap, kustomization).await?;
         let mut renames = vec![];
 
@@ -160,7 +160,9 @@ impl Builder {
         for component in &kustomization.components {
             let component = load_component(kustomization.parent_path.join(component))
                 .with_context(|| format!("loading component `{}`", component.pretty()))?;
-            resmap = self.build(resmap, &component).await?;
+            let (new_resmap, component_renames) = self.build(resmap, &component).await?;
+            resmap = new_resmap;
+            renames.extend(component_renames);
         }
 
         self.apply_transforms(kustomization, &mut resmap, &mut renames)
@@ -170,7 +172,7 @@ impl Builder {
             .transform(&mut resmap)
             .await?;
 
-        Ok(resmap)
+        Ok((resmap, renames))
     }
 
     async fn apply_generators<A: Symbol, K: Symbol>(
@@ -252,7 +254,28 @@ impl Builder {
         for (path, resource) in resources {
             match resource {
                 Either::Left(res) => resmap.extend(res),
-                Either::Right(rs) => resmap.merge(rs),
+                Either::Right((rs, nested_renames)) => {
+                    // Apply only namespace-only renames to existing resources before merging.
+                    // Name changes (from namePrefix/nameSuffix) are local to the nested build
+                    // and should not affect resources from other subtrees.
+                    let namespace_renames: Vec<_> = nested_renames
+                        .into_iter()
+                        .filter(|r| r.is_namespace_only())
+                        .collect();
+
+                    if !namespace_renames.is_empty() {
+                        RenameTransformer::new(RefSpecs::load_builtin(), &namespace_renames)
+                            .transform(&mut resmap)
+                            .await
+                            .with_context(|| {
+                                format!(
+                                    "applying namespace renames from `{}` to existing resources",
+                                    path.pretty()
+                                )
+                            })?;
+                    }
+                    resmap.merge(rs)
+                }
             }
             .with_context(|| {
                 format!(
@@ -267,11 +290,12 @@ impl Builder {
     }
 
     #[tracing::instrument(skip_all, fields(path = %kustomization.path.pretty(), resource_path = %path.pretty()))]
+    #[allow(clippy::type_complexity)]
     async fn build_resource<A, K>(
         &self,
         kustomization: &Located<Manifest<A, K>>,
         path: &Path,
-    ) -> anyhow::Result<Either<Box<[Resource]>, ResourceMap>> {
+    ) -> anyhow::Result<Either<Box<[Resource]>, (ResourceMap, Vec<Rename>)>> {
         let path = PathId::make(kustomization.parent_path.join(path)).with_context(|| {
             format!(
                 "resolving resource path `{}` in `{}`",
@@ -301,12 +325,12 @@ impl Builder {
             let kustomization = load_kustomization(path)
                 .with_context(|| format!("load kustomization resource {}", path.pretty()))?;
 
-            let base = self
+            let (base, renames) = self
                 .build(Default::default(), &kustomization)
                 .await
                 .with_context(|| format!("building kustomization resource {}", path.pretty()))?;
 
-            Ok(Either::Right(base))
+            Ok(Either::Right((base, renames)))
         }
     }
 
