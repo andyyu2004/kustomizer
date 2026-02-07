@@ -1,0 +1,27 @@
+# Field specs for namespace transformation
+# These specify which fields should have their namespace value updated
+# when a namespace transformer is applied
+
+# ValidatingWebhookConfiguration - update service namespace in clientConfig
+- path: webhooks[]/clientConfig/service/namespace
+  kind: ValidatingWebhookConfiguration
+  group: admissionregistration.k8s.io
+  create: true
+
+# MutatingWebhookConfiguration - update service namespace in clientConfig
+- path: webhooks[]/clientConfig/service/namespace
+  kind: MutatingWebhookConfiguration
+  group: admissionregistration.k8s.io
+  create: true
+
+# CustomResourceDefinition - update service namespace in conversion webhook
+- path: spec/conversion/webhook/clientConfig/service/namespace
+  kind: CustomResourceDefinition
+  group: apiextensions.k8s.io
+  create: true
+
+# APIService - update service namespace
+- path: spec/service/namespace
+  kind: APIService
+  group: apiregistration.k8s.io
+  create: true
