@@ -1,0 +1,3 @@
+kind: success
+# Ported from Go kustomize scalar_test.go - replace scalar -- missing from dest
+# Tests adding new scalar field
