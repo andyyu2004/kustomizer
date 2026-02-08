@@ -5,6 +5,7 @@ use std::{path::PathBuf, sync::LazyLock};
 
 use crate::{
     resource::{Metadata, Resource},
+    selector::Selector,
     yaml,
 };
 use compact_str::{CompactString, ToCompactString as _};
@@ -492,32 +493,6 @@ impl Pattern {
                     .as_ref()
                     .is_none_or(|re| id.namespace.is_some_and(|ns| re.is_match(ns)))
         })
-    }
-}
-
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub struct Selector {
-    tmp_unparsed: Str,
-}
-
-impl Serialize for Selector {
-    fn serialize<S>(&self, _serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: serde::Serializer,
-    {
-        // Placeholder implementation, actual logic to serialize selectors should be added
-        _serializer.serialize_str(&self.tmp_unparsed)
-    }
-}
-
-impl<'de> Deserialize<'de> for Selector {
-    fn deserialize<D>(_deserializer: D) -> Result<Self, D::Error>
-    where
-        D: serde::Deserializer<'de>,
-    {
-        // Placeholder implementation, actual logic to deserialize selectors should be added
-        let tmp_unparsed: Str = Deserialize::deserialize(_deserializer)?;
-        Ok(Selector { tmp_unparsed })
     }
 }
 

@@ -9,6 +9,7 @@ mod plugin;
 mod reslist;
 mod resmap;
 mod resource;
+mod selector;
 mod serde_ex;
 mod transform;
 pub mod yaml;
