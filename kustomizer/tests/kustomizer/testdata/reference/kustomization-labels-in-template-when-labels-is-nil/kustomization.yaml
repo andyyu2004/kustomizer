@@ -1,0 +1,14 @@
+resources:
+- deployment.yaml
+
+commonLabels:
+  app: test-server
+
+labels:
+- pairs:
+    app.kubernetes.io/component: a
+    app.kubernetes.io/instance: b
+    app.kubernetes.io/name: c
+    app.kubernetes.io/part-of: d
+  includeSelectors: false
+  includeTemplates: true

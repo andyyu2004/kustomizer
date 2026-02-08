@@ -1,2 +1,2 @@
-name: small-base
-# Ported from: kustomize/api/krusty/baseandoverlaysmall_test.go - "TestSmallBase"
+# Source: TestSmallBase from baseandoverlaysmall_test.go:220
+# Base with namePrefix and commonLabels

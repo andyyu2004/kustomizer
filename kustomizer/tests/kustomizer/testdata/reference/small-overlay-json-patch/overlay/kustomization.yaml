@@ -1,0 +1,8 @@
+resources:
+- ../base
+patchesJson6902:
+- target:
+    version: v1
+    kind: Service
+    name: a-myService
+  path: service-patch.yaml

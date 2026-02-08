@@ -1,0 +1,4 @@
+resources:
+- ../probe
+patchesStrategicMerge:
+- dep-patch.yaml

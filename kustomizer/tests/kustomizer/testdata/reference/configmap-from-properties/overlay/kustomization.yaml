@@ -1,0 +1,7 @@
+resources:
+- ../base
+configMapGenerator:
+- name: test-configmap
+  behavior: "merge"
+  envs:
+  - properties

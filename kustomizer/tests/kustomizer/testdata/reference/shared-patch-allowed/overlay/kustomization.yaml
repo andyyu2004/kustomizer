@@ -1,0 +1,6 @@
+commonLabels:
+  env: prod
+resources:
+- ../base
+patchesStrategicMerge:
+- ../shared/deployment-patch.yaml

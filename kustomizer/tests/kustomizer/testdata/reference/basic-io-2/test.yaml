@@ -1,2 +1,2 @@
-# Ported from Go kustomize TestBasicIO_2 in basic_io_test.go
-# Tests basic I/O functionality with multiple resources
+# Source: TestBasicIO_2 from basic_io_test.go:49
+# Basic I/O - annotations already quoted in input, sorted by key

@@ -1,0 +1,12 @@
+namePrefix: b-
+commonLabels:
+  env: prod
+  quotedFruit: "peach"
+  quotedBoolean: "true"
+resources:
+- ../base
+patchesStrategicMerge:
+- deployment/deployment.yaml
+images:
+- name: whatever
+  newTag: 1.8.0

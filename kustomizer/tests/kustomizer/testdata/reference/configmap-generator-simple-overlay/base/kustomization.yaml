@@ -1,0 +1,6 @@
+namePrefix: p-
+configMapGenerator:
+- name: cm
+  behavior: create
+  literals:
+  - fruit=apple

@@ -1,0 +1,33 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: a-myDeployment
+  labels:
+    app: myApp
+spec:
+  template:
+    metadata:
+      labels:
+        backend: awesome
+        app: myApp
+    spec:
+      containers:
+        - name: whatever
+          image: whatever
+  selector:
+    matchLabels:
+      app: myApp
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: a-myService
+  labels:
+    app: myApp
+spec:
+  selector:
+    backend: beagle
+    app: myApp
+  ports:
+    - port: 7002

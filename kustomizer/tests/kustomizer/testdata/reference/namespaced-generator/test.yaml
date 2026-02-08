@@ -1,0 +1,2 @@
+# Source: TestNamespacedGenerator from namespacedgenerators_test.go:12
+# ConfigMap and Secret generators with namespace field

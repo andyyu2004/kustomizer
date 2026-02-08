@@ -1,0 +1,10 @@
+resources:
+  - ../base
+
+namespace: overlay
+
+configMapGenerator:
+  - name: testCase
+    behavior: merge
+    literals:
+      - overlay=peach
