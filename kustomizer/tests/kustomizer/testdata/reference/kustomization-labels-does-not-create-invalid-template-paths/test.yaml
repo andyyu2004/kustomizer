@@ -1,0 +1,2 @@
+# Source: TestKustomizationLabelsDoesNotCreateInvalidTemplatePaths from inlinelabels_test.go:227
+# Labels transformer should not create spec.template.metadata.labels on Service

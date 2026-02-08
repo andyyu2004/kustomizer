@@ -1,0 +1,2 @@
+# Source: TestKustomizationLabelsInDeploymentTemplate from inlinelabels_test.go:95
+# Labels transformer with includeTemplates option on Deployment

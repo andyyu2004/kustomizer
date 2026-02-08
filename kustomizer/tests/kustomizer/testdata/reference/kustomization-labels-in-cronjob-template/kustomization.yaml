@@ -1,0 +1,8 @@
+resources:
+- cjob.yaml
+
+labels:
+- pairs:
+    foo: bar
+  includeSelectors: false
+  includeTemplates: true

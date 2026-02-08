@@ -1,0 +1,2 @@
+# Source: TestKustomizationLabelsInTemplateWhenLabelsIsNil from inlinelabels_test.go:164
+# Labels transformer with includeTemplates when template.metadata.labels is nil

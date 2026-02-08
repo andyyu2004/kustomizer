@@ -1,0 +1,2 @@
+# Source: TestKustomizationLabelsInDaemonSetTemplate from inlinelabels_test.go:320
+# Labels transformer with includeTemplates on DaemonSet
