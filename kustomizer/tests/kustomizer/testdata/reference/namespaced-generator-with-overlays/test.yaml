@@ -1,0 +1,2 @@
+# Source: TestNamespacedGeneratorWithOverlays from namespacedgenerators_test.go:73
+# Namespace in overlay overrides base namespace for generators

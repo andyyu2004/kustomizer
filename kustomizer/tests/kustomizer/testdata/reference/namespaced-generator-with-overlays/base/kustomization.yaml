@@ -1,0 +1,6 @@
+namespace: base
+
+configMapGenerator:
+- name: testCase
+  literals:
+    - base=apple

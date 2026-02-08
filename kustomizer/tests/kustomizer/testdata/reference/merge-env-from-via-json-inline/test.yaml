@@ -1,0 +1,2 @@
+# Source: TestMergeEnvFromViaJsonInline from mergeenvfrom_test.go:73
+# envFrom should append when using JSON patch

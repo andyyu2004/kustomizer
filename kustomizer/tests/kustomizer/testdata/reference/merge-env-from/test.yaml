@@ -1,0 +1,2 @@
+# Source: TestMergeEnvFrom from mergeenvfrom_test.go:33
+# envFrom should merge when patching
