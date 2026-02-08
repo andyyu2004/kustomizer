@@ -1,0 +1,4 @@
+resources:
+- ../dns
+patchesStrategicMerge:
+- dep-patch.yaml

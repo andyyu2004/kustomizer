@@ -1,0 +1,2 @@
+# Source: TestIssue1251_Patches_Overlayed from diamondcomposition_test.go:170
+# Patches applied in overlays (probe -> dns -> restart)

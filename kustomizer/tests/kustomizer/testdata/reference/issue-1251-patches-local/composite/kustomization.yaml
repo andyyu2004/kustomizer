@@ -1,0 +1,6 @@
+resources:
+- ../base
+patchesStrategicMerge:
+- patchAddProbe.yaml
+- patchDnsPolicy.yaml
+- patchRestartPolicy.yaml

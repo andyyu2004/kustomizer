@@ -2,15 +2,15 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: blah-bob-f7hg95k69g
+  name: blah-bob-7hftd2f22b
 data:
   fruit: apple
   vegetable: broccoli
-  passphrase: |-
+  passphrase: |
     Life is short.
     But the years are long.
     Not while the evil days come not.
-  forces.txt: |-
+  forces.txt: |
     gravitational
     electromagnetic
     strong nuclear
@@ -24,20 +24,23 @@ kind: ConfigMap
 metadata:
   name: blah-json-m8529t979f
 data:
-  v2: '[{"path": "var/druid/segment-cache"}]'
-  druid_segmentCache_locations: '[{"path": "var/druid/segment-cache", "maxSize": 32000000000, "freeSpacePercent": 1.0}]'
+  v2: "[{\"path\": \"var/druid/segment-cache\"}]"
+  druid_segmentCache_locations: "[{\"path\": \"var/druid/segment-cache\", \"maxSize\": 32000000000, \"freeSpacePercent\": 1.0}]"
 ---
 apiVersion: v1
 kind: Secret
 metadata:
-  name: blah-bob-cmmkbgd25d
+  name: blah-bob-md6bf7fh2h
 data:
   fruit: YXBwbGU=
   vegetable: YnJvY2NvbGk=
-  passphrase: TGlmZSBpcyBzaG9ydC4KQnV0IHRoZSB5ZWFycyBhcmUgbG9uZy4KTm90IHdoaWxlIHRoZSBldmlsIGRheXMgY29tZSBub3Qu
-  forces.txt: Z3Jhdml0YXRpb25hbAplbGVjdHJvbWFnbmV0aWMKc3Ryb25nIG51Y2xlYXIKd2VhayBudWNsZWFy
+  passphrase: |
+    TGlmZSBpcyBzaG9ydC4KQnV0IHRoZSB5ZWFycyBhcmUgbG9uZy4KTm90IHdoaWxlIHRoZS
+    BldmlsIGRheXMgY29tZSBub3QuCg==
+  forces.txt: |
+    Z3Jhdml0YXRpb25hbAplbGVjdHJvbWFnbmV0aWMKc3Ryb25nIG51Y2xlYXIKd2VhayBudW
+    NsZWFyCg==
   MOUNTAIN: ZXZlcmVzdA==
   OCEAN: cGFjaWZpYw==
   BIRD: ZmFsY29u
 type: Opaque
-
