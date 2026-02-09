@@ -1,0 +1,2 @@
+# Source: TestEmptyPatchFilesShouldBeIgnored from multiplepatch_test.go:1776
+# Tests that empty patch files (empty, comments-only, whitespace-only) are ignored with patches field

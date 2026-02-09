@@ -1,0 +1,15 @@
+resources:
+- deployment.yaml
+patches:
+- path: empty.yaml
+  target:
+    kind: Deployment
+    name: nginx
+- path: comments-only.yaml
+  target:
+    kind: Deployment
+    name: nginx
+- path: whitespace.yaml
+  target:
+    kind: Deployment
+    name: nginx
