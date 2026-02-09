@@ -1,0 +1,2 @@
+# Ported from kustomize/api/krusty/crd_test.go TestCrdWithContainers
+name: crd-with-containers

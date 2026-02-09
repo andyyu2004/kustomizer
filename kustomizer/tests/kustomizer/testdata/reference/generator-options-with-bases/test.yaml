@@ -1,2 +1,2 @@
-# Ported from Go kustomize TestGeneratorOptionsWithBases in generatoroptions_test.go
-# Tests generatorOptions inheritance from base to overlay
+name: generator-options-with-bases
+# Source: kustomize/api/krusty/generatoroptions_test.go - TestGeneratorOptionsWithBases

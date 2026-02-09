@@ -1,0 +1,7 @@
+resources:
+- deploy.yaml
+configMapGenerator:
+- name: my-configmap
+  literals:
+  - testValue=purple
+  - otherValue=green

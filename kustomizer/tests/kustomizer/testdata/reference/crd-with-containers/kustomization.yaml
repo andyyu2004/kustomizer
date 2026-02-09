@@ -1,0 +1,6 @@
+resources:
+  - crd.yaml
+images:
+  - name: test/test
+    newName: registry.gitlab.com/test
+    newTag: latest
