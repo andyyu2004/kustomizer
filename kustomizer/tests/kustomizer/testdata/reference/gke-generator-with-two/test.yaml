@@ -1,2 +1,0 @@
-# Ported from kustomize/api/krusty/iampolicygenerator_test.go TestGkeGeneratorWithTwo
-name: gke-generator-with-two

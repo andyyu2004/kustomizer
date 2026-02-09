@@ -1,3 +1,0 @@
-name: empty-list
-# Ported from kustomize/api/krusty/no_list_items_test.go TestEmptyList
-# Tests that empty PodList (items: []) results in no resources in output

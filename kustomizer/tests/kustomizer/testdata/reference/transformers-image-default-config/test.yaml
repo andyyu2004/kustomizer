@@ -1,4 +1,0 @@
-name: transformers-image-default-config
-# Source: kustomize/api/krusty/transformersimage_test.go:TestTransfomersImageDefaultConfig
-# Tests that the default configuration recognizes image paths starting with "spec",
-# but not spec2 or spec3, so only images under spec/ will be transformed.

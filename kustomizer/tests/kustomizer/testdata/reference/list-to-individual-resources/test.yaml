@@ -1,3 +1,0 @@
-name: list-to-individual-resources
-# Ported from kustomize/api/krusty/no_list_items_test.go TestListToIndividualResources
-# Tests that PodList with items gets split into individual Pod resources
