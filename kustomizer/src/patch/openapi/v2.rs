@@ -297,6 +297,14 @@ pub struct ArrayType {
         skip_serializing_if = "Option::is_none"
     )]
     pub list_map_keys: Option<Box<[Str]>>,
+
+    /// Same as `list_map_keys` but only supports a single key.
+    /// `list_map_keys` takes precedence over this if both are specified.
+    #[serde(
+        rename = "x-kubernetes-patch-merge-key",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub patch_merge_key: Option<Str>,
 }
 
 #[derive(Debug, PartialEq, Serialize)]
