@@ -1,0 +1,3 @@
+name: mid-level-overlay-a
+# Source: kustomize/api/krusty/resourceconflict_test.go::TestMidLevelA
+path: overlays/a

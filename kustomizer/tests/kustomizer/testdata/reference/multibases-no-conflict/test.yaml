@@ -1,0 +1,2 @@
+name: multibases-no-conflict
+# Source: kustomize/api/krusty/resourceconflict_test.go::TestMultibasesNoConflict

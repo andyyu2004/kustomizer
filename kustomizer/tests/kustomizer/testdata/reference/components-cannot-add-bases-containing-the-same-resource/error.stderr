@@ -2,3 +2,5 @@ failure merging resources from `../base2` into `tests/kustomizer/testdata/refere
 
 Caused by:
     may not add resource with an already registered id `v1.Deployment/storefront`, consider specifying `merge` or `replace` behavior
+---
+Error: accumulating components: accumulateDirectory: "recursed accumulation of path '<dir>/tests/kustomizer/testdata/reference/components-cannot-add-bases-containing-the-same-resource/comp2': accumulating resources: accumulation err='accumulating resources from '../base2': read <dir>/tests/kustomizer/testdata/reference/components-cannot-add-bases-containing-the-same-resource/base2: is a directory': recursed merging from path '<dir>/tests/kustomizer/testdata/reference/components-cannot-add-bases-containing-the-same-resource/base2': may not add resource with an already registered id: Deployment.v1.[noGrp]/storefront.[noNs]"

@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: kapacitor
+  labels:
+    app.kubernetes.io/name: tick-kapacitor
+spec:
+  selector:
+    app.kubernetes.io/name: tick-kapacitor
+    - name: http
+      port: 9092
+      protocol: TCP
+  type: ClusterIP

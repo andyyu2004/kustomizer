@@ -1,0 +1,3 @@
+name: issue-1251-plugins-dev
+# Source: kustomize/api/krusty/diamondcomposition_test.go:TestIssue1251_Plugins_ProdVsDev (dev scenario)
+# Tests dev environment with JSON patches (converted from PatchJson6902Transformer)

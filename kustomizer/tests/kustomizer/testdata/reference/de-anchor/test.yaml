@@ -1,0 +1,3 @@
+# Ported from: kustomize/kyaml/yaml/rnode_test.go - TestDeAnchor
+# Tests that YAML anchors and aliases are properly resolved
+name: de-anchor

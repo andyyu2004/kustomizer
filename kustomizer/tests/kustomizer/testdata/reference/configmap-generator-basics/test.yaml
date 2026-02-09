@@ -1,0 +1,2 @@
+# Source: TestGeneratorBasics from configmaps_test.go:115
+# Generate ConfigMap and Secret from same data with files, envs, env, and literals

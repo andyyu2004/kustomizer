@@ -1,0 +1,3 @@
+# Source: kustomize/api/krusty/validatingwebhook_test.go TestValidatingWebhookCombinedNamespaces
+# Reproduce issue #3732
+name: validating-webhook-combined-namespaces

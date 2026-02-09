@@ -1,0 +1,5 @@
+# Source: TestIssue3489 from namereference_test.go
+# Tests complex name reference handling with multiple overlays using same base
+# Each overlay applies different nameSuffix and patches, and name references
+# (serviceAccountName, secret names) should be correctly updated per variant
+kind: success

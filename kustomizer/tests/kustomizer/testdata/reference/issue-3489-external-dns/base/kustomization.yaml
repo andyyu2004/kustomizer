@@ -1,0 +1,16 @@
+resources:
+- clusterrole.yaml
+- clusterrolebinding.yaml
+- deployment.yaml
+- serviceaccount.yaml
+commonLabels:
+  app: external-dns
+  instance: public
+images:
+- name: registry.k8s.io/external-dns/external-dns
+  newName: quay.io/sylr/external-dns
+  newTag: v0.7.4-73-g00a9a0c7
+secretGenerator:
+- name: azure-config-file
+  files:
+  - assets/azure.json

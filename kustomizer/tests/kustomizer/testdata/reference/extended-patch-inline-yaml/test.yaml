@@ -1,0 +1,2 @@
+# Ported from kustomize/api/krusty/inlinepatch_test.go TestExtendedPatchInlineYAML
+name: extended-patch-inline-yaml

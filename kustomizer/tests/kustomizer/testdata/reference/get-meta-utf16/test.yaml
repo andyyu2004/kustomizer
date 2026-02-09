@@ -1,0 +1,3 @@
+# Ported from: kustomize/kyaml/yaml/rnode_test.go - TestRNode_GetMeta_UTF16
+# Tests that metadata can be properly read from YAML with UTF-16 characters in comments
+name: get-meta-utf16

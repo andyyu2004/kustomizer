@@ -1,0 +1,6 @@
+load resource tests/kustomizer/testdata/reference/accumulate-resources-malformed-yaml/service.yaml
+
+Caused by:
+    parsing resource: while parsing a block mapping, did not find expected key at line 10, column 7
+---
+Error: accumulating resources: accumulating resources from 'service.yaml': MalformedYAMLError: yaml: line 8: did not find expected key in File: service.yaml

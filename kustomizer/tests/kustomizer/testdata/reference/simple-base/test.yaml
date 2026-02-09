@@ -1,2 +1,2 @@
 name: simple-base
-# Ported from: kustomize/api/krusty/generatormergeandreplace_test.go - "TestSimpleBase"
+# Source: kustomize/api/krusty/generatormergeandreplace_test.go::TestSimpleBase

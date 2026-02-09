@@ -1,0 +1,3 @@
+# Ported from: kustomize/kyaml/yaml/rnode_test.go - TestDeAnchorMerge
+# Tests that YAML merge keys (<<) with anchors are properly resolved
+name: de-anchor-merge

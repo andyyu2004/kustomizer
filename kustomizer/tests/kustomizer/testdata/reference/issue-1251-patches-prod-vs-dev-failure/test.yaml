@@ -1,0 +1,3 @@
+kind: fail
+# Source: kustomize/api/krusty/diamondcomposition_test.go:TestIssue1251_Patches_ProdVsDev_Failure
+# Tests that patches outside the kustomization root fail due to load restrictor

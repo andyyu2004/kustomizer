@@ -1,0 +1,4 @@
+namespace: kube-system
+resources:
+- external-dns
+- external-dns-private

@@ -1,0 +1,4 @@
+resources:
+- deploymentServicePrefixer.yaml
+- roleAnnotator.yaml
+- deploymentLabeller.yaml

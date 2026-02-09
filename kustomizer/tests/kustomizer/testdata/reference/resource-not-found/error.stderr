@@ -2,3 +2,5 @@ resolving resource path `deployment.yaml` in `tests/kustomizer/testdata/referenc
 
 Caused by:
     No such file or directory (os error 2)
+---
+Error: accumulating resources: accumulation err='accumulating resources from 'deployment.yaml': open <dir>/tests/kustomizer/testdata/reference/resource-not-found/deployment.yaml: no such file or directory': must build at directory: not a valid directory: evalsymlink failure on '<dir>/tests/kustomizer/testdata/reference/resource-not-found/deployment.yaml' : lstat <dir>/tests/kustomizer/testdata/reference/resource-not-found/deployment.yaml: no such file or directory

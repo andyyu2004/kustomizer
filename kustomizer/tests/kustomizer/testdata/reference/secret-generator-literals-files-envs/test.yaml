@@ -1,0 +1,2 @@
+name: secret-generator-literals-files-envs
+# Source: kustomize/api/krusty/generatoroptions_test.go - TestSecretGenerator

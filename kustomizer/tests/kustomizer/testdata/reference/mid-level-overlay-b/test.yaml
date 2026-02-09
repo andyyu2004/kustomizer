@@ -1,0 +1,2 @@
+name: mid-level-overlay-b
+# Source: kustomize/api/krusty/resourceconflict_test.go::TestMidLevelB

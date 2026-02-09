@@ -1,0 +1,228 @@
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: external-dns
+  labels:
+    app: external-dns
+    instance: public
+rules:
+  - apiGroups:
+      - ""
+    resources:
+      - endpoints
+      - pods
+      - services
+      - nodes
+    verbs:
+      - get
+      - watch
+      - list
+  - apiGroups:
+      - extensions
+      - networking.k8s.io
+    resources:
+      - ingresses
+    verbs:
+      - get
+      - watch
+      - list
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: external-dns-viewer
+  labels:
+    app: external-dns
+    instance: public
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: external-dns
+subjects:
+  - kind: ServiceAccount
+    name: external-dns
+    namespace: kube-system
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: external-dns
+  namespace: kube-system
+  labels:
+    app: external-dns
+    instance: public
+spec:
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: external-dns
+      instance: public
+  template:
+    metadata:
+      labels:
+        app: external-dns
+        instance: public
+    spec:
+      serviceAccountName: external-dns
+      containers:
+        - name: external-dns
+          image: xxx.azurecr.io/external-dns:v0.7.4_sylr.1
+          args:
+            - "--txt-owner-id=\"aks\""
+            - "--txt-prefix=external-dns-"
+            - "--source=service"
+            - "--provider=azure"
+            - "--registry=txt"
+            - "--domain-filter=dev.company.com"
+          resources:
+            {}
+          volumeMounts:
+            - name: azure-config-file
+              mountPath: /etc/kubernetes
+              readOnly: true
+      volumes:
+        - name: azure-config-file
+          secret:
+            secretName: azure-config-file-66cc4224mm
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: external-dns
+  namespace: kube-system
+  labels:
+    app: external-dns
+    instance: public
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: azure-config-file-66cc4224mm
+  namespace: kube-system
+  labels:
+    app: external-dns
+    instance: public
+data:
+  azure.json: |
+    ewoJInRlbmFudElkIjogIlhYWFhYLVhYWFhYWC1YWFhYWC1YWFhYWFgtWFhYWFhYIiwKCS
+    JzdWJzY3JpcHRpb25JZCI6ICJYWFhYWC1YWFhYWFgtWFhYWFgtWFhYWFhYLVhYWFhYWCIs
+    CgkicmVzb3VyY2VHcm91cCI6ICJETlMtRVVXLVhYWC1SRyIsCgkidXNlTWFuYWdlZElkZW
+    50aXR5RXh0ZW5zaW9uIjogdHJ1ZSwKCSJ1c2VyQXNzaWduZWRJZGVudGl0eUlEIjogIlhY
+    WFhYLVhYWFhYWC1YWFhYWC1YWFhYWFgtWFhYWFhYIgp9Cg==
+type: Opaque
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: external-dns-private
+  labels:
+    app: external-dns
+    instance: private
+rules:
+  - apiGroups:
+      - ""
+    resources:
+      - endpoints
+      - pods
+      - services
+      - nodes
+    verbs:
+      - get
+      - watch
+      - list
+  - apiGroups:
+      - extensions
+      - networking.k8s.io
+    resources:
+      - ingresses
+    verbs:
+      - get
+      - watch
+      - list
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: external-dns-viewer-private
+  labels:
+    app: external-dns
+    instance: private
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: external-dns-private
+subjects:
+  - kind: ServiceAccount
+    name: external-dns-private
+    namespace: kube-system
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: external-dns-private
+  namespace: kube-system
+  labels:
+    app: external-dns
+    instance: private
+spec:
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: external-dns
+      instance: private
+  template:
+    metadata:
+      labels:
+        app: external-dns
+        instance: private
+    spec:
+      serviceAccountName: external-dns-private
+      containers:
+        - name: external-dns
+          image: xxx.azurecr.io/external-dns:v0.7.4_sylr.1
+          args:
+            - "--txt-owner-id=\"aks\""
+            - "--txt-prefix=external-dns-private-"
+            - "--source=service"
+            - "--provider=azure-private-dns"
+            - "--registry=txt"
+            - "--domain-filter=static.company.az"
+          resources:
+            {}
+          volumeMounts:
+            - name: azure-config-file
+              mountPath: /etc/kubernetes
+              readOnly: true
+      volumes:
+        - name: azure-config-file
+          secret:
+            secretName: azure-config-file-private-66cc4224mm
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: external-dns-private
+  namespace: kube-system
+  labels:
+    app: external-dns
+    instance: private
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: azure-config-file-private-66cc4224mm
+  namespace: kube-system
+  labels:
+    app: external-dns
+    instance: private
+data:
+  azure.json: |
+    ewoJInRlbmFudElkIjogIlhYWFhYLVhYWFhYWC1YWFhYWC1YWFhYWFgtWFhYWFhYIiwKCS
+    JzdWJzY3JpcHRpb25JZCI6ICJYWFhYWC1YWFhYWFgtWFhYWFgtWFhYWFhYLVhYWFhYWCIs
+    CgkicmVzb3VyY2VHcm91cCI6ICJETlMtRVVXLVhYWC1SRyIsCgkidXNlTWFuYWdlZElkZW
+    50aXR5RXh0ZW5zaW9uIjogdHJ1ZSwKCSJ1c2VyQXNzaWduZWRJZGVudGl0eUlEIjogIlhY
+    WFhYLVhYWFhYWC1YWFhYWC1YWFhYWFgtWFhYWFhYIgp9Cg==
+type: Opaque

@@ -1,0 +1,4 @@
+resources:
+- ./config
+- ./tolerations
+- ./https

@@ -1,0 +1,27 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: test
+spec:
+  schedule: "5 10 * * 1"
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      backoffLimit: 3
+      template:
+        spec:
+          restartPolicy: Never
+          containers:
+          - name: test
+            image: bash
+            command:
+            - /bin/sh
+            - -c
+            - echo "test"
+            env:
+            - name: ENV1
+              value: val1
+            - name: ENV2
+              value: val2
+            - name: ENV3
+              value: val3

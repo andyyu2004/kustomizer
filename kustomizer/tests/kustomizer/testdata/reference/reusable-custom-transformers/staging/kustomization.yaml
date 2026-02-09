@@ -1,0 +1,19 @@
+# Bring in the custom transformers.
+transformers:
+- ../mytransformers
+
+# Also use the "classic" labeller, which behind the scenes uses
+# the LabelTransformer, but with a broad configuration targeting
+# many resources and fields (including selector fields).
+# It's a big hammer - probably too big; the output shows all the
+# places 'acmeCorp' now appears as a result.  To avoid this,
+# define your own config for your own LabelTransformer instance
+# as shown above.
+commonLabels:
+  company: acmeCorp  
+
+# Specify the resources to modify.
+resources:
+- deployment.yaml
+- role.yaml
+- service.yaml

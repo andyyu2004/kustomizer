@@ -1,0 +1,21 @@
+resources:
+- resources.yaml
+patches:
+- patch: |
+    apiVersion: batch/v1
+    kind: CronJob
+    metadata:
+      name: test
+    spec:
+      jobTemplate:
+        spec:
+          template:
+            spec:
+              containers:
+              - name: test
+                env:
+                - name: ENV_NEW
+                  value: val_new
+  target:
+    kind: CronJob
+    name: test

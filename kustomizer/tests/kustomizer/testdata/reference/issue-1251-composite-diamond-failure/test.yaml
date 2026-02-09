@@ -1,0 +1,3 @@
+kind: fail
+# Source: kustomize/api/krusty/diamondcomposition_test.go:TestIssue1251_CompositeDiamond_Failure
+# Tests that composite diamond structure fails with duplicate resource error

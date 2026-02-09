@@ -1,0 +1,3 @@
+name: issue-1251-patches-prod
+# Source: kustomize/api/krusty/diamondcomposition_test.go:TestIssue1251_Patches_ProdVsDev (prod scenario)
+# Tests prod environment with probe and dns patches

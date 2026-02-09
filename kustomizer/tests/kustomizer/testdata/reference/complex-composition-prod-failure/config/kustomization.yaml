@@ -1,0 +1,10 @@
+resources:
+- ../base
+configMapGenerator:
+- name: my-config
+  literals:
+  - MY_ENV=foo
+generatorOptions:
+  disableNameSuffixHash: true
+patchesStrategicMerge:
+- sts-patch.yaml

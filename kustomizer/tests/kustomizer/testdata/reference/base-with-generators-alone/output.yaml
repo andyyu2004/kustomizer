@@ -1,0 +1,84 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: team-foo-nginx
+  labels:
+    app: mynginx
+    org: example.com
+    team: foo
+  annotations:
+    note: This is a test annotation
+spec:
+  template:
+    metadata:
+      labels:
+        app: mynginx
+        org: example.com
+        team: foo
+      annotations:
+        note: This is a test annotation
+    spec:
+      containers:
+        - name: nginx
+          image: nginx
+          volumeMounts:
+            - name: nginx-persistent-storage
+              mountPath: /tmp/ps
+      volumes:
+        - name: nginx-persistent-storage
+          emptyDir: {}
+        - configMap:
+            name: team-foo-configmap-in-base-798k5k7g9f
+          name: configmap-in-base
+  selector:
+    matchLabels:
+      app: mynginx
+      org: example.com
+      team: foo
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: team-foo-nginx
+  labels:
+    app: mynginx
+    org: example.com
+    team: foo
+  annotations:
+    note: This is a test annotation
+spec:
+  ports:
+    - port: 80
+  selector:
+    app: mynginx
+    org: example.com
+    team: foo
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: team-foo-configmap-in-base-798k5k7g9f
+  labels:
+    app: mynginx
+    org: example.com
+    team: foo
+  annotations:
+    note: This is a test annotation
+data:
+  foo: bar
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: team-foo-secret-in-base-bgd6bkgdm2
+  labels:
+    app: mynginx
+    org: example.com
+    team: foo
+  annotations:
+    note: This is a test annotation
+data:
+  username: YWRtaW4=
+  password: c29tZXB3
+type: Opaque

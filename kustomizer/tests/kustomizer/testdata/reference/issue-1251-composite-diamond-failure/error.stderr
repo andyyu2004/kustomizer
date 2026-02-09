@@ -1,0 +1,8 @@
+failure merging resources from `dns` into `tests/kustomizer/testdata/reference/issue-1251-composite-diamond-failure/kustomization.yaml`
+
+Caused by:
+    may not add resource with an already registered id `apps.v1.Deployment/my-deployment`, consider specifying `merge` or `replace` behavior
+---
+# Warning: 'patchesStrategicMerge' is deprecated. Please use 'patches' instead. Run 'kustomize edit fix' to update your Kustomization automatically.
+# Warning: 'patchesStrategicMerge' is deprecated. Please use 'patches' instead. Run 'kustomize edit fix' to update your Kustomization automatically.
+Error: accumulating resources: accumulation err='accumulating resources from 'dns': read <dir>/tests/kustomizer/testdata/reference/issue-1251-composite-diamond-failure/dns: is a directory': recursed merging from path '<dir>/tests/kustomizer/testdata/reference/issue-1251-composite-diamond-failure/dns': may not add resource with an already registered id: Deployment.v1.apps/my-deployment.[noNs]

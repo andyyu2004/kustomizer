@@ -1,0 +1,2 @@
+name: extended-patch-multiple-patch-overlapping
+# Source: kustomize/api/krusty/extendedpatch_test.go::TestExtendedPatchMultiplePatchOverlapping

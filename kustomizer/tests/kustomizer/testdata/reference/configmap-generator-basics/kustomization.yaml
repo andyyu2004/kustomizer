@@ -1,0 +1,31 @@
+namePrefix: blah-
+configMapGenerator:
+- name: bob
+  literals:
+  - fruit=apple
+  - vegetable=broccoli
+  envs:
+  - foo.env
+  env: bar.env
+  files:
+  - passphrase=phrase.dat
+  - forces.txt
+- name: json
+  literals:
+  - 'v2=[{"path": "var/druid/segment-cache"}]'
+  - >-
+    druid_segmentCache_locations=[{"path":
+    "var/druid/segment-cache",
+    "maxSize": 32000000000,
+    "freeSpacePercent": 1.0}]
+secretGenerator:
+- name: bob
+  literals:
+  - fruit=apple
+  - vegetable=broccoli
+  envs:
+  - foo.env
+  files:
+  - passphrase=phrase.dat
+  - forces.txt
+  env: bar.env

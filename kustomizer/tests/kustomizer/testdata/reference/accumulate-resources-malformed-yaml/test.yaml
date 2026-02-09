@@ -1,0 +1,3 @@
+# Source: kustomize/api/krusty/accumulation_test.go TestAccumulateResourcesErrors (malformed yaml yields an error)
+name: accumulate-resources-malformed-yaml
+kind: fail

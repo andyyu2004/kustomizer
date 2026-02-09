@@ -1,0 +1,2 @@
+# Source: TestDataEndsWithQuotes from configmaps_test.go:518
+# Regression test for issue #4233 - data value ending with quotes

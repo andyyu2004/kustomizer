@@ -1,0 +1,4 @@
+resources:
+- admission.yaml
+
+namePrefix: a-prefix-

@@ -2,3 +2,5 @@ loading component `base`
 
 Caused by:
     Components referenced in `components` must have `kind: Component` specified
+---
+Error: accumulating components: accumulateDirectory: "expected kind 'Component' for path '<dir>/tests/kustomizer/testdata/reference/kustomizations-cannot-be-added-to-components/base' but got 'Kustomization'"

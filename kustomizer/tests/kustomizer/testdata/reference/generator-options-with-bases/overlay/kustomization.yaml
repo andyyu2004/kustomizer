@@ -1,0 +1,10 @@
+resources:
+- ../base
+generatorOptions:
+  disableNameSuffixHash: false
+  labels:
+    fruit: apple
+configMapGenerator:
+- name: shouldHaveHash
+  literals:
+  - fruit=apple

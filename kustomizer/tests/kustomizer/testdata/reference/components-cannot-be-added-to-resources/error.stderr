@@ -2,3 +2,5 @@ load kustomization resource tests/kustomizer/testdata/reference/components-canno
 
 Caused by:
     expected `kustomize.config.k8s.io/v1beta1`, found `kustomize.config.k8s.io/v1alpha1`
+---
+Error: accumulating resources: accumulation err='accumulating resources from 'comp': read <dir>/tests/kustomizer/testdata/reference/components-cannot-be-added-to-resources/comp: is a directory': expected kind != 'Component' for path '<dir>/tests/kustomizer/testdata/reference/components-cannot-be-added-to-resources/comp'

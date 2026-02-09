@@ -1,11 +1,2 @@
-namePrefix: team-foo-
-commonLabels:
-  app: mynginx
-  org: example.com
-  team: foo
-commonAnnotations:
-  note: This is a test annotation
 resources:
-  - service.yaml
-  - deployment.yaml
-  - networkpolicy.yaml
+- base

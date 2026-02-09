@@ -1,0 +1,2 @@
+# Ported from kustomize/api/krusty/inlinepatch_test.go TestPathWithCronJobV1
+name: patch-with-cronjob-v1

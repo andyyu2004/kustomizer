@@ -1,0 +1,4 @@
+nameSuffix: -test-api
+
+resources:
+ - deploy.yaml

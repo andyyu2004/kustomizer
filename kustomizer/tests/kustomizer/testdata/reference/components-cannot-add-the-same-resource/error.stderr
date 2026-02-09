@@ -2,3 +2,5 @@ failure merging resources from `deployment.yaml` into `tests/kustomizer/testdata
 
 Caused by:
     may not add resource with an already registered id `v1.Deployment/storefront`, consider specifying `merge` or `replace` behavior
+---
+Error: accumulating components: accumulateDirectory: "recursed accumulation of path '<dir>/tests/kustomizer/testdata/reference/components-cannot-add-the-same-resource/comp2': accumulating resources: accumulation err='merging resources from 'deployment.yaml': may not add resource with an already registered id: Deployment.v1.[noGrp]/storefront.[noNs]': must build at directory: '<dir>/tests/kustomizer/testdata/reference/components-cannot-add-the-same-resource/comp2/deployment.yaml': file is not directory"

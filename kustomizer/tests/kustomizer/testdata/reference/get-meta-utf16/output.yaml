@@ -1,0 +1,14 @@
+apiVersion: rbac.istio.io/v1alpha1
+kind: ServiceRole
+metadata:
+  name: wildcard
+  namespace: default
+  annotations:
+    foo: bar
+spec:
+  rules:
+    - services:
+        - "*"
+      methods:
+        - GET
+        - HEAD

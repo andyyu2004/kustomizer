@@ -1,0 +1,22 @@
+resources:
+- base
+
+patchesJson6902:
+- target:
+    group: apps
+    version: v1
+    kind: Deployment
+    name: my-deployment
+  path: patches/addDnsPolicy.yaml
+- target:
+    group: apps
+    version: v1
+    kind: Deployment
+    name: my-deployment
+  path: patches/addRestartPolicy.yaml
+- target:
+    group: apps
+    version: v1
+    kind: Deployment
+    name: my-deployment
+  path: patches/addProbe.yaml

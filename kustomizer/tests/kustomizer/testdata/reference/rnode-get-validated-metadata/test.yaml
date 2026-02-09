@@ -1,0 +1,2 @@
+# Ported from: kustomize/kyaml/yaml/rnode_test.go - TestRNodeGetValidatedMetadata
+# Tests that valid metadata is properly extracted from resources including Lists
