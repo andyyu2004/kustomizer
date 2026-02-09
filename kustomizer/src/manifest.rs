@@ -494,12 +494,12 @@ pub struct Pattern {
 impl Pattern {
     pub fn matches(&self, resource: &Resource) -> bool {
         resource.any_id_matches(|id| {
-            self.kind.is_match(id.kind)
-                && self.name.as_ref().is_none_or(|re| re.is_match(id.name))
+            self.kind.is_match(&id.kind)
+                && self.name.as_ref().is_none_or(|re| re.is_match(&id.name))
                 && self
                     .namespace
                     .as_ref()
-                    .is_none_or(|re| id.namespace.is_some_and(|ns| re.is_match(ns)))
+                    .is_none_or(|re| id.namespace.is_some_and(|ns| re.is_match(&ns)))
         })
     }
 }

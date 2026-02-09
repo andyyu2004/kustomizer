@@ -88,7 +88,6 @@ fn merge_obj(
                     Entry::Vacant(entry) => drop(entry.insert(value)),
                     Entry::Occupied(mut entry) => {
                         let subschema = schema.and_then(|s| s.properties.get(entry.key()));
-                        dbg!(entry.key(), subschema);
                         if !merge(spec, entry.get_mut(), value, subschema)? {
                             entry.remove();
                         }

@@ -97,31 +97,6 @@ pub struct ResId {
     pub namespace: Option<Str>,
 }
 
-pub(crate) struct ResIdRef<'a> {
-    pub kind: &'a str,
-    pub name: &'a str,
-    pub namespace: Option<&'a str>,
-}
-
-impl fmt::Debug for ResIdRef<'_> {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        if let Some(namespace) = &self.namespace {
-            write!(f, "{}/{}.{namespace}", self.kind, self.name)?;
-        } else {
-            write!(f, "{}/{}", self.kind, self.name)?;
-        }
-        Ok(())
-    }
-}
-
-impl PartialEq<ResIdRef<'_>> for ResId {
-    fn eq(&self, other: &ResIdRef<'_>) -> bool {
-        self.kind == other.kind
-            && self.name == other.name
-            && self.namespace.as_deref() == other.namespace
-    }
-}
-
 impl Deref for ResId {
     type Target = Gvk;
 
@@ -308,17 +283,13 @@ impl Resource {
             });
     }
 
-    pub(crate) fn any_id_matches(&self, p: impl FnMut(ResIdRef<'_>) -> bool) -> bool {
+    pub(crate) fn any_id_matches(&self, p: impl FnMut(ResId) -> bool) -> bool {
         self.all_ids().any(p)
     }
 
     /// Iterator over all names this resource has had, including current and previous names.
-    pub(crate) fn all_ids(&self) -> impl Iterator<Item = ResIdRef<'_>> + fmt::Debug {
-        let curr = std::iter::once(ResIdRef {
-            kind: &self.id.kind,
-            name: &self.id.name,
-            namespace: self.id.namespace.as_deref(),
-        });
+    pub(crate) fn all_ids(&self) -> impl Iterator<Item = ResId> + fmt::Debug {
+        let curr = std::iter::once(self.id.clone());
 
         let prev_names = self
             .metadata()
@@ -358,13 +329,17 @@ impl Resource {
         );
 
         curr.chain(prev_names.zip(prev_namespaces).zip(prev_kinds).map(
-            |((name, namespace), kind)| ResIdRef {
-                kind,
-                name,
+            |((name, namespace), kind)| ResId {
+                gvk: Gvk {
+                    group: self.id.group.clone(),
+                    version: self.id.version.clone(),
+                    kind: kind.into(),
+                },
+                name: name.into(),
                 namespace: if namespace.is_empty() {
                     None
                 } else {
-                    Some(namespace)
+                    Some(namespace.into())
                 },
             },
         ))

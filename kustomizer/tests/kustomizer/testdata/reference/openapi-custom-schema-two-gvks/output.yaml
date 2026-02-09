@@ -1,3 +1,4 @@
+---
 apiVersion: example.com/v1alpha1
 kind: MyCRD
 metadata:
@@ -6,13 +7,13 @@ spec:
   template:
     spec:
       containers:
-      - command: example
-        image: nginx
-        name: server
-        ports:
-        - containerPort: 8080
-          name: grpc
-          protocol: TCP
+        - name: server
+          image: nginx
+          command: example
+          ports:
+            - name: grpc
+              protocol: TCP
+              containerPort: 8080
 ---
 apiVersion: v1alpha1
 kind: MyCRD
@@ -22,10 +23,10 @@ spec:
   template:
     spec:
       containers:
-      - command: example
-        image: nginx
-        name: server
-        ports:
-        - containerPort: 8080
-          name: grpc
-          protocol: TCP
+        - name: server
+          image: nginx
+          command: example
+          ports:
+            - name: grpc
+              protocol: TCP
+              containerPort: 8080
