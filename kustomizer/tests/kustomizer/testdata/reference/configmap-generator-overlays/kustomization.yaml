@@ -1,0 +1,9 @@
+resources:
+- overlay/o1
+- overlay/o2
+configMapGenerator:
+- name: com1
+  behavior: merge
+  literals:
+  - foo=bar
+  - baz=qux

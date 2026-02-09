@@ -1,0 +1,4 @@
+configMapGenerator:
+  - name: test
+    literals:
+      - TEST=this is a 'test'

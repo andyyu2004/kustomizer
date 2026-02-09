@@ -1,0 +1,7 @@
+resources:
+- ../../base1
+configMapGenerator:
+- name: com1
+  behavior: merge
+  literals:
+  - from=overlay
