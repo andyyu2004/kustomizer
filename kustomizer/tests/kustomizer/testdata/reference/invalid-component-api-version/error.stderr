@@ -2,3 +2,5 @@ loading component `comp`
 
 Caused by:
     expected `kustomize.config.k8s.io/v1alpha1`, found `invalid/v1`
+---
+Error: accumulating components: accumulateDirectory: "couldn't make target for path '<dir>/tests/kustomizer/testdata/reference/invalid-component-api-version/comp': Failed to read kustomization file under <dir>/tests/kustomizer/testdata/reference/invalid-component-api-version/comp:\napiVersion for Component should be kustomize.config.k8s.io/v1alpha1"

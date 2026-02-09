@@ -56,10 +56,13 @@ async fn test(path: &Path) -> datatest_stable::Result<()> {
             diff_reference_impl(base_path, &actual)?;
         }
         (Err(err), TestKind::Fail) => {
-            show_reference_impl_error(base_path)
+            let stderr = reference_impl_error(base_path)
                 .with_context(|| format!("kustomizer error {err:?} at {}", path.pretty()))?;
 
-            let res = snapshot(&error_snapshot_path, &clean_error(&format!("{err:?}")));
+            let res = snapshot(
+                &error_snapshot_path,
+                &clean_error(&format!("{err:?}\n---\n{stderr}")),
+            );
             if success_snapshot_path.exists() {
                 if should_update_snapshots() {
                     std::fs::remove_file(&success_snapshot_path)
@@ -99,7 +102,7 @@ fn clean_error(error: &str) -> String {
 }
 
 // Diff against reference kustomize implementation
-fn show_reference_impl_error(path: &Path) -> anyhow::Result<()> {
+fn reference_impl_error(path: &Path) -> anyhow::Result<String> {
     let output = std::process::Command::new("kustomize")
         .arg("build")
         .arg("--load-restrictor=LoadRestrictionsNone")
@@ -119,9 +122,7 @@ fn show_reference_impl_error(path: &Path) -> anyhow::Result<()> {
         ))?;
     }
 
-    let stderr = String::from_utf8_lossy(&output.stderr);
-    eprintln!("{stderr}");
-    Ok(())
+    Ok(String::from_utf8_lossy(&output.stderr).into_owned())
 }
 
 fn snapshot(path: &Path, actual: &str) -> datatest_stable::Result<()> {

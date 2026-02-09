@@ -2,3 +2,5 @@ loading component `deployment.yaml`
 
 Caused by:
     path is not a kustomization.yaml file: tests/kustomizer/testdata/reference/files-cannot-be-added-to-components-list/deployment.yaml
+---
+Error: accumulating components: loader.New "must build at directory: '<dir>/tests/kustomizer/testdata/reference/files-cannot-be-added-to-components-list/deployment.yaml': file is not directory"

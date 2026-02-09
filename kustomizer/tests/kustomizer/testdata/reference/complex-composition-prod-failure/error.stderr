@@ -2,3 +2,7 @@ failure merging resources from `./tolerations` into `tests/kustomizer/testdata/r
 
 Caused by:
     may not add resource with an already registered id `apps.v1.StatefulSet/my-sts`, consider specifying `merge` or `replace` behavior
+---
+# Warning: 'patchesStrategicMerge' is deprecated. Please use 'patches' instead. Run 'kustomize edit fix' to update your Kustomization automatically.
+# Warning: 'patchesStrategicMerge' is deprecated. Please use 'patches' instead. Run 'kustomize edit fix' to update your Kustomization automatically.
+Error: accumulating resources: accumulation err='accumulating resources from './tolerations': read <dir>/tests/kustomizer/testdata/reference/complex-composition-prod-failure/tolerations: is a directory': recursed merging from path '<dir>/tests/kustomizer/testdata/reference/complex-composition-prod-failure/tolerations': may not add resource with an already registered id: StatefulSet.v1.apps/my-sts.[noNs]

@@ -3,3 +3,5 @@ building kustomization resource tests/kustomizer/testdata/reference/repeat-base/
 Caused by:
     0: failure merging resources from `../canary` into `tests/kustomizer/testdata/reference/repeat-base/mango/kustomization.yaml`
     1: may not add resource with an already registered id `apps.v1.Deployment/banana`, consider specifying `merge` or `replace` behavior
+---
+Error: accumulating resources: accumulation err='accumulating resources from 'mango': read <dir>/tests/kustomizer/testdata/reference/repeat-base/mango: is a directory': recursed accumulation of path '<dir>/tests/kustomizer/testdata/reference/repeat-base/mango': no resource matches strategic merge patch "Deployment.v1.apps/banana.[noNs]": multiple matches for Id Deployment.v1.apps/banana.[noNs]; failed to find unique target for patch Deployment.v1.apps/banana.[noNs]

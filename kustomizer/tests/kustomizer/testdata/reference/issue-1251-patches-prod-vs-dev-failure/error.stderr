@@ -1,4 +1,11 @@
-parsing inline strategic merge patch at <current_dir>/tests/kustomizer/testdata/reference/issue-1251-patches-prod-vs-dev-failure/kustomization.yaml
+parsing inline strategic merge patch at <dir>/tests/kustomizer/testdata/reference/issue-1251-patches-prod-vs-dev-failure/kustomization.yaml
 
 Caused by:
     parsing resource: unexpected event: expected mapping start at line 1, column 1
+---
+# Warning: 'patchesStrategicMerge' is deprecated. Please use 'patches' instead. Run 'kustomize edit fix' to update your Kustomization automatically.
+Error: trouble configuring builtin PatchStrategicMergeTransformer with config: `
+paths:
+- ../patches/patchAddProbe.yaml
+- ../patches/patchDnsPolicy.yaml
+`: open <dir>/tests/kustomizer/testdata/reference/patches/patchAddProbe.yaml: no such file or directory

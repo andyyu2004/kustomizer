@@ -3,3 +3,5 @@ load kustomization resource tests/kustomizer/testdata/reference/base-must-have-k
 Caused by:
     0: loading manifest from path tests/kustomizer/testdata/reference/base-must-have-kustomization-file/base/kustomization.yaml
     1: No such file or directory (os error 2)
+---
+Error: accumulating resources: accumulation err='accumulating resources from 'base': read <dir>/tests/kustomizer/testdata/reference/base-must-have-kustomization-file/base: is a directory': couldn't make target for path '<dir>/tests/kustomizer/testdata/reference/base-must-have-kustomization-file/base': unable to find one of 'kustomization.yaml', 'kustomization.yml' or 'Kustomization' in directory '<dir>/tests/kustomizer/testdata/reference/base-must-have-kustomization-file/base'

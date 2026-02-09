@@ -2,3 +2,6 @@ load resource tests/kustomizer/testdata/reference/duplicate-keys/resources.yaml
 
 Caused by:
     parsing resource: duplicate mapping key: env at line 19, column 9
+---
+Error: map[string]interface {}(nil): yaml: unmarshal errors:
+  line 19: mapping key "env" already defined at line 16

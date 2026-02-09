@@ -1,1 +1,4 @@
 both kustomization.yaml and kustomization.yml exist in directory: tests/kustomizer/testdata/reference/target-must-have-only-one-kustomization-file
+---
+Error: Found multiple kustomization files under: <dir>/tests/kustomizer/testdata/reference/target-must-have-only-one-kustomization-file
+

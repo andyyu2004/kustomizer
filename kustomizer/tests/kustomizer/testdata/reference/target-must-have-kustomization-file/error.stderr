@@ -2,3 +2,5 @@ loading manifest from path tests/kustomizer/testdata/reference/target-must-have-
 
 Caused by:
     No such file or directory (os error 2)
+---
+Error: unable to find one of 'kustomization.yaml', 'kustomization.yml' or 'Kustomization' in directory '<dir>/tests/kustomizer/testdata/reference/target-must-have-kustomization-file'
