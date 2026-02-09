@@ -1,0 +1,2 @@
+name: extended-patch-name-gvk-selector
+# Source: kustomize/api/krusty/extendedpatch_test.go::TestExtendedPatchNameGvkSelector
