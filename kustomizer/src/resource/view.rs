@@ -3,6 +3,7 @@ use serde::Deserialize as _;
 
 use crate::{
     manifest::{Behavior, FunctionSpec},
+    selector::StringMap,
     yaml,
 };
 
@@ -91,6 +92,16 @@ impl<'a> LabelsView<'a> {
     }
 }
 
+impl StringMap for LabelsView<'_> {
+    fn get(&self, key: &str) -> Option<&str> {
+        self.get(key)
+    }
+
+    fn has(&self, key: &str) -> bool {
+        self.has(key)
+    }
+}
+
 #[derive(Debug)]
 pub struct AnnotationsView<'a>(&'a Object);
 
@@ -135,6 +146,16 @@ impl<'a> AnnotationsView<'a> {
             }
             None => Ok(None),
         }
+    }
+}
+
+impl StringMap for AnnotationsView<'_> {
+    fn get(&self, key: &str) -> Option<&str> {
+        self.get(key)
+    }
+
+    fn has(&self, key: &str) -> bool {
+        self.has(key)
     }
 }
 
