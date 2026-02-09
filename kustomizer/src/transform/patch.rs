@@ -6,7 +6,6 @@ use dashmap::DashMap;
 use crate::{
     Located, PathExt, PathId,
     manifest::{Manifest, Patch, Target},
-    patch::openapi,
     resmap::ResourceMap,
     resource::{GvkMatcher, Resource},
     yaml,
@@ -20,11 +19,10 @@ static PATCH_CACHE: LazyLock<DashMap<PathId, JsonPatch>> = LazyLock::new(Default
 pub struct PatchTransformer<'a, A, K> {
     manifest: &'a Located<Manifest<A, K>>,
     patches: &'a [Patch],
-    spec: Option<&'a openapi::v2::Spec>,
 }
 
 impl<'a, A, K> PatchTransformer<'a, A, K> {
-    pub fn new(manifest: &'a Located<Manifest<A, K>>, spec: Option<&'a openapi::v2::Spec>) -> Self {
+    pub fn new(manifest: &'a Located<Manifest<A, K>>) -> Self {
         assert!(
             manifest.patches_strategic_merge.is_empty(),
             "patchesStrategicMerge should be translated to patches"
@@ -38,7 +36,6 @@ impl<'a, A, K> PatchTransformer<'a, A, K> {
         Self {
             patches: &manifest.patches,
             manifest,
-            spec,
         }
     }
 
@@ -87,7 +84,7 @@ impl<'a, A, K> PatchTransformer<'a, A, K> {
             }
         }
 
-        resource.patch(patch, self.spec)
+        resource.patch(patch)
     }
 }
 

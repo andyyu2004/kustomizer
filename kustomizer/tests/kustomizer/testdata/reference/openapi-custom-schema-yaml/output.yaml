@@ -7,4 +7,11 @@ spec:
     spec:
       containers:
         - name: server
+          image: server
+          command: example
+          ports:
+            - name: grpc
+              protocol: TCP
+              containerPort: 8080
+        - name: server
           image: nginx

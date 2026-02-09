@@ -13,7 +13,7 @@ pub struct NamespaceTransformer(pub Str);
 impl Transformer for NamespaceTransformer {
     #[tracing::instrument(skip_all, name = "namespace_transform", fields(namespace = %self.0))]
     async fn transform(&mut self, resources: &mut ResourceMap) -> anyhow::Result<()> {
-        let spec = openapi::v2::Spec::load_default();
+        let spec = openapi::v2::Spec::load_global_default();
         let builtin = &fieldspec::Builtin::load();
         let target_namespace = self.0.to_string();
 

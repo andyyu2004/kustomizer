@@ -24,6 +24,7 @@ pub use self::resmap::ResourceMap;
 
 use self::{
     manifest::{Component, Kustomization, Label, Manifest, Patch, Symbol, kind},
+    patch::openapi,
     resource::Resource,
 };
 
@@ -150,6 +151,10 @@ where
         });
     }
     manifest.labels = labels.into_boxed_slice();
+
+    if let Some(path) = manifest.openapi.as_ref().map(|api| &api.path) {
+        openapi::v2::Spec::set_global_default_path(parent_path.join(path))?;
+    }
 
     Ok(Located {
         value: manifest,

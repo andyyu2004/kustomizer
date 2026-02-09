@@ -13,9 +13,13 @@ use crate::{
 
 const SPEC_1_32_V2: &[u8] = include_bytes!("./openapi-v2-kubernetes-1.32-minimized.json");
 
+static SCHEMA_OVERRIDE_PATH: OnceLock<path::PathBuf> = OnceLock::new();
+
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct Spec {
+    #[serde(default)]
     definitions: IndexMap<TypeMeta, Type>,
+    #[serde(default)]
     paths: IndexMap<String, Path>,
     #[serde(skip)]
     namespaced: OnceLock<HashSet<TypeMeta>>,
@@ -115,9 +119,33 @@ impl Spec {
         inner(path.as_ref())
     }
 
-    pub fn load_default() -> &'static Self {
+    pub fn set_global_default_path(path: impl AsRef<path::Path>) -> anyhow::Result<()> {
+        let path = path.as_ref();
+        let path = path.canonicalize().with_context(|| {
+            format!(
+                "canonicalizing global default spec path `{}`",
+                path.display()
+            )
+        })?;
+
+        SCHEMA_OVERRIDE_PATH.set(path).map_err(|_| {
+            anyhow::anyhow!(
+                "global default spec path is already set, `openapi.path` can only be set once"
+            )
+        })
+    }
+
+    pub fn load_global_default() -> &'static Self {
         static CACHE: OnceLock<Spec> = OnceLock::new();
         CACHE.get_or_init(|| {
+            if let Some(path) = SCHEMA_OVERRIDE_PATH.get() {
+                eprintln!(
+                    "Loading OpenAPI spec from override path: {}",
+                    path.display()
+                );
+                return Self::load(path).expect("failed to load OpenAPI spec from override path");
+            }
+
             json::from_reader(SPEC_1_32_V2).expect("test should guarantee this is valid")
         })
     }
@@ -449,7 +477,7 @@ mod tests {
         )?;
 
         // Ensure the spec can be loaded
-        let loaded_spec = super::Spec::load_default();
+        let loaded_spec = super::Spec::load_global_default();
         let a = "/tmp/alice.json";
         let b = "/tmp/bob.json";
         if loaded_spec != &spec {
@@ -465,6 +493,6 @@ mod tests {
 
     #[test]
     fn check_openapi_spec() {
-        super::Spec::load_default();
+        super::Spec::load_global_default();
     }
 }

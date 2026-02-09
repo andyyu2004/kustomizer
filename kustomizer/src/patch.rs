@@ -42,12 +42,8 @@ pub enum ListType {
 type ShouldRetain = bool;
 
 #[tracing::instrument(skip_all, fields(resource = %base.id()))]
-pub fn merge_patch(
-    base: &mut Resource,
-    patch: Resource,
-    spec: Option<&Spec>,
-) -> anyhow::Result<ShouldRetain> {
-    let spec = spec.unwrap_or_else(|| Spec::load_default());
+pub fn merge_patch(base: &mut Resource, patch: Resource) -> anyhow::Result<ShouldRetain> {
+    let spec = Spec::load_global_default();
     let schema = spec.schema_for(base.gvk());
     let (_patch_id, mut patch_root) = patch.into_parts();
 
