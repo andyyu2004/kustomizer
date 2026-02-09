@@ -1,0 +1,2 @@
+# Source: TestIssue3393 from configmaps_test.go:272
+# Merging configMapGenerator with existing ConfigMap resource (issue #3393)

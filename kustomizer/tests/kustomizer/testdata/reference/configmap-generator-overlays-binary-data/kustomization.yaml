@@ -1,0 +1,5 @@
+resources:
+- base
+configMapGenerator:
+- name: com1
+  behavior: merge
