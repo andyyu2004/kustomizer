@@ -146,6 +146,7 @@ where
             pairs: mem::take(&mut manifest.common_labels),
             include_selectors: true,
             include_templates: false,
+            fields: Default::default(),
         });
     }
     manifest.labels = labels.into_boxed_slice();

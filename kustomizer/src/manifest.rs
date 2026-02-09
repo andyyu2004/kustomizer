@@ -4,6 +4,7 @@ use regex::Regex;
 use std::{path::PathBuf, sync::LazyLock};
 
 use crate::{
+    fieldspec::FieldSpec,
     resource::{Metadata, Resource},
     selector::Selector,
     yaml,
@@ -526,6 +527,8 @@ pub struct Label {
     pub include_selectors: bool,
     #[serde(default, skip_serializing_if = "std::ops::Not::not")]
     pub include_templates: bool,
+    #[serde(default, skip_serializing_if = "<[_]>::is_empty")]
+    pub fields: Box<[FieldSpec]>,
 }
 
 pub mod kind {

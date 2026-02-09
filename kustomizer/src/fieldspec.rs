@@ -1,7 +1,10 @@
 mod builtin;
 
 use core::fmt;
-use std::{ops::Deref, str::FromStr};
+use std::{
+    ops::{Deref, DerefMut},
+    str::FromStr,
+};
 
 pub use self::builtin::Builtin;
 
@@ -135,10 +138,16 @@ pub struct FieldSpecs {
 }
 
 impl Deref for FieldSpecs {
-    type Target = [FieldSpec];
+    type Target = Vec<FieldSpec>;
 
     fn deref(&self) -> &Self::Target {
         &self.specs
+    }
+}
+
+impl DerefMut for FieldSpecs {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.specs
     }
 }
 
