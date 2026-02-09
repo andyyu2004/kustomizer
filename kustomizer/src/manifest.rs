@@ -457,8 +457,9 @@ pub enum Target {
 impl Target {
     pub fn matches(&self, resource: &Resource) -> bool {
         match self {
-            Target::LabelSelector(_) | Target::AnnotationSelector(_) => {
-                todo!("kube selectors not implemented yet")
+            Target::LabelSelector(selector) => selector.matches(resource.labels().as_ref()),
+            Target::AnnotationSelector(selector) => {
+                selector.matches(resource.annotations().as_ref())
             }
             Target::Pattern(pat) => pat.matches(resource),
         }

@@ -1,4 +1,2 @@
-kind: fail
 # Source: TestExtendedPatchLabelSelector from extendedpatch_test.go:295
 # Extended patch with label selector
-# Bug: kube selectors not implemented yet

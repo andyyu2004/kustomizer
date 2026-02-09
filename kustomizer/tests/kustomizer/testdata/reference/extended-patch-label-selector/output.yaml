@@ -1,3 +1,4 @@
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -10,8 +11,8 @@ spec:
   template:
     spec:
       containers:
-      - name: nginx
-        image: nginx
+        - name: nginx
+          image: nginx
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -23,5 +24,5 @@ spec:
   template:
     spec:
       containers:
-      - name: busybox
-        image: busybox
+        - name: busybox
+          image: busybox

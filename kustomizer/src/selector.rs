@@ -17,6 +17,36 @@ pub enum Selector {
     All(Vec<Selector>),
 }
 
+pub trait StringMap {
+    fn get(&self, key: &str) -> Option<&str>;
+
+    fn has(&self, key: &str) -> bool;
+}
+
+impl<T: StringMap + ?Sized> StringMap for &T {
+    fn get(&self, key: &str) -> Option<&str> {
+        (*self).get(key)
+    }
+
+    fn has(&self, key: &str) -> bool {
+        (*self).has(key)
+    }
+}
+
+impl Selector {
+    pub(crate) fn matches(&self, map: Option<&impl StringMap>) -> bool {
+        let Some(m) = map else { return false };
+        match self {
+            Selector::Equality(key, value) => m.get(key).is_some_and(|v| v == value),
+            Selector::Inequality(key, value) => m.get(key).is_some_and(|v| v != value),
+            Selector::SetInclusion(key, values) => m.get(key).is_some_and(|v| values.contains(v)),
+            Selector::SetExclusion(key, values) => m.get(key).is_some_and(|v| !values.contains(v)),
+            Selector::Existence(key) => m.has(key),
+            Selector::All(selectors) => selectors.iter().all(|s| s.matches(map)),
+        }
+    }
+}
+
 struct Parser<'s> {
     lexer: Lexer<'s>,
 }
