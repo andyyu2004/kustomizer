@@ -1,0 +1,9 @@
+resources:
+- deployment.yaml
+- service.yaml
+patches:
+- path: patch.yaml
+  target:
+    name: busybox
+    kind: Deployment
+    labelSelector: app=busybox
