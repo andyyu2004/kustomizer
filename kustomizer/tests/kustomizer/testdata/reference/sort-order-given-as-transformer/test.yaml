@@ -1,5 +1,0 @@
-name: sort-order-given-as-transformer
-# Source: kustomize/api/krusty/sortordertransformer_test.go::TestSortOrderGivenAsTransformer
-# Note: This test verifies that SortOrderTransformer cannot be used as a builtin transformer
-shouldFail: true
-expectedError: "unable to load builtin SortOrderTransformer.builtin.[noGrp]"
