@@ -1,4 +1,0 @@
-# components-can-add-the-same-base-if-the-first-renames-resources
-# Source: kustomize/api/krusty/component_test.go TestComponent
-# See how nameSuffix "-b" is also added to the resources included by "comp-a" because they are in the
-# accumulator when "comp-b" is accumulated. In practice we could use simple Kustomizations for this example.
