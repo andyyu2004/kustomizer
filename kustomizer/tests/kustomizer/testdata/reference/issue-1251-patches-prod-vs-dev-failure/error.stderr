@@ -1,4 +1,4 @@
-parsing inline strategic merge patch at /home/andy/dev/kustomizer/kustomizer/tests/kustomizer/testdata/reference/issue-1251-patches-prod-vs-dev-failure/kustomization.yaml
+parsing inline strategic merge patch at <current_dir>/tests/kustomizer/testdata/reference/issue-1251-patches-prod-vs-dev-failure/kustomization.yaml
 
 Caused by:
     parsing resource: unexpected event: expected mapping start at line 1, column 1
