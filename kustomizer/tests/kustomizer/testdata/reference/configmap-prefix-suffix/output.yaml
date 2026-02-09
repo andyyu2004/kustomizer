@@ -1,0 +1,36 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: a-api
+spec:
+  template:
+    spec:
+      containers:
+        - name: app
+          envFrom:
+            - configMapRef:
+                name: a-example-configmap-6ct58987ht
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: a-example-configmap-6ct58987ht
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: b-api
+spec:
+  template:
+    spec:
+      containers:
+        - name: app
+          envFrom:
+            - configMapRef:
+                name: b-example-configmap-6ct58987ht
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: b-example-configmap-6ct58987ht

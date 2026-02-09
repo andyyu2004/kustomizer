@@ -1,0 +1,2 @@
+# Source: TestPrefixSuffix2 from configmaps_test.go:620
+# Regression test for issue #5047 - ConfigMap with dash prefix (variant 2)
