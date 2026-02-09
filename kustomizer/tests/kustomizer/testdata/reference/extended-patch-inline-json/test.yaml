@@ -1,0 +1,2 @@
+# Ported from kustomize/api/krusty/inlinepatch_test.go TestExtendedPatchInlineJSON
+name: extended-patch-inline-json
