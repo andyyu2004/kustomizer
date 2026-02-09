@@ -1,0 +1,5 @@
+resources:
+- ../base
+- https-svc.yaml
+patchesStrategicMerge:
+- sts-patch.yaml

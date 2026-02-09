@@ -1,0 +1,3 @@
+kind: fail
+# Source: kustomize/api/krusty/complexcomposition_test.go::TestComplexComposition_Dev_Failure
+# Tests that combining storage and config overlays fails with already registered id error

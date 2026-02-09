@@ -1,0 +1,3 @@
+kind: fail
+# Source: kustomize/api/krusty/complexcomposition_test.go::TestComplexComposition_Prod_Failure
+# Tests that combining config, tolerations, and https overlays fails with already registered id error

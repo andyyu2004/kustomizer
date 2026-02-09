@@ -1,0 +1,4 @@
+failure merging resources from `./config` into `tests/kustomizer/testdata/reference/complex-composition-dev-failure/kustomization.yaml`
+
+Caused by:
+    may not add resource with an already registered id `apps.v1.StatefulSet/my-sts`, consider specifying `merge` or `replace` behavior
