@@ -1,0 +1,3 @@
+name: issue-1251-patches-dev
+# Source: kustomize/api/krusty/diamondcomposition_test.go:TestIssue1251_Patches_ProdVsDev (dev scenario)
+# Tests dev environment with dns and restart patches
