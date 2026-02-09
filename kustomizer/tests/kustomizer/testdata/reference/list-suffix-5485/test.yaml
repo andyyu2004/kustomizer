@@ -1,2 +1,4 @@
 name: list-suffix-5485
-# Ported from: kustomize/api/krusty/no_list_items_test.go - "TestListSuffix5485"
+# Ported from kustomize/api/krusty/no_list_items_test.go TestListSuffix5485
+# Test for https://github.com/kubernetes-sigs/kustomize/issues/5485
+# Ensures AccessWhiteList resource with rules field is preserved correctly

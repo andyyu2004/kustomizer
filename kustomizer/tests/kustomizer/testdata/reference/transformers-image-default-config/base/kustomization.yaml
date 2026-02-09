@@ -1,0 +1,22 @@
+resources:
+- deploy1.yaml
+- random.yaml
+images:
+- name: nginx
+  newTag: v2
+- name: my-nginx
+  newTag: previous
+- name: myprivaterepohostname:1234/my/image
+  newTag: v1.0.1
+- name: foobar
+  digest: sha256:24a0c4b4
+- name: alpine
+  newName: myprivaterepohostname:1234/my/cool-alpine
+- name: gcr.io:8080/my-project/my-cool-app
+  newName: my-cool-app
+- name: postgres
+  newName: my-postgres
+  newTag: v3
+- name: docker
+  newName: my-docker
+  digest: sha256:25a0d4b4
