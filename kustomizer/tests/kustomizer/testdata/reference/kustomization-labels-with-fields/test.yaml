@@ -1,3 +1,2 @@
 # Source: TestKustomizationLabels from inlinelabels_test.go:32
 # Labels transformer with fields option for custom field paths
-# Bug: fields option not supported - unknown field 'fields'
