@@ -1,0 +1,14 @@
+apiVersion: rbac.istio.io/v1alpha1
+kind: ServiceRole
+metadata:
+  name: wildcard
+  namespace: default
+  # If set to ["*"], it refers to all services in the namespace
+  annotations:
+    foo: bar
+spec:
+  rules:
+    # There is one service in default namespace, should not result in a validation error
+    # If set to ["*"], it refers to all services in the namespace
+    - services: ["*"]
+      methods: ["GET", "HEAD"]
