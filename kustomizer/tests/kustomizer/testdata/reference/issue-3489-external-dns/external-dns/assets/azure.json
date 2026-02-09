@@ -1,0 +1,7 @@
+{
+	"tenantId": "XXXXX-XXXXXX-XXXXX-XXXXXX-XXXXXX",
+	"subscriptionId": "XXXXX-XXXXXX-XXXXX-XXXXXX-XXXXXX",
+	"resourceGroup": "DNS-EUW-XXX-RG",
+	"useManagedIdentityExtension": true,
+	"userAssignedIdentityID": "XXXXX-XXXXXX-XXXXX-XXXXXX-XXXXXX"
+}

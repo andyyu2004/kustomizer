@@ -1,0 +1,4 @@
+# Source: TestBackReferenceAdmissionPolicy from namereference_test.go
+# Tests that ValidatingAdmissionPolicyBinding correctly references
+# ValidatingAdmissionPolicy when name transformations are applied
+kind: success
