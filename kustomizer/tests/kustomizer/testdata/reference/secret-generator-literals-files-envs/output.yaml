@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: bob-bh645k7tmg
+data:
+  FRUIT: YXBwbGU=
+  VEGETABLE: Y2Fycm90
+  foo.env: Ck1PVU5UQUlOPWV2ZXJlc3QKT0NFQU49cGFjaWZpYwo=
+  passphrase: ZGF0IHBocmFzZQ==
+  MOUNTAIN: ZXZlcmVzdA==
+  OCEAN: cGFjaWZpYw==
+type: Opaque

@@ -1,0 +1,10 @@
+secretGenerator:
+- name: bob
+  literals:
+  - FRUIT=apple
+  - VEGETABLE=carrot
+  files:
+  - foo.env
+  - passphrase=phrase.dat
+  envs:
+  - foo.env
