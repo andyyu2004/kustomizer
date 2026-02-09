@@ -1,0 +1,5 @@
+resources:
+- resources.yaml
+
+transformers:
+- sort_order.yaml

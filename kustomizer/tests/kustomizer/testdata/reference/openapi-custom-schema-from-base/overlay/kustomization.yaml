@@ -1,0 +1,14 @@
+resources:
+- ../base
+patchesStrategicMerge:
+- |-
+  apiVersion: example.com/v1alpha1
+  kind: MyCRD
+  metadata:
+    name: service
+  spec:
+    template:
+      spec:
+        containers:
+        - name: server
+          image: nginx

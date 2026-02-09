@@ -1,0 +1,4 @@
+resources:
+- mycrd.yaml
+openapi:
+  path: mycrd_schema.json

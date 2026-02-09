@@ -1,0 +1,6 @@
+kind: Service
+metadata:
+  name: myService
+spec:
+  ports:
+  - port: 7002
