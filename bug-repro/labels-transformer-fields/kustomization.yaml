@@ -1,0 +1,17 @@
+resources:
+- deployment.yaml
+
+labels:
+- pairs:
+    foo: bar
+- pairs:
+    a: b
+  includeSelectors: true
+- pairs:
+    c: d
+  fields:
+  - path: spec/selector
+    group: example.dev
+    version: v1
+    kind: MyCRD
+    create: true

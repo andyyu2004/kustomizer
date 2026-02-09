@@ -1,0 +1,36 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: my-deployment
+  labels:
+    foo: bar
+    a: b
+    c: d
+spec:
+  template:
+    spec:
+      containers:
+        - name: my-deployment
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 8080
+    metadata:
+      labels:
+        a: b
+  selector:
+    matchLabels:
+      a: b
+---
+apiVersion: example.dev/v1
+kind: MyCRD
+metadata:
+  name: crd
+  labels:
+    foo: bar
+    a: b
+    c: d
+spec:
+  selector:
+    c: d

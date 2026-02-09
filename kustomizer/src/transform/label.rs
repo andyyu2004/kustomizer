@@ -40,6 +40,7 @@ impl<'a, 'de> serde::Deserialize<'de> for LabelTransformer<'a> {
             pairs: labels.labels,
             include_selectors: Default::default(),
             include_templates: Default::default(),
+            fields: Default::default(),
         }]))
     }
 }
@@ -71,6 +72,12 @@ impl Transformer for LabelTransformer<'_> {
                 (false, true) => &builtins.template_labels,
                 (false, false) => &builtins.metadata_labels,
             };
+
+            let mut field_specs = Cow::Borrowed(field_specs);
+
+            if !label.fields.is_empty() {
+                field_specs.to_mut().extend(label.fields.iter().cloned());
+            }
 
             for resource in resources.iter_mut() {
                 field_specs.apply::<Object>(resource, |l| {

@@ -1,3 +1,2 @@
 name: json-patch-inline
 # Ported from: kustomize/api/krusty/inlinepatch_test.go - "TestJSONPatchInline"
-# BUG: patchesJson6902 should be supported but is failing with "missing field `path`"
