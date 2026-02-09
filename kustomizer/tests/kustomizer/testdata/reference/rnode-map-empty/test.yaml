@@ -1,0 +1,2 @@
+# Ported from: kustomize/kyaml/yaml/rnode_test.go - TestRNodeMapEmpty
+# Tests that empty resources are handled correctly
