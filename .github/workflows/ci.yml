@@ -30,8 +30,8 @@ jobs:
       - name: Run cargo clippy
         run: nix develop --command cargo clippy --all-targets --all-features -- -D warnings
 
-      - name: Run cargo test
-        run: nix develop --command cargo test --verbose
+      - name: Run cargo nextest
+        run: nix develop --command cargo nextest run --verbose
 
   # benchmark:
   #   name: Bench
