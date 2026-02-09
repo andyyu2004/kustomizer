@@ -1,0 +1,9 @@
+- op: replace
+  path: /spec/template/spec/containers/0
+  value:
+    image: my-image
+    livenessProbe:
+      httpGet:
+        path: /healthz
+        port: 8080
+    name: my-deployment
