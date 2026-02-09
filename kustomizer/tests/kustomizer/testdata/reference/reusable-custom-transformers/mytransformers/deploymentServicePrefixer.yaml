@@ -1,0 +1,10 @@
+apiVersion: builtin
+kind: PrefixSuffixTransformer
+metadata:
+  name: myPrefixer
+prefix: bob-
+fieldSpecs:
+- kind: Deployment
+  path: metadata/name
+- kind: Service
+  path: metadata/name

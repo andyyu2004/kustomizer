@@ -1,0 +1,10 @@
+apiVersion: builtin
+kind: LabelTransformer
+metadata:
+  name: myLabeller
+labels:
+  pager: 867-5301
+fieldSpecs:
+- path: metadata/labels
+  create: true
+  kind: Deployment

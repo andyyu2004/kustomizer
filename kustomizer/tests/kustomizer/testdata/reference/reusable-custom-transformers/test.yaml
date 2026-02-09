@@ -1,0 +1,3 @@
+# Ported from kustomize/api/krusty/customconfigreusable_test.go TestReusableCustomTransformers
+name: reusable-custom-transformers
+dir: staging

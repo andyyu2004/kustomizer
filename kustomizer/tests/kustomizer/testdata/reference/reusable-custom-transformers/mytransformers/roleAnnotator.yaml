@@ -1,0 +1,11 @@
+apiVersion: builtin
+kind: AnnotationsTransformer
+metadata:
+  name: myAnnotator
+annotations:
+  # Imagine that SRE has not approved this role yet.
+  status: probationary
+fieldSpecs:
+- path: metadata/annotations
+  create: true
+  kind: Role
