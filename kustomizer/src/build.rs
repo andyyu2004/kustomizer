@@ -5,6 +5,7 @@ use crate::{
     generator::{ConfigMapGenerator, Generator as _, SecretGenerator},
     load_component, load_kustomization,
     manifest::{Kustomization, Manifest, Symbol},
+    patch::openapi,
     plugin::FunctionPlugin,
     reslist::ResourceList,
     resmap::ResourceMap,
@@ -27,6 +28,7 @@ const KUSTOMIZE_FUNCTION_ANNOTATION: &str = "config.kubernetes.io/function";
 #[derive(Debug, Default)]
 pub struct Builder {
     resources_cache: Mutex<IndexMap<PathId, Box<[Resource]>>>,
+    openapi_spec_cache: Mutex<IndexMap<PathId, openapi::v2::Spec>>,
 }
 
 impl Builder {
@@ -95,7 +97,25 @@ impl Builder {
         }
 
         if !kustomization.patches.is_empty() {
-            PatchTransformer::new(kustomization)
+            let mut guard = self.openapi_spec_cache.lock().await;
+            let spec = if let Some(path) = kustomization.openapi.as_ref().map(|api| &api.path) {
+                let path = PathId::make(kustomization.parent_path.join(path))?;
+                let spec = match guard.entry(path) {
+                    Entry::Occupied(entry) => entry.into_mut(),
+                    Entry::Vacant(entry) => match openapi::v2::Spec::load(path) {
+                        Ok(spec) => entry.insert(spec),
+                        Err(err) => bail!(
+                            "loading custom OpenAPI spec for patches from `{}`: {err}",
+                            path.pretty()
+                        ),
+                    },
+                };
+                Some(spec)
+            } else {
+                None
+            };
+
+            PatchTransformer::new(kustomization, spec.as_deref())
                 .transform(resmap)
                 .await?;
         }

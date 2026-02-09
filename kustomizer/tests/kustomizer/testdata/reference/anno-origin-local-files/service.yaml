@@ -3,4 +3,4 @@ metadata:
   name: myService
 spec:
   ports:
-  - port: 7002
+    - port: 7002

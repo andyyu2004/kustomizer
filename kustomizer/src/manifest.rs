@@ -23,6 +23,7 @@ pub type Component = Manifest<apiversion::V1Alpha1, kind::Component>;
 pub struct Manifest<A, K> {
     #[serde(flatten)]
     pub type_meta: TypeMeta<A, K>,
+    pub openapi: Option<OpenApi>,
     #[serde(default)]
     pub metadata: Metadata,
     #[serde(default, skip_serializing_if = "<[_]>::is_empty")]
@@ -78,6 +79,11 @@ pub struct Manifest<A, K> {
     pub images: Box<[ImageTag]>,
     #[serde(default, skip_serializing_if = "<[_]>::is_empty")]
     pub replicas: Box<[Replica]>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize)]
+pub struct OpenApi {
+    pub path: PathBuf,
 }
 
 /// An annotation value. Kustomize supports loading from boolean, string, and number.

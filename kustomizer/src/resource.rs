@@ -19,7 +19,7 @@ use std::path::Path;
 use crate::{
     PathExt, PathId,
     manifest::{Annotation, Behavior, FunctionSpec, Str},
-    patch::merge_patch,
+    patch::{merge_patch, openapi},
     yaml,
 };
 
@@ -403,8 +403,8 @@ impl Resource {
     }
 
     /// Returns `false` if the resource should be deleted due to the patch.
-    pub fn patch(&mut self, patch: Self) -> anyhow::Result<bool> {
-        merge_patch(self, patch)
+    pub fn patch(&mut self, patch: Self, spec: Option<&openapi::v2::Spec>) -> anyhow::Result<bool> {
+        merge_patch(self, patch, spec)
             .with_context(|| format!("applying patch to resource `{}`", self.id))
     }
 

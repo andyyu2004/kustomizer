@@ -6,10 +6,5 @@ spec:
   template:
     spec:
       containers:
-      - command: example
-        image: nginx
-        name: server
-        ports:
-        - containerPort: 8080
-          name: grpc
-          protocol: TCP
+        - name: server
+          image: nginx

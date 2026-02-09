@@ -1,5 +1,6 @@
-use std::{collections::HashSet, fmt, str::FromStr, sync::OnceLock};
+use std::{collections::HashSet, fmt, fs::File, path, str::FromStr, sync::OnceLock};
 
+use anyhow::Context as _;
 use indexmap::IndexMap;
 use serde::{Deserialize, Serialize, ser::SerializeStruct as _};
 
@@ -7,9 +8,10 @@ use crate::{
     manifest::Str,
     patch::{ListType, PatchStrategy},
     resource::{Gvk, Object},
+    yaml,
 };
 
-const SPEC_V2_GZ: &[u8] = include_bytes!("./openapi-v2-kubernetes-1.32-minimized.json");
+const SPEC_1_32_V2: &[u8] = include_bytes!("./openapi-v2-kubernetes-1.32-minimized.json");
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct Spec {
@@ -89,10 +91,34 @@ impl fmt::Display for TypeMeta {
 }
 
 impl Spec {
-    pub fn load() -> &'static Self {
+    pub fn load(path: impl AsRef<path::Path>) -> anyhow::Result<Self> {
+        fn inner(path: &path::Path) -> anyhow::Result<Spec> {
+            match path.extension() {
+                Some(ext) if ext == "gz" => {
+                    let file = File::open(path).with_context(|| {
+                        format!("opening gzipped spec file at `{}`", path.display())
+                    })?;
+                    let reader = flate2::read::GzDecoder::new(file);
+                    yaml::from_reader(reader).with_context(|| {
+                        format!("parsing gzipped spec file at `{}`", path.display())
+                    })
+                }
+                _ => {
+                    let file = File::open(path)
+                        .with_context(|| format!("opening spec file at `{}`", path.display()))?;
+                    yaml::from_reader(file)
+                        .with_context(|| format!("parsing spec file at `{}`", path.display()))
+                }
+            }
+        }
+
+        inner(path.as_ref())
+    }
+
+    pub fn load_default() -> &'static Self {
         static CACHE: OnceLock<Spec> = OnceLock::new();
         CACHE.get_or_init(|| {
-            json::from_reader(SPEC_V2_GZ).expect("test should guarantee this is valid")
+            json::from_reader(SPEC_1_32_V2).expect("test should guarantee this is valid")
         })
     }
 
@@ -423,7 +449,7 @@ mod tests {
         )?;
 
         // Ensure the spec can be loaded
-        let loaded_spec = super::Spec::load();
+        let loaded_spec = super::Spec::load_default();
         let a = "/tmp/alice.json";
         let b = "/tmp/bob.json";
         if loaded_spec != &spec {
@@ -439,6 +465,6 @@ mod tests {
 
     #[test]
     fn check_openapi_spec() {
-        super::Spec::load();
+        super::Spec::load_default();
     }
 }
