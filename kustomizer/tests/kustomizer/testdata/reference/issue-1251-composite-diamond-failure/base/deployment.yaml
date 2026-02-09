@@ -1,0 +1,11 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: my-deployment
+spec:
+  template:
+    spec:
+      dnsPolicy: "None"
+      containers:
+      - name: my-deployment
+        image: my-image

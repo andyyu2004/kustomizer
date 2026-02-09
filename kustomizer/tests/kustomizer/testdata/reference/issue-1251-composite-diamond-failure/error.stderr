@@ -1,0 +1,4 @@
+failure merging resources from `dns` into `tests/kustomizer/testdata/reference/issue-1251-composite-diamond-failure/kustomization.yaml`
+
+Caused by:
+    may not add resource with an already registered id `apps.v1.Deployment/my-deployment`, consider specifying `merge` or `replace` behavior
