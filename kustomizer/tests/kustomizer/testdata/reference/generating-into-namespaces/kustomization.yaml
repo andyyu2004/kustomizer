@@ -1,0 +1,20 @@
+configMapGenerator:
+- name: test
+  namespace: default
+  literals:
+    - key=value
+- name: test
+  namespace: kube-system
+  literals:
+    - key=value
+secretGenerator:
+- name: test
+  namespace: default
+  literals:
+  - username=admin
+  - password=somepw
+- name: test
+  namespace: kube-system
+  literals:
+  - username=admin
+  - password=somepw
