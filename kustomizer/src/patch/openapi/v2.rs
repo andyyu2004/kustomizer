@@ -1,5 +1,6 @@
-use std::{collections::HashSet, fmt, str::FromStr, sync::OnceLock};
+use std::{collections::HashSet, fmt, fs::File, path, str::FromStr, sync::OnceLock};
 
+use anyhow::Context as _;
 use indexmap::IndexMap;
 use serde::{Deserialize, Serialize, ser::SerializeStruct as _};
 
@@ -7,13 +8,18 @@ use crate::{
     manifest::Str,
     patch::{ListType, PatchStrategy},
     resource::{Gvk, Object},
+    yaml,
 };
 
-const SPEC_V2_GZ: &[u8] = include_bytes!("./openapi-v2-kubernetes-1.32-minimized.json");
+const SPEC_1_32_V2: &[u8] = include_bytes!("./openapi-v2-kubernetes-1.32-minimized.json");
+
+static SCHEMA_OVERRIDE_PATH: OnceLock<path::PathBuf> = OnceLock::new();
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct Spec {
+    #[serde(default)]
     definitions: IndexMap<TypeMeta, Type>,
+    #[serde(default)]
     paths: IndexMap<String, Path>,
     #[serde(skip)]
     namespaced: OnceLock<HashSet<TypeMeta>>,
@@ -89,10 +95,58 @@ impl fmt::Display for TypeMeta {
 }
 
 impl Spec {
-    pub fn load() -> &'static Self {
+    pub fn load(path: impl AsRef<path::Path>) -> anyhow::Result<Self> {
+        fn inner(path: &path::Path) -> anyhow::Result<Spec> {
+            match path.extension() {
+                Some(ext) if ext == "gz" => {
+                    let file = File::open(path).with_context(|| {
+                        format!("opening gzipped spec file at `{}`", path.display())
+                    })?;
+                    let reader = flate2::read::GzDecoder::new(file);
+                    yaml::from_reader(reader).with_context(|| {
+                        format!("parsing gzipped spec file at `{}`", path.display())
+                    })
+                }
+                _ => {
+                    let file = File::open(path)
+                        .with_context(|| format!("opening spec file at `{}`", path.display()))?;
+                    yaml::from_reader(file)
+                        .with_context(|| format!("parsing spec file at `{}`", path.display()))
+                }
+            }
+        }
+
+        inner(path.as_ref())
+    }
+
+    pub fn set_global_default_path(path: impl AsRef<path::Path>) -> anyhow::Result<()> {
+        let path = path.as_ref();
+        let path = path.canonicalize().with_context(|| {
+            format!(
+                "canonicalizing global default spec path `{}`",
+                path.display()
+            )
+        })?;
+
+        SCHEMA_OVERRIDE_PATH.set(path).map_err(|_| {
+            anyhow::anyhow!(
+                "global default spec path is already set, `openapi.path` can only be set once"
+            )
+        })
+    }
+
+    pub fn load_global_default() -> &'static Self {
         static CACHE: OnceLock<Spec> = OnceLock::new();
         CACHE.get_or_init(|| {
-            json::from_reader(SPEC_V2_GZ).expect("test should guarantee this is valid")
+            if let Some(path) = SCHEMA_OVERRIDE_PATH.get() {
+                eprintln!(
+                    "Loading OpenAPI spec from override path: {}",
+                    path.display()
+                );
+                return Self::load(path).expect("failed to load OpenAPI spec from override path");
+            }
+
+            json::from_reader(SPEC_1_32_V2).expect("test should guarantee this is valid")
         })
     }
 
@@ -243,6 +297,14 @@ pub struct ArrayType {
         skip_serializing_if = "Option::is_none"
     )]
     pub list_map_keys: Option<Box<[Str]>>,
+
+    /// Same as `list_map_keys` but only supports a single key.
+    /// `list_map_keys` takes precedence over this if both are specified.
+    #[serde(
+        rename = "x-kubernetes-patch-merge-key",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub patch_merge_key: Option<Str>,
 }
 
 #[derive(Debug, PartialEq, Serialize)]
@@ -423,7 +485,7 @@ mod tests {
         )?;
 
         // Ensure the spec can be loaded
-        let loaded_spec = super::Spec::load();
+        let loaded_spec = super::Spec::load_global_default();
         let a = "/tmp/alice.json";
         let b = "/tmp/bob.json";
         if loaded_spec != &spec {
@@ -439,6 +501,6 @@ mod tests {
 
     #[test]
     fn check_openapi_spec() {
-        super::Spec::load();
+        super::Spec::load_global_default();
     }
 }

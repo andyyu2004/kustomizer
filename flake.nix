@@ -65,6 +65,7 @@
             sops
             dyff
             gotmpl.packages.${system}.default
+            cargo-nextest
           ];
 
           shellHook = ''

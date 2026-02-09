@@ -1,0 +1,2 @@
+# Ported from: kustomize/api/krusty/openapicustomschema_test.go - TestCustomOpenApiFieldFromBase
+name: openapi-custom-schema-from-base

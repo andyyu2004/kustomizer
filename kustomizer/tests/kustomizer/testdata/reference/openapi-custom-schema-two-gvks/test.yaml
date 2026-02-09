@@ -1,0 +1,2 @@
+# Ported from: kustomize/api/krusty/openapicustomschema_test.go - TestCustomOpenApiFieldWithTwoGvks
+name: openapi-custom-schema-two-gvks

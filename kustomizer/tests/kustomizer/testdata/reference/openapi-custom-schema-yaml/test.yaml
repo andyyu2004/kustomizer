@@ -1,0 +1,2 @@
+# Ported from: kustomize/api/krusty/openapicustomschema_test.go - TestCustomOpenApiFieldYaml
+name: openapi-custom-schema-yaml

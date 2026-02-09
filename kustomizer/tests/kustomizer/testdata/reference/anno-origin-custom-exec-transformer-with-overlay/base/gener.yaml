@@ -1,0 +1,8 @@
+kind: executable
+metadata:
+  name: demo
+  annotations:
+    config.kubernetes.io/function: |
+      exec:
+        path: ./generateDeployment.sh
+spec:

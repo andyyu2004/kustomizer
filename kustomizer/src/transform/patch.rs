@@ -76,7 +76,7 @@ impl<'a, A, K> PatchTransformer<'a, A, K> {
 
                 if !resource.all_ids().any(|id| {
                     let mut gvk = resource.gvk().clone();
-                    gvk.kind = id.kind.into();
+                    gvk.kind = id.kind.clone();
                     matcher.matches(&gvk) && id.name == patch.name()
                 }) {
                     return Ok(true);

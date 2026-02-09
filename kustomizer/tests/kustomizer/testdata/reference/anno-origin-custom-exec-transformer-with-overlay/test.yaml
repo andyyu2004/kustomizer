@@ -1,0 +1,3 @@
+# Ported from kustomize/api/krusty/transformerannotation_test.go:TestAnnoOriginCustomExecTransformerWithOverlay
+name: anno-origin-custom-exec-transformer-with-overlay
+path: prod

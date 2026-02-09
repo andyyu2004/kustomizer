@@ -1,4 +1,4 @@
-use std::{collections::HashSet, str::FromStr};
+use std::{collections::HashSet, slice, str::FromStr};
 
 use json::{Value, map::Entry};
 
@@ -43,7 +43,7 @@ type ShouldRetain = bool;
 
 #[tracing::instrument(skip_all, fields(resource = %base.id()))]
 pub fn merge_patch(base: &mut Resource, patch: Resource) -> anyhow::Result<ShouldRetain> {
-    let spec = Spec::load();
+    let spec = Spec::load_global_default();
     let schema = spec.schema_for(base.gvk());
     let (_patch_id, mut patch_root) = patch.into_parts();
 
@@ -51,12 +51,13 @@ pub fn merge_patch(base: &mut Resource, patch: Resource) -> anyhow::Result<Shoul
     // Don't want to overwrite the name and namespace of the base resource using the patch.
     metadata.remove("name");
     metadata.remove("namespace");
-    merge_obj(base.root_mut(), patch_root, schema)
+    merge_obj(base.root_mut(), patch_root, spec, schema)
 }
 
 fn merge_obj(
     base: &mut Object,
     mut patch: Object,
+    spec: &Spec,
     schema: Option<&ObjectType>,
 ) -> anyhow::Result<ShouldRetain> {
     let patch_strategy = if let Some(directive) = patch.get("$patch").and_then(|v| v.as_str()) {
@@ -87,7 +88,7 @@ fn merge_obj(
                     Entry::Vacant(entry) => drop(entry.insert(value)),
                     Entry::Occupied(mut entry) => {
                         let subschema = schema.and_then(|s| s.properties.get(entry.key()));
-                        if !merge(entry.get_mut(), value, subschema)? {
+                        if !merge(spec, entry.get_mut(), value, subschema)? {
                             entry.remove();
                         }
                     }
@@ -129,6 +130,7 @@ fn array_keys_match<'a>(
 fn merge_array(
     bases: &mut Vec<Value>,
     patches: Vec<Value>,
+    spec: &Spec,
     schema: Option<&ArrayType>,
 ) -> anyhow::Result<bool> {
     let strategy_of = |patch: &Value| {
@@ -180,13 +182,17 @@ fn merge_array(
     }
 
     match schema {
-        Some(schema) => match schema.list_map_keys.as_deref() {
+        Some(schema) => match schema
+            .list_map_keys
+            .as_deref()
+            .or(schema.patch_merge_key.as_ref().map(slice::from_ref))
+        {
             Some(keys) => {
                 for patch in patches {
                     if let Some(pos) = bases.iter().position(|base| {
                         array_keys_match(keys.iter().map(|s| s.as_str()), base, &patch)
                     }) {
-                        if !merge(&mut bases[pos], patch, Some(&schema.items))? {
+                        if !merge(spec, &mut bases[pos], patch, Some(&schema.items))? {
                             bases.remove(pos);
                         }
                     } else if is_non_delete_patch(&patch)
@@ -238,19 +244,20 @@ fn merge_array(
 }
 
 fn merge(
+    spec: &Spec,
     base: &mut Value,
     patch: Value,
     schema: Option<&InlineOrRef<Box<Type>>>,
 ) -> anyhow::Result<ShouldRetain> {
-    let schema = schema.map(|s| Spec::load().resolve(s));
+    let schema = schema.map(|s| spec.resolve(s));
     match (base, patch) {
         (Value::Object(base), Value::Object(patch)) => match schema {
-            Some(Type::Object(schema)) => merge_obj(base, patch, Some(schema)),
-            _ => merge_obj(base, patch, None),
+            Some(Type::Object(schema)) => merge_obj(base, patch, spec, Some(schema)),
+            _ => merge_obj(base, patch, spec, None),
         },
         (Value::Array(base), Value::Array(patch)) => match schema {
-            Some(Type::Array(schema)) => merge_array(base, patch, Some(schema)),
-            _ => merge_array(base, patch, None),
+            Some(Type::Array(schema)) => merge_array(base, patch, spec, Some(schema)),
+            _ => merge_array(base, patch, spec, None),
         },
         (base, patch) => {
             *base = patch;
