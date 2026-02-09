@@ -1,0 +1,7 @@
+resources:
+- serviceaccount.yaml
+- rolebinding.yaml
+- clusterrolebinding.yaml
+- clusterrole.yaml
+namePrefix: pfx-
+nameSuffix: -sfx

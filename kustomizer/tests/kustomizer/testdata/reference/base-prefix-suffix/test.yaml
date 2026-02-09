@@ -1,0 +1,2 @@
+name: base-prefix-suffix
+# Source: kustomize/api/krusty/resourceconflict_test.go::TestBase
