@@ -1,0 +1,3 @@
+name: kustomization-sort-order-not-set
+# Source: kustomize/api/krusty/sortordertransformer_test.go::TestKustomizationSortOrderNotSet
+# Note: This test verifies default legacy sort ordering when sortOptions not set
