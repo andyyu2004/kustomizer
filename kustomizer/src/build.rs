@@ -251,29 +251,15 @@ impl Builder {
             }))
             .await?;
 
+        // Collect all namespace renames from nested builds (bases/components)
+        let mut all_namespace_renames = Vec::new();
+
         for (path, resource) in resources {
             match resource {
                 Either::Left(res) => resmap.extend(res),
                 Either::Right((rs, nested_renames)) => {
-                    // Apply only namespace-only renames to existing resources before merging.
-                    // Name changes (from namePrefix/nameSuffix) are local to the nested build
-                    // and should not affect resources from other subtrees.
-                    let namespace_renames: Vec<_> = nested_renames
-                        .into_iter()
-                        .filter(|r| r.is_namespace_only())
-                        .collect();
-
-                    if !namespace_renames.is_empty() {
-                        RenameTransformer::new(RefSpecs::load_builtin(), &namespace_renames)
-                            .transform(&mut resmap)
-                            .await
-                            .with_context(|| {
-                                format!(
-                                    "applying namespace renames from `{}` to existing resources",
-                                    path.pretty()
-                                )
-                            })?;
-                    }
+                    all_namespace_renames
+                        .extend(nested_renames.into_iter().filter(|r| r.is_namespace_only()));
                     resmap.merge(rs)
                 }
             }
@@ -284,6 +270,15 @@ impl Builder {
                     kustomization.path.pretty()
                 )
             })?
+        }
+
+        // Apply all collected namespace renames to the complete resource map.
+        // This ensures references in resources loaded after bases can be updated.
+        if !all_namespace_renames.is_empty() {
+            RenameTransformer::new(RefSpecs::load_builtin(), &all_namespace_renames)
+                .transform(&mut resmap)
+                .await
+                .context("applying namespace renames from bases to current layer resources")?;
         }
 
         Ok(resmap)

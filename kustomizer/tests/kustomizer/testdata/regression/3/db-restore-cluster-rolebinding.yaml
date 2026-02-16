@@ -1,0 +1,12 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: db-restore
+subjects:
+  - kind: ServiceAccount
+    name: db-restore
+roleRef:
+  # staging has resources in multiple namespaces, so we need a ClusterRole
+  kind: ClusterRole
+  name: db-restore-deleter
+  apiGroup: rbac.authorization.k8s.io
