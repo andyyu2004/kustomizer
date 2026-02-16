@@ -24,6 +24,7 @@ impl Transformer for NamespaceTransformer {
         for mut resource in std::mem::take(resources) {
             // Apply defaultOnly subject transformation: only ServiceAccount subjects named "default"
             // get their namespace updated. This matches kustomize's default behavior.
+            // Other references are updated by the RenameTransformer when resources are renamed.
             self.apply_default_subject_transformation(builtin, &mut resource, &target_namespace)?;
 
             // Transform the resource itself based on its type

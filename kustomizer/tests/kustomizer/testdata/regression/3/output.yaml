@@ -89,6 +89,7 @@ metadata:
 subjects:
   - kind: ServiceAccount
     name: db-restore
+    namespace: bob
 roleRef:
   kind: ClusterRole
   name: db-restore-deleter
