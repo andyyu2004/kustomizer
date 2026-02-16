@@ -1,0 +1,8 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: db-restore-deleter
+rules:
+  - apiGroups: ["*"]
+    resources: ["*"]
+    verbs: ["delete", "list", "get"] # list/get often needed for delete operations

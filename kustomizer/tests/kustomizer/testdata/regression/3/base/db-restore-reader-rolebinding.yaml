@@ -1,0 +1,11 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: db-restore-reader
+subjects:
+  - kind: ServiceAccount
+    name: db-restore
+roleRef:
+  kind: Role
+  name: db-restore-reader
+  apiGroup: rbac.authorization.k8s.io

@@ -1,0 +1,111 @@
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: db-restore
+  namespace: bob
+  labels:
+    app.kubernetes.io/name: db-restore
+    app.kubernetes.io/instance: db-restore-staging-au
+  annotations:
+    iam.gke.io/gcp-service-account: db-restore@partly-staging-au.iam.gserviceaccount.com
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: db-restore-reader
+  namespace: bob
+  labels:
+    app.kubernetes.io/name: db-restore
+    app.kubernetes.io/instance: db-restore-staging-au
+subjects:
+  - kind: ServiceAccount
+    name: db-restore
+    namespace: bob
+roleRef:
+  kind: Role
+  name: db-restore-reader
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: db-restore-reader
+  namespace: bob
+  labels:
+    app.kubernetes.io/name: db-restore
+    app.kubernetes.io/instance: db-restore-staging-au
+rules:
+  - apiGroups:
+      - "*"
+    resources:
+      - "*"
+    verbs:
+      - get
+      - list
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: db-restore-cm-creator
+  namespace: bob
+  labels:
+    app.kubernetes.io/name: db-restore
+    app.kubernetes.io/instance: db-restore-staging-au
+subjects:
+  - kind: ServiceAccount
+    name: db-restore
+    namespace: bob
+roleRef:
+  kind: Role
+  name: db-restore-cm-creator
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: db-restore-cm-creator
+  namespace: bob
+  labels:
+    app.kubernetes.io/name: db-restore
+    app.kubernetes.io/instance: db-restore-staging-au
+rules:
+  - apiGroups:
+      - ""
+    resources:
+      - configmaps
+    verbs:
+      - create
+      - update
+      - patch
+      - delete
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: db-restore
+  labels:
+    app.kubernetes.io/instance: db-restore-staging-au
+subjects:
+  - kind: ServiceAccount
+    name: db-restore
+roleRef:
+  kind: ClusterRole
+  name: db-restore-deleter
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: db-restore-deleter
+  labels:
+    app.kubernetes.io/instance: db-restore-staging-au
+rules:
+  - apiGroups:
+      - "*"
+    resources:
+      - "*"
+    verbs:
+      - delete
+      - list
+      - get
