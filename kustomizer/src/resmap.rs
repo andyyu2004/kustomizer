@@ -134,7 +134,8 @@ impl ResourceMap {
                         .remove(annotation::BEHAVIOR);
 
                     let existing_id = existing.id().clone();
-                    let resource = resource.with_namespace(existing_id.namespace.clone());
+                    let mut resource = resource.with_namespace(existing_id.namespace.clone());
+                    resource.merge_metadata(existing)?;
 
                     assert!(self.resources.insert(existing_id, resource).is_some());
                 }

@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-config
+  labels:
+    base-label: from-base
+    environment: production
+    overlay-label: from-overlay
+  annotations:
+    version: "2.0"
+    managed-by: kustomize-base
+    overlay-annotation: from-overlay
+    base-annotation: from-base
+data:
+  overlay-key: overlay-value
+  shared-key: from-overlay
