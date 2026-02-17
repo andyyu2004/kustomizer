@@ -1,0 +1,5 @@
+# Source: TestUnrelatedNameReferenceReplacement_Issue4254_Issue3418 from namereference_test.go
+# Tests that unrelated name references should not be replaced
+# The cluster-autoscaler lease name in ClusterRole should NOT be changed just
+# because a ConfigMap with the same name is generated with a hash suffix
+kind: success
