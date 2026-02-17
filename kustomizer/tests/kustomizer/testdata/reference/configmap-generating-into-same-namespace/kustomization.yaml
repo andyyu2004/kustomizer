@@ -1,0 +1,8 @@
+configMapGenerator:
+- name: test
+  namespace: default
+  literals:
+  - key=value
+- name: test
+  literals:
+  - key=value
