@@ -1,0 +1,2 @@
+# Source: TestSimpleMultiplePatches from multiplepatch_test.go:630
+# Tests applying multiple strategic merge patches in an overlay
