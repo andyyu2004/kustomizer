@@ -125,9 +125,9 @@
       kind: CronJob
     - path: spec/configSource/configMap
       kind: Node
-    - path: rules[]/resourceNames
+    - path: rules[]/resourceNames[]
       kind: Role
-    - path: rules[]/resourceNames
+    - path: rules[]/resourceNames[]
       kind: ClusterRole
     - path: metadata/annotations/nginx.ingress.kubernetes.io\/fastcgi-params-configmap
       kind: Ingress
@@ -274,9 +274,9 @@
       kind: StorageClass
     - path: parameters/secretRef
       kind: StorageClass
-    - path: rules[]/resourceNames
+    - path: rules[]/resourceNames[]
       kind: Role
-    - path: rules[]/resourceNames
+    - path: rules[]/resourceNames[]
       kind: ClusterRole
     - path: spec/template/spec/containers[]/env[]/valueFrom/secretKeyRef/name
       kind: Service
@@ -373,7 +373,7 @@
   referrers:
     - path: spec/volumeName
       kind: PersistentVolumeClaim
-    - path: rules[]/resourceNames
+    - path: rules[]/resourceNames[]
       kind: ClusterRole
 
 - kind: StorageClass
