@@ -139,7 +139,11 @@ pub struct ImageTag {
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct Generator {
-    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[serde(
+        default = "empty_namespace",
+        deserialize_with = "deserialize_generator_namespace",
+        skip_serializing_if = "is_empty_namespace"
+    )]
     pub namespace: Option<Str>,
     pub name: Str,
     #[serde(default)]
@@ -150,11 +154,32 @@ pub struct Generator {
     pub options: GeneratorOptions,
 }
 
+fn empty_namespace() -> Option<Str> {
+    Some(Str::from(""))
+}
+
+fn is_empty_namespace(ns: &Option<Str>) -> bool {
+    matches!(ns, Some(s) if s.is_empty())
+}
+
+fn deserialize_generator_namespace<'de, D>(deserializer: D) -> Result<Option<Str>, D::Error>
+where
+    D: serde::Deserializer<'de>,
+{
+    let ns = Option::<Str>::deserialize(deserializer)?;
+    // Normalize "default" to empty string to match kustomize behavior
+    Ok(ns.map(|s| if &*s == "default" { Str::from("") } else { s }))
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize)]
 pub struct SecretGenerator {
     #[serde(default, rename = "type")]
     pub ty: SecretType,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[serde(
+        default = "empty_namespace",
+        deserialize_with = "deserialize_generator_namespace",
+        skip_serializing_if = "is_empty_namespace"
+    )]
     pub namespace: Option<Str>,
     pub name: Str,
     #[serde(default)]

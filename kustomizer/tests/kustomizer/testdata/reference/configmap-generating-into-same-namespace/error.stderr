@@ -1,0 +1,6 @@
+failure merging resources from configmap generators in `tests/kustomizer/testdata/reference/configmap-generating-into-same-namespace/kustomization.yaml`
+
+Caused by:
+    id v1.ConfigMap/test. exists; behavior must be merge or replace
+---
+Error: merging from generator &{0x40002bb5f0 <nil>}: id resid.ResId{Gvk:resid.Gvk{Group:"", Version:"v1", Kind:"ConfigMap", isClusterScoped:false}, Name:"test", Namespace:""} exists; behavior must be merge or replace

@@ -104,7 +104,7 @@ impl ResourceMap {
             (Some(existing), None) => match behavior {
                 Behavior::Create => {
                     bail!(
-                        "may not add resource with an already registered id `{}`, consider specifying `merge` or `replace` behavior",
+                        "id {} exists; behavior must be merge or replace",
                         resource.id()
                     )
                 }

@@ -1,0 +1,10 @@
+secretGenerator:
+- name: test
+  namespace: default
+  literals:
+  - username=admin
+  - password=somepw
+- name: test
+  literals:
+  - username=admin
+  - password=somepw

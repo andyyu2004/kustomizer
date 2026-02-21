@@ -1,0 +1,3 @@
+name: secret-generating-into-same-namespace
+# Source: kustomize/api/krusty/generatormergeandreplace_test.go::TestSecretGeneratingIntoSameNamespace
+error: "behavior must be merge or replace"
