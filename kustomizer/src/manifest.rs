@@ -453,27 +453,28 @@ pub struct JsonPatch6902 {
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
-#[serde(rename_all = "camelCase", deny_unknown_fields)]
-pub enum Target {
-    LabelSelector(Selector),
-    AnnotationSelector(Selector),
-    #[serde(untagged)]
-    Pattern(Pattern),
+#[serde(rename_all = "camelCase")]
+pub struct Target {
+    label_selector: Option<Selector>,
+    annotation_selector: Option<Selector>,
+    #[serde(flatten)]
+    pattern: Pattern,
 }
 
 impl Target {
     pub fn matches(&self, resource: &Resource) -> bool {
-        match self {
-            Target::LabelSelector(selector) => selector.matches(resource.labels().as_ref()),
-            Target::AnnotationSelector(selector) => {
-                selector.matches(resource.annotations().as_ref())
-            }
-            Target::Pattern(pat) => pat.matches(resource),
-        }
+        self.label_selector
+            .as_ref()
+            .is_none_or(|sel| sel.matches(resource.labels().as_ref()))
+            && self
+                .annotation_selector
+                .as_ref()
+                .is_none_or(|sel| sel.matches(resource.annotations().as_ref()))
+            && self.pattern.matches(resource)
     }
 }
 
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize, Default)]
 pub struct Pattern {
     #[serde(
         with = "crate::serde_ex::opt_regex",
