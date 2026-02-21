@@ -1,0 +1,6 @@
+failure merging resources from secret generators in `tests/kustomizer/testdata/reference/secret-generating-into-same-namespace/kustomization.yaml`
+
+Caused by:
+    id v1.Secret/test exists; behavior must be merge or replace
+---
+Error: merging from generator &{0x40004c80e0 <nil>}: id resid.ResId{Gvk:resid.Gvk{Group:"", Version:"v1", Kind:"Secret", isClusterScoped:false}, Name:"test", Namespace:""} exists; behavior must be merge or replace

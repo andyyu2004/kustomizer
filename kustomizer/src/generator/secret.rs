@@ -78,6 +78,9 @@ impl SecretGenerator<'_> {
 
         root.insert("type".into(), json::Value::String(generator.ty.to_string()));
 
+        // Convert empty namespace to None for resource output
+        let namespace = generator.namespace.as_ref().filter(|s| !s.is_empty()).cloned();
+
         let secret = Resource::new(
             ResId {
                 gvk: Gvk {
@@ -86,11 +89,11 @@ impl SecretGenerator<'_> {
                     kind: "Secret".into(),
                 },
                 name: Default::default(),
-                namespace: generator.namespace.clone(),
+                namespace: namespace.clone(),
             },
             Metadata {
                 name: Default::default(),
-                namespace: generator.namespace.clone(),
+                namespace,
                 annotations: Annotations {
                     behavior: Some(generator.behavior),
                     rest: annotations,

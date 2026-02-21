@@ -1,3 +1,4 @@
 name: configmap-generating-into-same-namespace
+kind: fail
 # Source: kustomize/api/krusty/generatormergeandreplace_test.go::TestConfigMapGeneratingIntoSameNamespace
 error: "behavior must be merge or replace"

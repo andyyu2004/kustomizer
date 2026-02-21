@@ -1,6 +1,6 @@
 failure merging resources from `service.yaml` into `tests/kustomizer/testdata/overlay-replace-fail/kustomization.yaml`
 
 Caused by:
-    may not add resource with an already registered id `v1.Service/test-service`, consider specifying `merge` or `replace` behavior
+    id v1.Service/test-service exists; behavior must be merge or replace
 ---
 Error: accumulating resources: accumulation err='merging resources from 'service.yaml': may not add resource with an already registered id: Service.v1.[noGrp]/test-service.[noNs]': must build at directory: '<dir>/tests/kustomizer/testdata/overlay-replace-fail/service.yaml': file is not directory

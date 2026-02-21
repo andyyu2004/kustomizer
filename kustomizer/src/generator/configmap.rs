@@ -126,6 +126,9 @@ impl ConfigMapGenerator<'_> {
             root.insert("immutable".into(), json::Value::Bool(true));
         }
 
+        // Convert empty namespace to None for resource output
+        let namespace = generator.namespace.as_ref().filter(|s| !s.is_empty()).cloned();
+
         let config_map = Resource::new(
             ResId {
                 gvk: Gvk {
@@ -134,11 +137,11 @@ impl ConfigMapGenerator<'_> {
                     kind: "ConfigMap".into(),
                 },
                 name: Default::default(),
-                namespace: generator.namespace.clone(),
+                namespace: namespace.clone(),
             },
             Metadata {
                 name: Default::default(),
-                namespace: generator.namespace.clone(),
+                namespace,
                 annotations: Annotations {
                     behavior: Some(generator.behavior),
                     rest: annotations,
