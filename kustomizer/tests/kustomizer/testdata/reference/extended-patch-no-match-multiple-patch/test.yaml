@@ -1,0 +1,2 @@
+name: extended-patch-no-match-multiple-patch
+# Source: kustomize/api/krusty/extendedpatch_test.go::TestExtendedPatchNoMatchMultiplePatch
