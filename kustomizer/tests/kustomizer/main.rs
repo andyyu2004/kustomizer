@@ -1,6 +1,7 @@
 use kustomizer::{
     PathExt,
     dbg::{diff_reference_impl, format_chunks},
+    manifest::Str,
     yaml,
 };
 use std::path::Path;
@@ -12,7 +13,11 @@ datatest_stable::harness! {
 }
 
 #[derive(Debug, serde::Deserialize)]
+#[serde(deny_unknown_fields)]
 struct TestManifest {
+    #[serde(default)]
+    #[allow(dead_code)]
+    name: Str,
     #[serde(default)]
     kind: TestKind,
 }
@@ -32,7 +37,7 @@ async fn test(path: &Path) -> datatest_stable::Result<()> {
     let error_snapshot_path = base_path.join("error").with_extension("stderr");
 
     let data = std::fs::read_to_string(path).context("reading test manifest")?;
-    let TestManifest { kind } = yaml::from_str(&data).context("parsing test manifest")?;
+    let TestManifest { name: _, kind } = yaml::from_str(&data).context("parsing test manifest")?;
 
     let res = kustomizer::build(base_path).await;
 
