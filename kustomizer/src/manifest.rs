@@ -475,8 +475,12 @@ impl Target {
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct Pattern {
-    #[serde(with = "crate::serde_ex::regex")]
-    pub kind: Regex,
+    #[serde(
+        with = "crate::serde_ex::opt_regex",
+        default,
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub kind: Option<Regex>,
     #[serde(
         with = "crate::serde_ex::opt_regex",
         default,
@@ -494,7 +498,7 @@ pub struct Pattern {
 impl Pattern {
     pub fn matches(&self, resource: &Resource) -> bool {
         resource.any_id_matches(|id| {
-            self.kind.is_match(&id.kind)
+            self.kind.as_ref().is_none_or(|re| re.is_match(&id.kind))
                 && self.name.as_ref().is_none_or(|re| re.is_match(&id.name))
                 && self
                     .namespace
