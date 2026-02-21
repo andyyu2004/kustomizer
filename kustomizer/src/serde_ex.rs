@@ -1,3 +1,4 @@
+#[allow(dead_code)]
 pub mod regex {
     use ::regex::Regex;
     use serde::{Deserialize, Deserializer, Serializer};

@@ -1,0 +1,11 @@
+resources:
+- deployment.yaml
+- service.yaml
+patches:
+- path: patch.yaml
+  target:
+    name: no-match
+- path: patch.yaml
+  target:
+    name: busybox
+    kind: Job
