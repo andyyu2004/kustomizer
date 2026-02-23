@@ -2,6 +2,11 @@
 name = "kustomizer"
 version = "0.1.4"
 edition = "2024"
+description = "A fast kustomize implementation in Rust"
+license = "MIT"
+repository = "https://github.com/andyyu2004/kustomizer"
+keywords = ["kubernetes", "kustomize", "k8s"]
+categories = ["command-line-utilities"]
 
 [dependencies]
 anyhow = "1.0.98"
