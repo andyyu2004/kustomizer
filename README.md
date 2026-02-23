@@ -54,6 +54,23 @@ Builds the kustomization and diffs the output against the reference `kustomize` 
 kustomizer debug diff-reference <directory>
 ```
 
+## Performance
+
+~20x faster than kustomize on a semi-realistic configuration (measured with [hyperfine](https://github.com/sharkdp/hyperfine)).
+
+| Command            | Mean                | Range                |
+|--------------------|---------------------|----------------------|
+| `kustomize build`  | 1.599 s ± 0.297 s   | 1.031 s … 1.866 s   |
+| `kustomizer build` | 83.6 ms ± 11.1 ms   | 66.8 ms … 110.3 ms  |
+
+Reproduce with the test fixture in this repo:
+
+```sh
+KFLAGS='--load-restrictor LoadRestrictionsNone --enable-alpha-plugins --enable-exec'
+DIR='kustomizer/tests/kustomizer/testdata/realistic/example-com/envs/production'
+hyperfine --warmup 3 "kustomize build $KFLAGS $DIR" "kustomizer build $KFLAGS $DIR"
+```
+
 ## Bug Reports
 
 Please [open an issue](https://github.com/andyyu2004/kustomizer/issues/new) with a self-contained shell script in a code block that reproduces the problem. The script should write out the necessary files and run `kustomizer debug diff-reference` to show the discrepancy. For example:
