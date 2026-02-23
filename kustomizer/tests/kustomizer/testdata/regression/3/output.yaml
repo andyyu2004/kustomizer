@@ -8,7 +8,7 @@ metadata:
     app.kubernetes.io/name: db-restore
     app.kubernetes.io/instance: db-restore-staging-au
   annotations:
-    iam.gke.io/gcp-service-account: db-restore@partly-staging-au.iam.gserviceaccount.com
+    iam.gke.io/gcp-service-account: db-restore@example.iam.gserviceaccount.com
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
