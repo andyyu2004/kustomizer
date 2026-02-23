@@ -54,6 +54,40 @@ Builds the kustomization and diffs the output against the reference `kustomize` 
 kustomizer debug diff-reference <directory>
 ```
 
+## Bug Reports
+
+Please [open an issue](https://github.com/andyyu2004/kustomizer/issues/new) with a self-contained shell script in a code block that reproduces the problem. The script should write out the necessary files and run `kustomizer debug diff-reference` to show the discrepancy. For example:
+
+````sh
+#!/bin/sh
+set -e
+dir=$(mktemp -d)
+trap 'rm -rf "$dir"' EXIT
+
+mkdir -p "$dir/base"
+
+cat > "$dir/base/kustomization.yaml" << 'EOF'
+resources:
+  - deployment.yaml
+namePrefix: dev-
+EOF
+
+cat > "$dir/base/deployment.yaml" << 'EOF'
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app
+spec:
+  replicas: 1
+EOF
+
+kustomizer debug diff-reference "$dir/base"
+````
+
+## Contributing
+
+Contributions are welcome. Please open an issue before submitting large changes.
+
 ## License
 
 [MIT](LICENSE)
