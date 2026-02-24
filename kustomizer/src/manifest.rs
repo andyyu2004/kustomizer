@@ -90,7 +90,7 @@ pub struct OpenApi {
 /// This type always serializes to a string, but can deserialize from any of those three types.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 #[serde(transparent)]
-pub struct Annotation(pub Str);
+pub struct Annotation(pub Option<Str>);
 
 impl<'de> Deserialize<'de> for Annotation {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
@@ -101,15 +101,17 @@ impl<'de> Deserialize<'de> for Annotation {
         #[serde(untagged)]
         enum Ann {
             Bool(bool),
-            String(Str),
+            Str(Str),
             Number(json::Number),
+            Null,
         }
 
         let ann = Ann::deserialize(deserializer)?;
         let s = match ann {
-            Ann::Bool(b) => b.to_compact_string(),
-            Ann::String(s) => s,
-            Ann::Number(n) => n.to_compact_string(),
+            Ann::Bool(b) => Some(b.to_compact_string()),
+            Ann::Str(s) => Some(s),
+            Ann::Number(n) => Some(n.to_string().into()),
+            Ann::Null => None,
         };
         Ok(Annotation(s))
     }

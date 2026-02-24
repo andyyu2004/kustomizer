@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: my-app
+  annotations:
+    existing-annotation: from-base
+    remove-me: ""
+spec:
+  selector:
+    matchLabels:
+      app: my-app
+  template:
+    metadata:
+      labels:
+        app: my-app
+      annotations:
+        existing-annotation: from-base
+        remove-me: ""
+    spec:
+      containers:
+        - name: app
+          image: nginx
