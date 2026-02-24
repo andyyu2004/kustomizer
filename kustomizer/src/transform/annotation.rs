@@ -22,7 +22,13 @@ impl Transformer for AnnotationTransformer<'_> {
         for resource in resources.iter_mut() {
             field_specs.apply::<Object>(resource, |annotations| {
                 for (key, value) in self.0 {
-                    annotations.insert(key.to_string(), json::Value::String(value.0.to_string()));
+                    match &value.0 {
+                        Some(value) => drop(
+                            annotations
+                                .insert(key.to_string(), json::Value::String(value.to_string())),
+                        ),
+                        None => drop(annotations.remove(key.as_str())),
+                    }
                 }
                 Ok(())
             })?;
