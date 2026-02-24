@@ -1,0 +1,15 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# kustomize builds serially (5s), but kustomizer builds concurrently (500ms).
+generators:
+  - slow-generator-1.yaml
+  - slow-generator-2.yaml
+  - slow-generator-3.yaml
+  - slow-generator-4.yaml
+  - slow-generator-5.yaml
+  - slow-generator-6.yaml
+  - slow-generator-7.yaml
+  - slow-generator-8.yaml
+  - slow-generator-9.yaml
+  - slow-generator-10.yaml
