@@ -1,0 +1,21 @@
+apiVersion: pgroles.io/v1alpha1
+kind: PostgresPolicy
+metadata:
+  name: test-policy
+spec:
+  profiles:
+    editor:
+      grants:
+        - on: {type: schema}
+          privileges: [USAGE]
+        - on: {type: table, name: "*"}
+          privileges: [SELECT, INSERT, UPDATE, DELETE]
+  roles:
+    - name: app_analytics
+      login: true
+    - name: some_viewer
+  memberships:
+    - role: editor
+      members:
+        - {name: app_analytics}
+        - {name: some_viewer, inherit: false}
