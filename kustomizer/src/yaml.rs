@@ -2,32 +2,46 @@ use std::io::Read;
 
 use serde::de::DeserializeOwned;
 
+/// Default options for YAML deserialization.
+///
+/// Uses `strict_booleans` (YAML 1.2 behavior) so that only `true`/`false` are
+/// parsed as booleans. YAML 1.1 forms like `on`/`off`/`yes`/`no` are treated
+/// as plain strings, avoiding the "Norway problem" and ensuring non-string map
+/// keys don't appear when these words are used as field names (e.g. `on:` in
+/// Kubernetes CRDs).
+fn options() -> serde_saphyr::Options {
+    serde_saphyr::Options {
+        strict_booleans: true,
+        ..Default::default()
+    }
+}
+
 pub fn from_str<T>(s: &str) -> anyhow::Result<T>
 where
     T: DeserializeOwned,
 {
-    serde_saphyr::from_str(s).map_err(Into::into)
+    serde_saphyr::from_str_with_options(s, options()).map_err(Into::into)
 }
 
 pub fn from_slice<T>(s: &[u8]) -> anyhow::Result<T>
 where
     T: DeserializeOwned,
 {
-    serde_saphyr::from_slice(s).map_err(Into::into)
+    serde_saphyr::from_slice_with_options(s, options()).map_err(Into::into)
 }
 
 pub fn from_reader<T>(reader: impl Read) -> anyhow::Result<T>
 where
     T: DeserializeOwned,
 {
-    serde_saphyr::from_reader(reader).map_err(Into::into)
+    serde_saphyr::from_reader_with_options(reader, options()).map_err(Into::into)
 }
 
 pub fn from_reader_multi<T>(mut reader: impl Read) -> anyhow::Result<Box<[T]>>
 where
     T: DeserializeOwned,
 {
-    serde_saphyr::read(&mut reader)
+    serde_saphyr::read_with_options(&mut reader, options())
         .map(|res| res.map_err(Into::into))
         .collect()
 }
